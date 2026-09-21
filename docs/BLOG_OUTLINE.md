@@ -28,7 +28,7 @@ exposure error of $0, and it refuses to guess when the evidence is ambiguous.
 ## 3. Architecture (300 words)
 - Fig. 3: architecture diagram (trigger, orchestrator, tool loop, graph, policy engine, memory, answer file, UI stream).
 - Two-stage scoring: stage 1 scores each transaction in isolation; stage 2 judges it *in context* (neighbours, timing, shared device, region, product) and decides which transactions belong to one fraud episode.
-- Policy engine: rules R1 to R10, exposure thresholds, stop rule, approval routing. 27 unit tests, one per rule.
+- Policy engine: rules R1 to R10, exposure thresholds, stop rule, approval routing. 30 unit tests covering every rule and the verify-before-block boundary.
 - Pattern detectors as graph/sequence queries: device ring, threshold structuring, card-testing sequence, recurring-charge test.
 
 ## 4. How TigerGraph is used  *(fill from the real implementation)*
@@ -59,6 +59,7 @@ exposure error of $0, and it refuses to guess when the evidence is ambiguous.
 5. **Raw device sharing is noise.** Common devices sit on hundreds of cards. The ring is rare *and* always New *and* always behind a proxy.
 6. **Use exact rules where the labels are exact.** Channel mix and `New` device determine four of the five documented patterns perfectly; a classifier is needed only for in-person account takeover vs out-of-region use.
 7. **A false "recurring charge".** Our first test called HHG-003 a subscription (gaps of 20 and 25 days); tightening to true monthly gaps removed it. Plausible-looking rules need a counter-check.
+8. **We stopped too early.** Our first ladder blocked at p >= 0.70, before the policy's own stop rule (p >= 0.85 with two independent evidence items). Moving the boundary halved wrongful blocks before verification (7% to 4% on identical samples) and made the recommendation visibly change after evidence, without touching accuracy.
 
 ## 8. Limitations, said plainly (150 words)
 - Simulated customer replies: they follow the agent's own belief, so they cannot validate it.
