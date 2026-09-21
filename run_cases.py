@@ -9,8 +9,11 @@ import argparse
 import json
 from pathlib import Path
 
-from agent.backend import LocalBackend
-from agent.memory import LocalCaseMemory
+import os
+
+import pandas as pd
+
+from agent.backend_factory import make_backend
 from agent.orchestrator import Orchestrator
 
 
@@ -21,11 +24,13 @@ def main() -> None:
     ap.add_argument("--no-memory", action="store_true")
     a = ap.parse_args()
 
-    backend = LocalBackend("final")
-    orch = Orchestrator(backend, None if a.no_memory else LocalCaseMemory())
+    backend, memory, name = make_backend()           # GRAPHSLEUTH_BACKEND=tigergraph switches to the TigerGraph backend
+    print(f"backend: {name}")
+    orch = Orchestrator(backend, None if a.no_memory else memory)
     out = Path(a.out)
     out.mkdir(exist_ok=True)
-    pack = backend.query("SELECT * FROM case_pack ORDER BY case_id").to_dict("records")
+    data_dir = os.getenv("DATA_DIR", "../dataset/HHGOA_IEEE")
+    pack = pd.read_csv(f"{data_dir}/case_pack.csv").sort_values("case_id").to_dict("records")
     for t in pack:
         if a.case and t["case_id"] != a.case:
             continue

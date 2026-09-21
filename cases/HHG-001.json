@@ -126,5 +126,5 @@
   "stop_reason": "Evidence remains ambiguous after the graph and history checks and no reply is assumed; the recommendation is monitoring and escalation rather than a forced verdict.",
   "tool_calls": 8,
   "tokens": 0,
-  "latency_s": 0.09
+  "latency_s": 0.15
 }

@@ -37,6 +37,19 @@ Pick a case and press **Investigate** to watch each tool call stream in, then re
 actions with their approval routes (L1/L2 actions wait for a human: Approve / Reject), the evidence graph, the
 transaction timeline and the suspicious activity report.
 
+## TigerGraph backend
+The agent talks to the graph through one interface (`agent/backend.py`). `GRAPHSLEUTH_BACKEND=tigergraph` switches it to
+`agent/tg_backend.py`, which calls the installed GSQL queries in `graph/queries.gsql`:
+```bash
+python -m data.export_tg                       # writes load-ready CSVs to data/store/tg/
+# on the Savanna workspace: schema, load, queries
+gsql graph/schema.gsql && gsql -g GraphSleuth graph/load.gsql && gsql -g GraphSleuth graph/queries.gsql
+gsql -g GraphSleuth "INSTALL QUERY ALL"
+GRAPHSLEUTH_BACKEND=tigergraph python run_cases.py        # then: pytest tests/test_tg_live.py
+```
+Status: the schema and all 13 queries were type-checked against a real TigerGraph 4.2.5. The backend class is unit-tested
+against a fake connection only; it has not yet run against a live instance (`tests/test_tg_live.py` will verify it).
+
 ## Quick start
 ```bash
 python3.11 -m venv .venv && .venv/bin/pip install -r requirements.txt

@@ -17,6 +17,7 @@ from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
 
 from agent.backend import LocalBackend, _clean
+from agent.backend_factory import make_backend
 from agent.memory import LocalCaseMemory
 from agent.orchestrator import Orchestrator
 
@@ -26,7 +27,11 @@ APPROVALS = ROOT / "data" / "store" / "approvals.json"
 
 app = FastAPI(title="GraphSleuth")
 _lock = threading.Lock()
-_memory = LocalCaseMemory()
+import os
+
+_TG = os.getenv("GRAPHSLEUTH_BACKEND", "local").lower() == "tigergraph"
+_shared = make_backend() if _TG else None          # TigerGraph connections are shared; DuckDB ones are per request (thread safety)
+_memory = _shared[1] if _TG else LocalCaseMemory()
 _pack: dict[str, dict] = {}
 
 
@@ -50,7 +55,7 @@ def load_approvals() -> dict:
 
 @app.get("/api/meta")
 def meta():
-    return {"backend": "local-duckdb", "tigergraph": False, "cases": len(pack())}
+    return {"backend": "tigergraph" if _TG else "local-duckdb", "tigergraph": _TG, "cases": len(pack())}
 
 
 @app.get("/api/cases")
@@ -131,7 +136,7 @@ async def run_case(cid: str, pace: float = 0.0):
 
     def work() -> None:
         try:
-            orch = Orchestrator(LocalBackend("final"), _memory)
+            orch = Orchestrator(_shared[0] if _TG else LocalBackend("final"), _memory)
 
             def on_step(s) -> None:
                 push("step", {"n": s.n, "tool": s.tool, "summary": s.summary, "ms": round(s.ms, 1)})

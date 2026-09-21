@@ -1,0 +1,156 @@
+// GraphSleuth evidence queries: one per agent tool (mirrors agent/backend.py LocalBackend).
+// Create + install:  gsql -g GraphSleuth graph/queries.gsql   then   INSTALL QUERY ALL
+// Notes: entities are passed as VERTEX<Type> parameters (looked up by id, no scan); missing numbers use the -1 sentinel.
+USE GRAPH GraphSleuth
+
+// ---- transactions on a card inside a time window, with every feature the context model needs -------------------------
+CREATE OR REPLACE QUERY card_window(VERTEX<Card> card, DATETIME t_from, DATETIME t_to) FOR GRAPH GraphSleuth SYNTAX v3 {
+  MapAccum<INT, STRING> @@dev;
+  Start = {card};
+  T = SELECT t FROM Start:c -(MADE>)- Transaction:t WHERE t.ts >= t_from AND t.ts <= t_to;
+  D = SELECT d FROM T:t -(FROM_DEVICE>)- DeviceProfile:d ACCUM @@dev += (t.tid -> d.id);
+  PRINT T[T.tid AS tid, T.ts AS ts, T.amt AS amt, T.prod AS prod, T.channel AS channel, T.addr1 AS addr1, T.bank_risk AS bank_risk,
+          T.p AS p, T.p_oof AS p_oof, T.dev_new AS dev_new, T.dev_unseen AS dev_unseen, T.addr1_new AS addr1_new,
+          T.prod_new AS prod_new, T.via_proxy AS via_proxy, T.amt_ratio_med AS amt_ratio_med, T.gap_prev_h AS gap_prev_h,
+          T.n_1h AS n_1h, T.n_small_1h AS n_small_1h, T.addr1_prior_n AS addr1_prior_n, T.prior_n AS prior_n,
+          T.pat_ato AS pat_ato, T.pat_cnp AS pat_cnp, T.pat_cnpnd AS pat_cnpnd, T.pat_oor AS pat_oor, T.pat_none AS pat_none];
+  PRINT @@dev AS device_by_tid;
+}
+
+// ---- a single transaction with its device --------------------------------------------------------------------------------
+CREATE OR REPLACE QUERY get_transaction(VERTEX<Transaction> txn) FOR GRAPH GraphSleuth SYNTAX v3 {
+  MapAccum<INT, STRING> @@dev;
+  Start = {txn};
+  D = SELECT d FROM Start:t -(FROM_DEVICE>)- DeviceProfile:d ACCUM @@dev += (t.tid -> d.id);
+  PRINT Start[Start.tid AS tid, Start.ts AS ts, Start.amt AS amt, Start.prod AS prod, Start.channel AS channel, Start.addr1 AS addr1,
+              Start.bank_risk AS bank_risk, Start.p AS p, Start.p_oof AS p_oof, Start.dev_new AS dev_new, Start.dev_unseen AS dev_unseen,
+              Start.addr1_new AS addr1_new, Start.prod_new AS prod_new, Start.via_proxy AS via_proxy, Start.amt_ratio_med AS amt_ratio_med,
+              Start.gap_prev_h AS gap_prev_h, Start.n_1h AS n_1h, Start.n_small_1h AS n_small_1h, Start.addr1_prior_n AS addr1_prior_n,
+              Start.prior_n AS prior_n, Start.pat_ato AS pat_ato, Start.pat_cnp AS pat_cnp, Start.pat_cnpnd AS pat_cnpnd,
+              Start.pat_oor AS pat_oor, Start.pat_none AS pat_none, Start.card_id AS card_id];
+  PRINT @@dev AS device_by_tid;
+}
+
+// ---- baseline behaviour of a card before a moment ---------------------------------------------------------------------------
+CREATE OR REPLACE QUERY card_profile(VERTEX<Card> card, DATETIME before) FOR GRAPH GraphSleuth SYNTAX v3 {
+  SumAccum<INT> @@n;
+  MinAccum<DATETIME> @@first_ts;
+  SumAccum<INT> @@online;
+  MaxAccum<DOUBLE> @@max_amt;
+  SumAccum<DOUBLE> @@sum_amt;
+  MapAccum<INT, SumAccum<INT>> @@regions;
+  SetAccum<STRING> @@prods;
+  SetAccum<STRING> @@devices;
+  ListAccum<DOUBLE> @@amts;
+  Start = {card};
+  T = SELECT t FROM Start:c -(MADE>)- Transaction:t WHERE t.ts < before
+      ACCUM @@n += 1, @@first_ts += t.ts, @@max_amt += t.amt, @@sum_amt += t.amt, @@amts += t.amt, @@prods += t.prod,
+            CASE WHEN t.channel == "online" THEN @@online += 1 END,
+            CASE WHEN t.addr1 >= 0 THEN @@regions += (float_to_int(t.addr1) -> 1) END;
+  D = SELECT d FROM T:t -(FROM_DEVICE>)- DeviceProfile:d ACCUM @@devices += d.id;
+  PRINT @@n AS n, @@first_ts AS first_ts, @@online AS n_online, @@max_amt AS max_amt, @@sum_amt AS sum_amt,
+        @@regions AS regions, @@prods AS prods, @@devices AS devices, @@amts AS amts;
+}
+
+// ---- a device profile: global stats, cards active in a window, closed cases that involved it ------------------------------------
+CREATE OR REPLACE QUERY device_neighbors(VERTEX<DeviceProfile> dev, DATETIME t_from, DATETIME t_to) FOR GRAPH GraphSleuth SYNTAX v3 {
+  MapAccum<STRING, SumAccum<INT>> @@n;
+  MapAccum<STRING, SumAccum<DOUBLE>> @@total;
+  MapAccum<STRING, MinAccum<DATETIME>> @@first_ts;
+  MapAccum<STRING, MaxAccum<DATETIME>> @@last_ts;
+  MinAccum<DATETIME> @@dev_first;
+  MaxAccum<DATETIME> @@dev_last;
+  Start = {dev};
+  A = SELECT t FROM Start:d -(DEVICE_OF>)- Transaction:t ACCUM @@dev_first += t.ts, @@dev_last += t.ts;
+  T = SELECT t FROM Start:d -(DEVICE_OF>)- Transaction:t WHERE t.ts >= t_from AND t.ts <= t_to
+      ACCUM @@n += (t.card_id -> 1), @@total += (t.card_id -> t.amt), @@first_ts += (t.card_id -> t.ts), @@last_ts += (t.card_id -> t.ts);
+  C = SELECT cc FROM Start:d -(DEVICE_OF>)- Transaction:t -(INVOLVED_IN>)- ClosedCase:cc;
+  PRINT Start[Start.n_cards AS n_cards, Start.new_frac AS new_frac, Start.proxy_frac AS proxy_frac, Start.outdegree("DEVICE_OF") AS txns];
+  PRINT @@dev_first AS first_ts, @@dev_last AS last_ts;
+  PRINT @@n AS window_n, @@total AS window_total, @@first_ts AS window_first, @@last_ts AS window_last;
+  PRINT C[C.id AS case_id, C.outcome AS outcome, C.pattern AS pattern, C.opened_at AS opened_at];
+}
+
+// ---- every transaction on a device, for burst / ring reconstruction ------------------------------------------------------------------
+CREATE OR REPLACE QUERY device_txns(VERTEX<DeviceProfile> dev) FOR GRAPH GraphSleuth SYNTAX v3 {
+  TYPEDEF TUPLE <DATETIME ts, STRING card, INT tid, DOUBLE amt, DOUBLE p> Row;
+  ListAccum<Row> @@rows;
+  Start = {dev};
+  T = SELECT t FROM Start:d -(DEVICE_OF>)- Transaction:t ACCUM @@rows += Row(t.ts, t.card_id, t.tid, t.amt, t.p);
+  PRINT @@rows AS rows;
+}
+
+// ---- did the card use this billing region before, and is it a trip (several days in region) or a clone? -------------------------------
+CREATE OR REPLACE QUERY region_history(VERTEX<Card> card, DOUBLE addr1, DATETIME ts, DATETIME t_lo, DATETIME t_hi) FOR GRAPH GraphSleuth SYNTAX v3 {
+  SumAccum<INT> @@n_before;
+  MinAccum<DATETIME> @@first_seen;
+  SumAccum<INT> @@n_near;
+  SumAccum<INT> @@in_region;
+  SumAccum<INT> @@elsewhere;
+  SetAccum<STRING> @@days_in;
+  Start = {card};
+  T = SELECT t FROM Start:c -(MADE>)- Transaction:t WHERE (t.addr1 == addr1 AND t.ts < ts) OR (t.ts >= t_lo AND t.ts <= t_hi)
+      ACCUM CASE WHEN t.addr1 == addr1 AND t.ts < ts THEN @@n_before += 1, @@first_seen += t.ts END,
+            CASE WHEN t.ts >= t_lo AND t.ts <= t_hi THEN @@n_near += 1,
+                   CASE WHEN t.addr1 == addr1 THEN @@in_region += 1, @@days_in += datetime_format(t.ts, "%Y-%m-%d")
+                        WHEN t.addr1 >= 0 THEN @@elsewhere += 1 END
+            END;
+  PRINT @@n_before AS n_before, @@first_seen AS first_seen, @@n_near AS n_near, @@in_region AS in_region,
+        @@elsewhere AS elsewhere, @@days_in.size() AS days_in_region;
+}
+
+// ---- how busy is a billing region around a moment --------------------------------------------------------------------------------------
+CREATE OR REPLACE QUERY region_cluster(VERTEX<BillingRegion> region, DATETIME t_from, DATETIME t_to) FOR GRAPH GraphSleuth SYNTAX v3 {
+  SetAccum<STRING> @@cards;
+  SumAccum<INT> @@txns;
+  SumAccum<INT> @@likely;
+  AvgAccum @@avg_p;
+  Start = {region};
+  T = SELECT t FROM Start:r -(REGION_OF>)- Transaction:t WHERE t.ts >= t_from AND t.ts <= t_to
+      ACCUM @@cards += t.card_id, @@txns += 1, @@avg_p += t.p, CASE WHEN t.p >= 0.5 THEN @@likely += 1 END;
+  PRINT @@txns AS txns, @@cards.size() AS cards, @@avg_p AS avg_p, @@likely AS likely_fraud;
+}
+
+// ---- timestamps of earlier identical-amount, same-product charges on a card (recurring-charge test) -----------------------------------------
+CREATE OR REPLACE QUERY recurring_txns(VERTEX<Card> card, STRING prod, DOUBLE amt, DATETIME upto) FOR GRAPH GraphSleuth SYNTAX v3 {
+  ListAccum<DATETIME> @@ts;
+  Start = {card};
+  T = SELECT t FROM Start:c -(MADE>)- Transaction:t
+      WHERE t.prod == prod AND t.amt >= amt - 0.011 AND t.amt <= amt + 0.011 AND t.ts <= upto
+      ACCUM @@ts += t.ts;
+  PRINT @@ts AS ts;
+}
+
+// ---- closed cases relevant to an alert: same card, same RARE device, same region (merged in agent/tg_backend.py) -> case memory ---------------------
+CREATE OR REPLACE QUERY closed_cases_card(VERTEX<Card> card, DATETIME before) FOR GRAPH GraphSleuth SYNTAX v3 {
+  Start = {card};
+  A = SELECT cc FROM Start:c -(HAS_CLOSED_CASE>)- ClosedCase:cc WHERE cc.closed_at < before;
+  PRINT A[A.id AS case_id, A.outcome AS outcome, A.pattern AS pattern, A.exposure AS exposure, A.opened_at AS opened_at];
+}
+
+CREATE OR REPLACE QUERY closed_cases_device(VERTEX<DeviceProfile> dev, DATETIME before, INT max_dev_cards) FOR GRAPH GraphSleuth SYNTAX v3 {
+  Start = {dev};
+  B = SELECT cc FROM Start:d -(DEVICE_OF>)- Transaction:t -(INVOLVED_IN>)- ClosedCase:cc
+      WHERE d.n_cards <= max_dev_cards AND cc.closed_at < before;
+  PRINT B[B.id AS case_id, B.outcome AS outcome, B.pattern AS pattern, B.exposure AS exposure, B.opened_at AS opened_at];
+}
+
+CREATE OR REPLACE QUERY closed_cases_region(VERTEX<BillingRegion> region, DATETIME before) FOR GRAPH GraphSleuth SYNTAX v3 {
+  Start = {region};
+  C = SELECT cc FROM Start:r -(REGION_OF>)- Transaction:t -(INVOLVED_IN>)- ClosedCase:cc WHERE cc.closed_at < before
+      ORDER BY cc.opened_at DESC LIMIT 200;
+  PRINT C[C.id AS case_id, C.outcome AS outcome, C.pattern AS pattern, C.exposure AS exposure, C.opened_at AS opened_at];
+}
+
+// ---- autonomous ring discovery: rare devices that many cards use, always New and always proxied -----------------------------------------------
+CREATE OR REPLACE QUERY find_rings(INT min_cards, DOUBLE min_new, DOUBLE min_proxy) FOR GRAPH GraphSleuth SYNTAX v3 {
+  D = SELECT d FROM DeviceProfile:d WHERE d.n_cards >= min_cards AND d.new_frac >= min_new - 0.0001 AND d.proxy_frac >= min_proxy - 0.0001;
+  PRINT D[D.n_cards AS n_cards, D.new_frac AS new_frac, D.proxy_frac AS proxy_frac];
+}
+
+// ---- customer's other cards ------------------------------------------------------------------------------------------------------------------
+CREATE OR REPLACE QUERY customer_cards(VERTEX<Customer> cust) FOR GRAPH GraphSleuth SYNTAX v3 {
+  Start = {cust};
+  C = SELECT c FROM Start:s -(OWNS>)- Card:c;
+  PRINT C[C.id AS card_id];
+}
