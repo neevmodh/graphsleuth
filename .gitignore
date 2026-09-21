@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+.pytest_cache/
+node_modules/
+ui/dist/
+# dataset and derived stores are large / not ours to redistribute
+dataset/
+data/store/
+*.duckdb
+*.parquet
+.DS_Store
