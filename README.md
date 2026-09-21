@@ -9,6 +9,8 @@ progresses a case, recommends next-best actions within policy and approval limit
 back to the graph as case memory.
 
 > Status: work in progress. See the [issues](../../issues) and milestones for the phased plan.
+> Working end to end on a local DuckDB backend: all 20 benchmark cases produce validated answer files (`cases/`).
+> Pending: TigerGraph Savanna backend (GSQL queries, GraphRAG, case write-back), LLM layer, UI. Dev results: [docs/eval_results.md](docs/eval_results.md).
 
 ## Design principle
 **The LLM proposes; a deterministic policy engine disposes.** Fraud probability comes from graph features and a

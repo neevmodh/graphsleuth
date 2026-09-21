@@ -143,7 +143,7 @@ class LocalBackend:
 
     def recurring_check(self, card_id: str, tid: int) -> dict:
         """Is this charge a subscription-like recurrence on the card? There is no merchant field, so the proxy is:
-        same product, identical amount (+/- 1 cent), earlier occurrences at roughly monthly gaps (14-45 days),
+        same product, identical amount (+/- 1 cent), earlier occurrences at monthly gaps (26-34 days),
         and a LOW frequency. The frequency guard matters: a popular price point (e.g. $39.08 seen 32 times in
         five months) repeats often by chance and is not a subscription."""
         rows = self.con.execute(f"""
@@ -154,7 +154,7 @@ class LocalBackend:
         times = [r[0] for r in rows]
         n_prior = max(len(times) - 1, 0)
         gaps = [(b - a).total_seconds() / 86400 for a, b in zip(times, times[1:])]
-        mid = [g for g in gaps if 14 <= g <= 45]
+        mid = [g for g in gaps if 26 <= g <= 34]
         span = (times[-1] - times[0]).total_seconds() / 86400 if len(times) > 1 else 0.0
         rate30 = n_prior / (max(span, 30.0) / 30.0)
         return {"n_same_amount": len(times), "n_prior": n_prior, "monthly_gaps": len(mid), "gaps_days": [round(g, 1) for g in gaps[-6:]],
@@ -178,7 +178,7 @@ class LocalBackend:
                           AND c.closed_at < {_q(before_ts)} AND c.case_id <> {_q(exclude_case or '')}),
             sc AS (SELECT ct.case_id, any_value(ct.card_id) card, any_value(ct.outcome) outcome, any_value(ct.pattern) pattern,
                           any_value(ct.exposure_usd) exposure, any_value(ct.opened_at) opened_at,
-                          max((f.device_profile = {dev})::INT) same_device,
+                          max((f.device_profile = {dev} AND f.dev_cards <= 60)::INT) same_device,   -- a device on hundreds of cards links nothing
                           max((f.addr1 = {reg})::INT) same_region,
                           max((ct.card_id = {_q(card_id)})::INT) same_card,
                           max(({_q(pattern or '')} <> '' AND ct.pattern = {_q(pattern or '')})::INT) same_pattern

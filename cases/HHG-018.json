@@ -1,0 +1,125 @@
+{
+  "case_id": "HHG-018",
+  "case": {
+    "status": "closed_fraud",
+    "verdict": "fraud",
+    "fraud_probability": 0.976,
+    "pattern": "account_takeover",
+    "pattern_description": "",
+    "affected_txn_ids": [
+      "3485990",
+      "3491361"
+    ],
+    "first_suspicious_txn_id": "3485990",
+    "connected_card_ids": [],
+    "connected_device_profiles": [],
+    "exposure_usd": 80.04,
+    "evidence": [
+      {
+        "claim": "The calibrated transaction-level fraud model scores the flagged transaction 0.12; the bank's own risk score is 0.48 and is treated as an input, not a verdict.",
+        "source": "graph",
+        "ref": "query:score(txn=3491361)",
+        "entity_ids": [
+          "3491361"
+        ]
+      },
+      {
+        "claim": "Judged in context (neighbouring transactions on the card, timing, shared device, region and product) the alert has a fraud probability of 0.77, and 2 transaction(s) look like one episode.",
+        "source": "graph",
+        "ref": "query:episode_model(txn=3491361)",
+        "entity_ids": [
+          "3485990",
+          "3491361"
+        ]
+      },
+      {
+        "claim": "Billing region 126.0: 565 prior transactions on this card; within +-5 days 41 in-region transactions on 8 day(s) and 358 elsewhere (see pattern assessment).",
+        "source": "graph",
+        "ref": "query:region_history(card=C02354-K2,addr1=126.0)",
+        "entity_ids": [
+          "3491361"
+        ]
+      },
+      {
+        "claim": "The cardholder reported this transaction as unauthorized.",
+        "source": "customer",
+        "ref": "trigger:HHG-018",
+        "entity_ids": [
+          "3491361"
+        ]
+      },
+      {
+        "claim": "Closed case CC-0454 (confirmed_fraud, account_takeover, $940.94) is relevant: same card, same pattern.",
+        "source": "graph",
+        "ref": "query:similar_cases",
+        "entity_ids": [
+          "CC-0454"
+        ]
+      },
+      {
+        "claim": "Closed case CC-0255 (confirmed_fraud, account_takeover, $1167.08) is relevant: same card, same pattern.",
+        "source": "graph",
+        "ref": "query:similar_cases",
+        "entity_ids": [
+          "CC-0255"
+        ]
+      },
+      {
+        "claim": "Closed case CC-4447 (confirmed_fraud, account_takeover, $2173.10) is relevant: same region, same pattern.",
+        "source": "graph",
+        "ref": "query:similar_cases",
+        "entity_ids": [
+          "CC-4447"
+        ]
+      }
+    ],
+    "similar_prior_cases": [
+      "CC-0454",
+      "CC-0255",
+      "CC-4447"
+    ],
+    "summary": "2 transaction(s) totalling $80.04 on C02354-K2 are assessed as fraud (probability 0.98), matching account takeover: mixed-channel activity inconsistent with the cardholder, pointing to compromised credentials. Trigger: customer report. Tool calls: 8; closed cases consulted: CC-0454, CC-0255, CC-4447.",
+    "written_to_graph": false,
+    "graph_case_id": "CASE-2016-1018"
+  },
+  "evidence_requests": [],
+  "next_best_actions": {
+    "initial": [
+      {
+        "action": "BLOCK_CARD",
+        "route": "L1",
+        "reason": "R2: customer reported the transaction as unauthorized and the evidence supports it"
+      },
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "R2: customer reported the transaction as unauthorized and the evidence supports it"
+      }
+    ],
+    "final": [
+      {
+        "action": "BLOCK_CARD",
+        "route": "L1",
+        "reason": "R2: customer reported the transaction as unauthorized and the evidence supports it"
+      },
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "R2: customer reported the transaction as unauthorized and the evidence supports it"
+      }
+    ],
+    "what_changed": "nothing"
+  },
+  "sar": {
+    "file": false,
+    "reason": "3a: fraud is likely but exposure ($80.04) is at or below $1,000, there is no shared device, region or other-customer link, and the pattern is documented: case only, no report.",
+    "narrative": "",
+    "subjects": [],
+    "total_amount_usd": 0.0,
+    "activity_dates": []
+  },
+  "stop_reason": "Fraud probability 0.98 with 3 independent evidence items reached the stop threshold (section 6).",
+  "tool_calls": 8,
+  "tokens": 0,
+  "latency_s": 0.06
+}

@@ -1,0 +1,130 @@
+{
+  "case_id": "HHG-001",
+  "case": {
+    "status": "open",
+    "verdict": "uncertain",
+    "fraud_probability": 0.613,
+    "pattern": "out_of_region_use",
+    "pattern_description": "",
+    "affected_txn_ids": [
+      "3514030"
+    ],
+    "first_suspicious_txn_id": "3514030",
+    "connected_card_ids": [],
+    "connected_device_profiles": [],
+    "exposure_usd": 77.07,
+    "evidence": [
+      {
+        "claim": "The calibrated transaction-level fraud model scores the flagged transaction 0.25; the bank's own risk score is 0.61 and is treated as an input, not a verdict.",
+        "source": "graph",
+        "ref": "query:score(txn=3514030)",
+        "entity_ids": [
+          "3514030"
+        ]
+      },
+      {
+        "claim": "Judged in context (neighbouring transactions on the card, timing, shared device, region and product) the alert has a fraud probability of 0.61, and 1 transaction(s) look like one episode.",
+        "source": "graph",
+        "ref": "query:episode_model(txn=3514030)",
+        "entity_ids": [
+          "3514030"
+        ]
+      },
+      {
+        "claim": "Billing region 444.0: 10 prior transactions on this card; within +-5 days 1 in-region transactions on 1 day(s) and 26 elsewhere (see pattern assessment).",
+        "source": "graph",
+        "ref": "query:region_history(card=C12382-K1,addr1=444.0)",
+        "entity_ids": [
+          "3514030"
+        ]
+      },
+      {
+        "claim": "Closed case CC-3765 (confirmed_fraud, account_takeover, $6180.62) is relevant: same region.",
+        "source": "graph",
+        "ref": "query:similar_cases",
+        "entity_ids": [
+          "CC-3765"
+        ]
+      },
+      {
+        "claim": "Closed case CC-2800 (confirmed_fraud, account_takeover, $23421.18) is relevant: same region.",
+        "source": "graph",
+        "ref": "query:similar_cases",
+        "entity_ids": [
+          "CC-2800"
+        ]
+      },
+      {
+        "claim": "Closed case CC-2511 (confirmed_fraud, account_takeover, $1286.48) is relevant: same region.",
+        "source": "graph",
+        "ref": "query:similar_cases",
+        "entity_ids": [
+          "CC-2511"
+        ]
+      },
+      {
+        "claim": "No customer response (assumed): No reply within 24 hours (assumption: the evidence is too ambiguous to presume the customer's answer)",
+        "source": "customer",
+        "ref": "evidence_request:1",
+        "entity_ids": [
+          "3514030"
+        ]
+      }
+    ],
+    "similar_prior_cases": [],
+    "summary": "The evidence on transaction 3514030 ($77.07) is ambiguous (fraud probability 0.61); the alert is neither confirmed nor cleared. Trigger: risk score. Tool calls: 8; closed cases consulted: CC-3765, CC-2800, CC-2511. An evidence request was simulated and its assumed response is recorded in evidence_requests.",
+    "written_to_graph": false,
+    "graph_case_id": "CASE-2016-1001"
+  },
+  "evidence_requests": [
+    {
+      "type": "customer_validation",
+      "asked_after_step": 8,
+      "assumed_response": "No reply within 24 hours (assumption: the evidence is too ambiguous to presume the customer's answer)"
+    }
+  ],
+  "next_best_actions": {
+    "initial": [
+      {
+        "action": "VERIFY_WITH_CUSTOMER",
+        "route": "auto",
+        "reason": "R1: single/weak signal (p < 0.70): verify before any block"
+      },
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "3a: probability >= 0.30 or the customer disputes the charge"
+      }
+    ],
+    "final": [
+      {
+        "action": "DECLINE_TRANSACTION",
+        "route": "L1",
+        "reason": "R4: decline pending authorizations"
+      },
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "3a: evidence was requested"
+      },
+      {
+        "action": "MONITOR_CARD",
+        "route": "auto",
+        "reason": "R4: no reply within 24h"
+      }
+    ],
+    "what_changed": "After the assumed absence of a reply within 24 hours, the recommendation moved from [VERIFY_WITH_CUSTOMER, CREATE_CASE] to [DECLINE_TRANSACTION, CREATE_CASE, MONITOR_CARD]."
+  },
+  "sar": {
+    "file": false,
+    "reason": "3a: fraud is not yet confirmed or strongly suspected; escalate for analyst review instead of reporting.",
+    "narrative": "",
+    "subjects": [],
+    "total_amount_usd": 0.0,
+    "activity_dates": []
+  },
+  "stop_reason": "Evidence remains ambiguous after the graph and history checks and no reply is assumed; the recommendation is monitoring and escalation rather than a forced verdict.",
+  "tool_calls": 8,
+  "tokens": 0,
+  "latency_s": 0.09
+}

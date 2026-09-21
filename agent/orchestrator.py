@@ -30,6 +30,12 @@ def simulate_evidence(inv: Investigation, initial, verdict: str) -> Simulated:
     """Customer/analyst replies are not provided, so the reply is simulated and the assumption recorded.
     The assumed reply follows the agent's own belief; inside the ambiguity band no reply is assumed (R4)."""
     acts = {a.action for a in initial}
+    if inv.assessment is not None and inv.assessment.evidence_conflict:
+        text = ("No reply is presumed: the customer's report conflicts with the graph evidence, so the case is escalated "
+                "for analyst review instead of guessing the outcome")
+        return Simulated(EvidenceRequest(type="customer_validation", asked_after_step=len(inv.steps), assumed_response=text), None,
+                         Evidence(claim=f"Customer report conflicts with the graph evidence (model support {inv.signals.get('p_stage1', 0):.2f}): {text}",
+                                  source="customer", ref="evidence_request:1", entity_ids=[str(inv.trigger['flagged_txn_id'])]))
     kind = "customer_validation" if "VERIFY_WITH_CUSTOMER" in acts else "step_up_auth" if "STEP_UP_AUTH" in acts else None
     if kind is None:
         return Simulated(None, None, None)
@@ -66,6 +72,8 @@ class Orchestrator:
         a: Assessment = inv.assessment
         p = a.fraud_probability
         verdict = "fraud" if p >= UNCERTAIN_HI else "legitimate" if p <= UNCERTAIN_LO else "uncertain"
+        if a.evidence_conflict:          # the customer says fraud, the graph says normal: neither side settles it
+            verdict = "uncertain"
 
         initial = recommend(a, None)
         sim = simulate_evidence(inv, initial, verdict)

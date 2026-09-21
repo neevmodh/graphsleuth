@@ -1,0 +1,97 @@
+{
+  "case_id": "HHG-008",
+  "case": {
+    "status": "closed_fraud",
+    "verdict": "fraud",
+    "fraud_probability": 0.99,
+    "pattern": "card_not_present_new_device",
+    "pattern_description": "",
+    "affected_txn_ids": [
+      "3557979",
+      "3557987",
+      "3558054"
+    ],
+    "first_suspicious_txn_id": "3557979",
+    "connected_card_ids": [],
+    "connected_device_profiles": [],
+    "exposure_usd": 166.97,
+    "evidence": [
+      {
+        "claim": "The calibrated transaction-level fraud model scores the flagged transaction 0.60; the bank's own risk score is 0.38 and is treated as an input, not a verdict.",
+        "source": "graph",
+        "ref": "query:score(txn=3558054)",
+        "entity_ids": [
+          "3558054"
+        ]
+      },
+      {
+        "claim": "Judged in context (neighbouring transactions on the card, timing, shared device, region and product) the alert has a fraud probability of 0.95, and 3 transaction(s) look like one episode.",
+        "source": "graph",
+        "ref": "query:episode_model(txn=3558054)",
+        "entity_ids": [
+          "3557979",
+          "3557987",
+          "3558054"
+        ]
+      },
+      {
+        "claim": "Device profile is shared by 175 cards overall (41% New, 1% proxied): common consumer device, weak link.",
+        "source": "graph",
+        "ref": "query:device_neighbors",
+        "entity_ids": []
+      },
+      {
+        "claim": "The cardholder reported this transaction as unauthorized.",
+        "source": "customer",
+        "ref": "trigger:HHG-008",
+        "entity_ids": [
+          "3558054"
+        ]
+      }
+    ],
+    "similar_prior_cases": [],
+    "summary": "3 transaction(s) totalling $166.97 on C13171-K2 are assessed as fraud (probability 0.99), matching card-not-present fraud from a device new to the account. Trigger: customer report. Tool calls: 7; closed cases consulted: none relevant.",
+    "written_to_graph": false,
+    "graph_case_id": "CASE-2016-1008"
+  },
+  "evidence_requests": [],
+  "next_best_actions": {
+    "initial": [
+      {
+        "action": "BLOCK_CARD",
+        "route": "L1",
+        "reason": "R2: customer reported the transaction as unauthorized and the evidence supports it"
+      },
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "R2: customer reported the transaction as unauthorized and the evidence supports it"
+      }
+    ],
+    "final": [
+      {
+        "action": "BLOCK_CARD",
+        "route": "L1",
+        "reason": "R2: customer reported the transaction as unauthorized and the evidence supports it"
+      },
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "R2: customer reported the transaction as unauthorized and the evidence supports it"
+      }
+    ],
+    "what_changed": "nothing"
+  },
+  "sar": {
+    "file": false,
+    "reason": "3a: fraud is likely but exposure ($166.97) is at or below $1,000, there is no shared device, region or other-customer link, and the pattern is documented: case only, no report.",
+    "narrative": "",
+    "subjects": [],
+    "total_amount_usd": 0.0,
+    "activity_dates": []
+  },
+  "stop_reason": "Fraud probability 0.99 with 3 independent evidence items reached the stop threshold (section 6).",
+  "tool_calls": 7,
+  "tokens": 0,
+  "latency_s": 0.05
+}

@@ -1,0 +1,172 @@
+{
+  "case_id": "HHG-006",
+  "case": {
+    "status": "escalated",
+    "verdict": "fraud",
+    "fraud_probability": 0.989,
+    "pattern": "undocumented",
+    "pattern_description": "4 online purchases within an hour on one card, each just under $500 ($456.96 to $488.04, about 8x the card's normal amount). Amounts appear chosen to stay under an authorization or reporting threshold while draining the card; risk scores stay low. Found by scanning the card's recent window for bursts of near-threshold amounts.",
+    "affected_txn_ids": [
+      "3476602",
+      "3476633",
+      "3476665",
+      "3476682"
+    ],
+    "first_suspicious_txn_id": "3476602",
+    "connected_card_ids": [],
+    "connected_device_profiles": [],
+    "exposure_usd": 1906.07,
+    "evidence": [
+      {
+        "claim": "The calibrated transaction-level fraud model scores the flagged transaction 0.08; the bank's own risk score is 0.25 and is treated as an input, not a verdict.",
+        "source": "graph",
+        "ref": "query:score(txn=3476682)",
+        "entity_ids": [
+          "3476682"
+        ]
+      },
+      {
+        "claim": "Judged in context (neighbouring transactions on the card, timing, shared device, region and product) the alert has a fraud probability of 0.88, and 4 transaction(s) look like one episode.",
+        "source": "graph",
+        "ref": "query:episode_model(txn=3476682)",
+        "entity_ids": [
+          "3476602",
+          "3476633",
+          "3476665",
+          "3476682"
+        ]
+      },
+      {
+        "claim": "Amount $482.12 is 7.7x the card's prior median ($62.93).",
+        "source": "graph",
+        "ref": "query:card_profile(card=C07297-K1)",
+        "entity_ids": [
+          "3476682"
+        ]
+      },
+      {
+        "claim": "4 online purchases within an hour, each just under $500, totalling $1,906.07: consistent with structuring under an authorization threshold.",
+        "source": "graph",
+        "ref": "query:card_window(card=C07297-K1)",
+        "entity_ids": [
+          "3476602",
+          "3476633",
+          "3476665",
+          "3476682"
+        ]
+      },
+      {
+        "claim": "Device profile is shared by 543 cards overall (46% New, 12% proxied): common consumer device, weak link.",
+        "source": "graph",
+        "ref": "query:device_neighbors",
+        "entity_ids": []
+      },
+      {
+        "claim": "The cardholder reported this transaction as unauthorized.",
+        "source": "customer",
+        "ref": "trigger:HHG-006",
+        "entity_ids": [
+          "3476682"
+        ]
+      },
+      {
+        "claim": "Closed case CC-4124 (confirmed_fraud, undocumented, $1922.37) is relevant: same pattern.",
+        "source": "graph",
+        "ref": "query:similar_cases",
+        "entity_ids": [
+          "CC-4124"
+        ]
+      },
+      {
+        "claim": "Closed case CC-4086 (confirmed_fraud, undocumented, $1871.13) is relevant: same pattern.",
+        "source": "graph",
+        "ref": "query:similar_cases",
+        "entity_ids": [
+          "CC-4086"
+        ]
+      },
+      {
+        "claim": "Closed case CC-3907 (confirmed_fraud, undocumented, $1922.65) is relevant: same pattern.",
+        "source": "graph",
+        "ref": "query:similar_cases",
+        "entity_ids": [
+          "CC-3907"
+        ]
+      }
+    ],
+    "similar_prior_cases": [
+      "CC-4124",
+      "CC-4086",
+      "CC-3907"
+    ],
+    "summary": "4 transaction(s) totalling $1,906.07 on C07297-K1 are assessed as fraud (probability 0.99), matching an undocumented pattern. 4 online purchases within an hour on one card, each just under $500 ($456.96 to $488.04, about 8x the card's normal amount). Amounts appear chosen to stay under an authorization or reporting threshold while draining the card; risk scores stay low. Found by scanning the card's recent window for bursts of near-threshold amounts. Trigger: customer report. Tool calls: 8; closed cases consulted: CC-4124, CC-4086, CC-3907.",
+    "written_to_graph": false,
+    "graph_case_id": "CASE-2016-1006"
+  },
+  "evidence_requests": [],
+  "next_best_actions": {
+    "initial": [
+      {
+        "action": "BLOCK_CARD",
+        "route": "L1",
+        "reason": "R2: customer reported the transaction as unauthorized and the evidence supports it"
+      },
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "R2: customer reported the transaction as unauthorized and the evidence supports it"
+      },
+      {
+        "action": "ESCALATE_TO_ANALYST",
+        "route": "auto",
+        "reason": "R9: describe the pattern and escalate"
+      },
+      {
+        "action": "FILE_REPORT",
+        "route": "L2",
+        "reason": "R2/R6: exposure, shared origin or coordinated pattern meets the report bar"
+      }
+    ],
+    "final": [
+      {
+        "action": "BLOCK_CARD",
+        "route": "L1",
+        "reason": "R2: customer reported the transaction as unauthorized and the evidence supports it"
+      },
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "R2: customer reported the transaction as unauthorized and the evidence supports it"
+      },
+      {
+        "action": "ESCALATE_TO_ANALYST",
+        "route": "auto",
+        "reason": "R9: describe the pattern and escalate"
+      },
+      {
+        "action": "FILE_REPORT",
+        "route": "L2",
+        "reason": "R2/R6: exposure, shared origin or coordinated pattern meets the report bar"
+      }
+    ],
+    "what_changed": "nothing"
+  },
+  "sar": {
+    "file": true,
+    "reason": "R2/R6: exposure, shared origin or coordinated pattern meets the report bar",
+    "narrative": "Who: customer C07297, holder of mastercard debit card C07297-K1, is the subject of this report. What: 4 online transactions totalling $1,906.07 were made on the card on 2016-11-21 between 20:00 and 20:30 in billing region 264, 476 and are not consistent with the cardholder's history; the cardholder reported them as unauthorized. How: 4 online purchases within an hour on one card, each just under $500 ($456.96 to $488.04, about 8x the card's normal amount). Amounts appear chosen to stay under an authorization or reporting threshold while draining the card; risk scores stay low. Found by scanning the card's recent window for bursts of near-threshold amounts. Why suspicious: repeating purchases within minutes while keeping each just under a round authorization threshold is consistent with deliberate structuring to avoid review, and the amounts are several times the card's normal spending. The activity matches previously confirmed fraud cases (CC-4124, CC-4086, CC-3907). Assessment: fraud probability 0.99 from a calibrated model over the card's history and graph evidence; the bank's own risk score on the flagged transaction was 0.25. The card is to be blocked and reissued; the case is recorded in the investigation graph for future analysts, and this report is filed because the activity meets the reporting threshold.",
+    "subjects": [
+      "C07297",
+      "C07297-K1"
+    ],
+    "total_amount_usd": 1906.07,
+    "activity_dates": [
+      "2016-11-21",
+      "2016-11-21"
+    ]
+  },
+  "stop_reason": "Fraud probability 0.99 with 4 independent evidence items reached the stop threshold (section 6).",
+  "tool_calls": 8,
+  "tokens": 0,
+  "latency_s": 0.05
+}

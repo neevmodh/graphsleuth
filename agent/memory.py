@@ -34,8 +34,12 @@ class LocalCaseMemory:
             txn_ids VARCHAR, connected_cards VARCHAR, actions VARCHAR, summary VARCHAR, created TIMESTAMP DEFAULT now())""")
 
     def write(self, trig, case: Case, inv, final_actions) -> tuple[str, bool]:
-        n = self.con.execute("SELECT count(*) FROM agent_cases").fetchone()[0] + 1
-        gid = f"CASE-2016-{n:04d}"
+        prev = self.con.execute("SELECT graph_case_id FROM agent_cases WHERE case_id = ?", [trig["case_id"]]).fetchone()
+        if prev:
+            gid = prev[0]                    # re-running a case updates its record instead of creating a new one
+        else:
+            n = self.con.execute("SELECT coalesce(max(CAST(right(graph_case_id, 4) AS INTEGER)), 1000) FROM agent_cases").fetchone()[0] + 1
+            gid = f"CASE-2016-{n:04d}"
         dev = case.connected_device_profiles[0] if case.connected_device_profiles else inv.flagged.get("device_profile")
         self.con.execute("DELETE FROM agent_cases WHERE case_id = ?", [trig["case_id"]])
         self.con.execute("INSERT INTO agent_cases (graph_case_id, case_id, card_id, customer_id, device_profile, verdict, pattern, "

@@ -1,0 +1,123 @@
+{
+  "case_id": "HHG-011",
+  "case": {
+    "status": "escalated",
+    "verdict": "uncertain",
+    "fraud_probability": 0.23,
+    "pattern": "none",
+    "pattern_description": "",
+    "affected_txn_ids": [],
+    "first_suspicious_txn_id": "",
+    "connected_card_ids": [],
+    "connected_device_profiles": [],
+    "exposure_usd": 0.0,
+    "evidence": [
+      {
+        "claim": "The calibrated transaction-level fraud model scores the flagged transaction 0.00; the bank's own risk score is 0.39 and is treated as an input, not a verdict.",
+        "source": "graph",
+        "ref": "query:score(txn=3583368)",
+        "entity_ids": [
+          "3583368"
+        ]
+      },
+      {
+        "claim": "Amount $131.30 is 4.6x the card's prior median ($28.575).",
+        "source": "graph",
+        "ref": "query:card_profile(card=C11923-K2)",
+        "entity_ids": [
+          "3583368"
+        ]
+      },
+      {
+        "claim": "The device profile has never been seen on this card before.",
+        "source": "graph",
+        "ref": "query:card_window(card=C11923-K2)",
+        "entity_ids": [
+          "3583368"
+        ]
+      },
+      {
+        "claim": "Device profile is shared by 4 cards overall (50% New, 0% proxied): limited sharing.",
+        "source": "graph",
+        "ref": "query:device_neighbors",
+        "entity_ids": []
+      },
+      {
+        "claim": "The cardholder reported this transaction as unauthorized.",
+        "source": "customer",
+        "ref": "trigger:HHG-011",
+        "entity_ids": [
+          "3583368"
+        ]
+      },
+      {
+        "claim": "Customer report conflicts with the graph evidence (model support 0.00): No reply is presumed: the customer's report conflicts with the graph evidence, so the case is escalated for analyst review instead of guessing the outcome",
+        "source": "customer",
+        "ref": "evidence_request:1",
+        "entity_ids": [
+          "3583368"
+        ]
+      }
+    ],
+    "similar_prior_cases": [],
+    "summary": "The evidence on transaction 3583368 ($131.30) is ambiguous (fraud probability 0.23); the alert is neither confirmed nor cleared. Trigger: customer report. Tool calls: 7; closed cases consulted: none relevant.",
+    "written_to_graph": false,
+    "graph_case_id": "CASE-2016-1011"
+  },
+  "evidence_requests": [
+    {
+      "type": "customer_validation",
+      "asked_after_step": 7,
+      "assumed_response": "No reply is presumed: the customer's report conflicts with the graph evidence, so the case is escalated for analyst review instead of guessing the outcome"
+    }
+  ],
+  "next_best_actions": {
+    "initial": [
+      {
+        "action": "VERIFY_WITH_CUSTOMER",
+        "route": "auto",
+        "reason": "R1: single/weak signal (p < 0.70): verify before any block"
+      },
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "3a: probability >= 0.30 or the customer disputes the charge"
+      },
+      {
+        "action": "ESCALATE_TO_ANALYST",
+        "route": "auto",
+        "reason": "R8: uncertain and exposed (> $500) or the evidence conflicts"
+      }
+    ],
+    "final": [
+      {
+        "action": "VERIFY_WITH_CUSTOMER",
+        "route": "auto",
+        "reason": "R1: single/weak signal (p < 0.70): verify before any block"
+      },
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "3a: probability >= 0.30 or the customer disputes the charge"
+      },
+      {
+        "action": "ESCALATE_TO_ANALYST",
+        "route": "auto",
+        "reason": "R8: uncertain and exposed (> $500) or the evidence conflicts"
+      }
+    ],
+    "what_changed": "nothing"
+  },
+  "sar": {
+    "file": false,
+    "reason": "3a: fraud is not yet confirmed or strongly suspected; escalate for analyst review instead of reporting.",
+    "narrative": "",
+    "subjects": [],
+    "total_amount_usd": 0.0,
+    "activity_dates": []
+  },
+  "stop_reason": "Further steps are unlikely to change the decision.",
+  "tool_calls": 7,
+  "tokens": 0,
+  "latency_s": 0.05
+}

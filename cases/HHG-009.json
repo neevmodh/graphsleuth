@@ -1,0 +1,121 @@
+{
+  "case_id": "HHG-009",
+  "case": {
+    "status": "closed_fraud",
+    "verdict": "fraud",
+    "fraud_probability": 0.99,
+    "pattern": "card_not_present_fraud",
+    "pattern_description": "",
+    "affected_txn_ids": [
+      "3581141"
+    ],
+    "first_suspicious_txn_id": "3581141",
+    "connected_card_ids": [],
+    "connected_device_profiles": [],
+    "exposure_usd": 30.02,
+    "evidence": [
+      {
+        "claim": "The calibrated transaction-level fraud model scores the flagged transaction 0.78; the bank's own risk score is 0.28 and is treated as an input, not a verdict.",
+        "source": "graph",
+        "ref": "query:score(txn=3581141)",
+        "entity_ids": [
+          "3581141"
+        ]
+      },
+      {
+        "claim": "Judged in context (neighbouring transactions on the card, timing, shared device, region and product) the alert has a fraud probability of 1.00, and 1 transaction(s) look like one episode.",
+        "source": "graph",
+        "ref": "query:episode_model(txn=3581141)",
+        "entity_ids": [
+          "3581141"
+        ]
+      },
+      {
+        "claim": "Device profile is shared by 1013 cards overall (4% New, 0% proxied): common consumer device, weak link.",
+        "source": "graph",
+        "ref": "query:device_neighbors",
+        "entity_ids": []
+      },
+      {
+        "claim": "The cardholder reported this transaction as unauthorized.",
+        "source": "customer",
+        "ref": "trigger:HHG-009",
+        "entity_ids": [
+          "3581141"
+        ]
+      },
+      {
+        "claim": "Closed case CC-3342 (confirmed_fraud, card_not_present_fraud, $175.06) is relevant: same region, same pattern.",
+        "source": "graph",
+        "ref": "query:similar_cases",
+        "entity_ids": [
+          "CC-3342"
+        ]
+      },
+      {
+        "claim": "Closed case CC-0838 (confirmed_fraud, card_not_present_fraud, $1799.92) is relevant: same region, same pattern.",
+        "source": "graph",
+        "ref": "query:similar_cases",
+        "entity_ids": [
+          "CC-0838"
+        ]
+      },
+      {
+        "claim": "Closed case CC-5557 (confirmed_fraud, card_not_present_fraud, $300.08) is relevant: same pattern.",
+        "source": "graph",
+        "ref": "query:similar_cases",
+        "entity_ids": [
+          "CC-5557"
+        ]
+      }
+    ],
+    "similar_prior_cases": [
+      "CC-3342",
+      "CC-0838",
+      "CC-5557"
+    ],
+    "summary": "1 transaction(s) totalling $30.02 on C08299-K1 are assessed as fraud (probability 0.99), matching card-not-present fraud: online use of the card number inconsistent with the cardholder's history. Trigger: customer report. Tool calls: 7; closed cases consulted: CC-3342, CC-0838, CC-5557.",
+    "written_to_graph": false,
+    "graph_case_id": "CASE-2016-1009"
+  },
+  "evidence_requests": [],
+  "next_best_actions": {
+    "initial": [
+      {
+        "action": "BLOCK_CARD",
+        "route": "L1",
+        "reason": "R2: customer reported the transaction as unauthorized and the evidence supports it"
+      },
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "R2: customer reported the transaction as unauthorized and the evidence supports it"
+      }
+    ],
+    "final": [
+      {
+        "action": "BLOCK_CARD",
+        "route": "L1",
+        "reason": "R2: customer reported the transaction as unauthorized and the evidence supports it"
+      },
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "R2: customer reported the transaction as unauthorized and the evidence supports it"
+      }
+    ],
+    "what_changed": "nothing"
+  },
+  "sar": {
+    "file": false,
+    "reason": "3a: fraud is likely but exposure ($30.02) is at or below $1,000, there is no shared device, region or other-customer link, and the pattern is documented: case only, no report.",
+    "narrative": "",
+    "subjects": [],
+    "total_amount_usd": 0.0,
+    "activity_dates": []
+  },
+  "stop_reason": "Fraud probability 0.99 with 2 independent evidence items reached the stop threshold (section 6).",
+  "tool_calls": 7,
+  "tokens": 0,
+  "latency_s": 0.06
+}

@@ -48,38 +48,51 @@ def summary(inv: Investigation, verdict: str, p: float, response: str | None) ->
     return " ".join(s)
 
 
+def _when(inv: Investigation) -> str:
+    a, b = inv.span
+    if a[:10] == b[:10]:
+        return f"on {a[:10]}" + (f" between {a[11:16]} and {b[11:16]}" if a[11:16] != b[11:16] else f" at {a[11:16]}")
+    return f"between {a[:10]} and {b[:10]}"
+
+
 def sar_narrative(inv: Investigation) -> str:
+    """Who, what, when, where, how and why, standing on its own for a regulator."""
     f, t = inv.flagged, inv.trigger
     card, cust = t["card_id"], t["customer_id"]
-    a, b = _d(inv.span[0]), _d(inv.span[1])
-    when = f"on {a}" if a == b else f"between {a} and {b}"
     ep = inv.window[inv.window["tid"].isin(inv.episode)] if inv.window is not None else None
     chans = sorted(set(ep["channel"])) if ep is not None and len(ep) else [f["channel"]]
     where = " and ".join(c.replace("_", " ") for c in chans)
-    parts = [
-        f"Subject: customer {cust}, card {card}. Between {when.replace('between ', '').replace('on ', '')}, {len(inv.episode)} {where} transaction(s) totalling "
-        f"${inv.exposure:,.2f} were made on this card that the cardholder does not recognise or that are inconsistent with the cardholder's history.",
+    regions = sorted({int(x) for x in ep["addr1"].dropna()}) if ep is not None and len(ep) else []
+    net = " ".join(x for x in (f.get("card4"), f.get("card6")) if x) or "payment"
+    n = len(inv.episode)
+    s = [
+        f"Who: customer {cust}, holder of {net} card {card}, is the subject of this report.",
+        f"What: {n} {where} transaction{'s' if n != 1 else ''} totalling ${inv.exposure:,.2f} {'were' if n != 1 else 'was'} made on the card {_when(inv)}"
+        f"{' in billing region ' + ', '.join(map(str, regions)) if regions else ''} and are not consistent with the cardholder's history"
+        f"{'; the cardholder reported them as unauthorized' if t['trigger_type'] == 'customer_report' else ''}.",
     ]
     if inv.pattern == "undocumented" and inv.connected_devices:
-        parts.append(f"All of the card's suspicious activity came from a single device profile ({inv.connected_devices[0]}), which is recorded as New for the account and behind an anonymous proxy.")
-        parts.append(f"The same device profile transacted on {len(inv.connected_cards)} other cards in the same burst: {', '.join(inv.connected_cards)}.")
-        parts.append("Individual amounts are ordinary and the bank's risk scores stayed low, so the activity is only visible by linking cards through the shared device; this indicates one actor working many compromised card numbers.")
+        s.append(f"How: every suspicious transaction on this card came from one device profile ({inv.connected_devices[0]}), recorded as New for the account and behind an anonymous proxy.")
+        s.append(f"The same device profile transacted on {len(inv.connected_cards)} other cards in the same burst ({', '.join(inv.connected_cards)}).")
+        s.append("Individual amounts are ordinary and the bank's risk scores stayed low, so the activity is visible only by linking cards through the shared device.")
+        s.append("Why suspicious: one device working many unrelated card numbers, always as a new device behind an anonymous proxy, indicates a single actor using many compromised cards.")
     elif inv.pattern == "undocumented":
-        parts.append(inv.pattern_description)
-        parts.append("Keeping each purchase just under a round authorization threshold while repeating it within minutes is consistent with deliberate structuring to avoid review.")
+        s.append(f"How: {inv.pattern_description}")
+        s.append("Why suspicious: repeating purchases within minutes while keeping each just under a round authorization threshold is consistent with deliberate structuring to avoid review, and the amounts are several times the card's normal spending.")
     elif inv.pattern == "card_testing":
-        parts.append(f"The sequence began with very small online authorizations and was followed by a larger purchase, consistent with testing a stolen card number before use.")
+        s.append("How: the sequence began with very small online authorizations and was followed by a larger purchase.")
+        s.append("Why suspicious: this is consistent with testing a stolen card number before using it.")
     else:
-        parts.append(f"The activity is consistent with {_PATTERN_TEXT.get(inv.pattern, inv.pattern)}.")
-    for e in inv.evidence:
-        if e.source == "graph" and any(k in e.claim for k in ("amount", "Amount", "never been", "never used")):
-            parts.append(e.claim)
-            break
-    resp = ""
-    parts.append(f"Model assessment: fraud probability {inv.p_case:.2f}, derived from a calibrated transaction model and graph evidence; the bank's own risk score on the flagged transaction was {f.get('bank_risk'):.2f}.")
-    parts.append(f"Recommended internal action: block and reissue the card and monitor connected cards; the case is written to the investigation graph for future analysts.")
-    parts.append(f"This report is filed because the activity meets the reporting bar (exposure, shared origin or a coordinated/undocumented pattern).")
-    return " ".join(parts)
+        s.append(f"How: the activity is consistent with {_PATTERN_TEXT.get(inv.pattern, inv.pattern)}.")
+        facts = [e.claim for e in inv.evidence if e.source == "graph" and any(k in e.claim for k in ("Amount", "never been", "never used", "Billing region"))]
+        s.append("Why suspicious: " + (facts[0] if facts else "the transactions deviate from the card's established behaviour."))
+    similar = [c["case_id"] for c in inv.similar if c.get("score", 0) >= 2 and c.get("outcome") == "confirmed_fraud"][:3]
+    if similar:
+        s.append(f"The activity matches previously confirmed fraud cases ({', '.join(similar)}).")
+    s.append(f"Assessment: fraud probability {inv.p_case:.2f} from a calibrated model over the card's history and graph evidence; the bank's own risk score on the flagged transaction was {f.get('bank_risk'):.2f}.")
+    act = "The card is to be blocked and reissued" + (f" and {len(inv.connected_cards)} connected cards placed under monitoring" if inv.connected_cards else "")
+    s.append(f"{act}; the case is recorded in the investigation graph for future analysts, and this report is filed because the activity meets the reporting threshold.")
+    return " ".join(s)
 
 
 def sar_subjects(inv: Investigation) -> list[str]:

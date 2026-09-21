@@ -68,27 +68,42 @@ def feats_for_window(win: pd.DataFrame, anchor_tid: int) -> pd.DataFrame:
     return w[["tid", "ts"] + FEATURES].astype({c: "float32" for c in FEATURES})
 
 
+RISK_BANDS = [(0.0, 0.2), (0.2, 0.5), (0.5, 0.7), (0.7, 1.01)]
+
+
 def _anchors(b: LocalBackend, cutoff: str, seed: int = 7) -> pd.DataFrame:
-    """Anchors + the transaction ids that count as their episode. label_ids empty => negative anchor."""
+    """Anchors + the transaction ids that count as their episode (empty set => negative anchor).
+
+    Negatives are matched to positives WITHIN each bank-risk band, so at any risk score roughly half the anchors are
+    legitimate. Without this the model learns 'medium risk score => fraud' (cleared alerts all score above 0.7), which
+    the README warns is wrong in both directions. Cleared alerts are used first, then unflagged look-alikes."""
     fraud = b.query(f"""
-        SELECT c.case_id, c.card_id, c.txn_ids, c.opened_at FROM closed_cases c
+        SELECT c.case_id, c.card_id, c.txn_ids FROM closed_cases c
         WHERE c.outcome = 'confirmed_fraud' AND c.txn_ids <> '' AND c.opened_at < '{cutoff}'""")
-    rows = []
     rng = np.random.default_rng(seed)
+    pos = []
     for r in fraud.itertuples():
         ids = [int(x) for x in r.txn_ids.split("|")]
         for a in set(rng.choice(ids, size=min(2, len(ids)), replace=False).tolist()):
-            rows.append((int(a), r.card_id, set(ids)))
-    cleared = b.query(f"SELECT card_id, CAST(txn_ids AS BIGINT) tid FROM closed_cases WHERE outcome='cleared' AND opened_at < '{cutoff}'")
+            pos.append((int(a), r.card_id, set(ids)))
+    risk = b.query(f"SELECT TransactionID tid, risk_score r FROM tx WHERE TransactionID IN ({','.join(str(p[0]) for p in pos)})").set_index("tid")["r"]
+    rows = list(pos)
+    cleared = b.query(f"""SELECT c.card_id, CAST(c.txn_ids AS BIGINT) tid, t.risk_score r FROM closed_cases c
+                          JOIN tx t ON t.TransactionID = CAST(c.txn_ids AS BIGINT) WHERE c.outcome='cleared' AND c.opened_at < '{cutoff}'""")
     for r in cleared.itertuples():
         rows.append((int(r.tid), r.card_id, set()))
-    n_pos = len(rows) - len(cleared)
     lab = "SELECT DISTINCT CAST(unnest(string_split(txn_ids,'|')) AS BIGINT) tid FROM closed_cases WHERE txn_ids <> ''"
-    hard = b.query(f"""SELECT f.tid, f.card_id FROM feat f JOIN tx t ON t.TransactionID = f.tid
-        WHERE f.ts < '{cutoff}' AND t.risk_score >= 0.5 AND f.tid NOT IN ({lab}) USING SAMPLE {max(n_pos // 3, 500)} ROWS""")
-    rand = b.query(f"""SELECT f.tid, f.card_id FROM feat f
-        WHERE f.ts < '{cutoff}' AND f.ts >= '2016-07-04' AND f.tid NOT IN ({lab}) USING SAMPLE {max(n_pos // 3, 500)} ROWS""")
-    for df in (hard, rand):
+    for lo, hi in RISK_BANDS:
+        n_pos = sum(1 for p in pos if lo <= risk[p[0]] < hi)
+        n_clr = int(((cleared.r >= lo) & (cleared.r < hi)).sum())
+        k = n_pos - n_clr
+        if k <= 0:
+            continue
+        # filter first, sample after: DuckDB applies USING SAMPLE to the scan *before* WHERE unless it wraps a subquery
+        df = b.query(f"""SELECT tid, card_id FROM (
+              SELECT f.tid, f.card_id FROM feat f JOIN tx t ON t.TransactionID = f.tid
+              WHERE f.ts < '{cutoff}' AND f.ts >= '2016-07-04' AND t.risk_score >= {lo} AND t.risk_score < {hi}
+                AND f.tid NOT IN ({lab})) USING SAMPLE {k} ROWS""")
         for r in df.itertuples():
             rows.append((int(r.tid), r.card_id, set()))
     return pd.DataFrame(rows, columns=["tid", "card_id", "ids"])

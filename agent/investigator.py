@@ -32,7 +32,7 @@ class Cfg:
     episode_m: float = 0.40         # stage-2: a window txn joins the episode above this membership probability
     episode_gap_h: float = 48.0     # ...if chained to the flagged txn with gaps no longer than this
     tiny_amt: float = 5.0
-    report_logit: float = 0.8       # a customer's own report is evidence in its own right
+    report_logit: float = 2.5       # a customer's own report is strong evidence (likelihood ratio ~12): people rarely dispute legitimate charges
     fraud_p: float = 0.60           # verdict thresholds (uncertain in between)
     legit_p: float = 0.30
     ring_min_cards: int = 8
@@ -338,8 +338,14 @@ class Investigator:
         f, sig, prof, tid = inv.flagged, inv.signals, inv.profile, int(inv.trigger["flagged_txn_id"])
         ev: list[Evidence] = []
         add = lambda claim, source, ref, ids=(): ev.append(Evidence(claim=claim, source=source, ref=ref, entity_ids=list(ids)))
-        add(f"Calibrated transaction-level fraud model scores the flagged transaction {inv.p_flagged:.2f}; the bank's own risk score is "
+        p1 = sig.get("p_stage1", inv.p_flagged)
+        add(f"The calibrated transaction-level fraud model scores the flagged transaction {p1:.2f}; the bank's own risk score is "
             f"{f.get('bank_risk'):.2f} and is treated as an input, not a verdict.", "graph", f"query:score(txn={tid})", [str(tid)])
+        if abs(inv.p_flagged - p1) > 0.05:
+            n_ep = len(inv.episode)
+            add(f"Judged in context (neighbouring transactions on the card, timing, shared device, region and product) the alert has a fraud probability of "
+                f"{inv.p_flagged:.2f}, and {n_ep} transaction(s) look like one episode.", "graph", f"query:episode_model(txn={tid})",
+                _ids(inv.episode) or [str(tid)])
         if f.get("amt_ratio_med") is not None and f["amt_ratio_med"] == f["amt_ratio_med"] and f["amt_ratio_med"] >= 3:
             add(f"Amount ${f['amt']:.2f} is {f['amt_ratio_med']:.1f}x the card's prior median (${prof.get('median_amt')}).", "graph",
                 f"query:card_profile(card={inv.trigger['card_id']})", [str(tid)])

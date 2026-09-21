@@ -30,6 +30,14 @@ def sample_cases(b: LocalBackend, per_group: int, seed: int, start: str = "2016-
         rows = g.to_dict("records")
         rng.shuffle(rows)
         out += rows[:per_group]
+    # legitimate look-alikes: unflagged October transactions with an elevated bank risk score (never in any case)
+    la = b.query(f"""SELECT * FROM (SELECT f.tid, f.card_id, f.customer_id, f.ts FROM feat f JOIN tx t ON t.TransactionID = f.tid
+        WHERE f.ts >= '{start}' AND f.ts < '2016-11-01' AND t.risk_score >= 0.5 AND f.tid NOT IN
+          (SELECT CAST(unnest(string_split(txn_ids,'|')) AS BIGINT) FROM closed_cases WHERE txn_ids <> '')) USING SAMPLE {per_group} ROWS""")
+    for r in la.itertuples():
+        out.append({"case_id": f"LA-{r.tid}", "customer_id": r.customer_id, "card_id": r.card_id,
+                    "opened_at": r.ts + pd.Timedelta(hours=6), "outcome": "cleared", "pattern": "none", "txn_ids": str(r.tid),
+                    "actions_taken": "VERIFY_WITH_CUSTOMER|CLOSE_NO_FRAUD", "report_filed": False, "exposure_usd": 0.0, "src": "legit_alert"})
     return out
 
 
@@ -65,7 +73,7 @@ def run(n: int, seed: int, cfg: Cfg | None, verbose: bool = False) -> dict:
         true_actions = set(c["actions_taken"].split("|")) | ({"FILE_REPORT"} if c["report_filed"] else set())
         pred_actions = {a.action for a in ans.next_best_actions.final}
         j = len(true_actions & pred_actions) / len(true_actions | pred_actions)
-        rows.append(dict(case_id=c["case_id"], trig=trig["trigger_type"], truth=int(truth_fraud), true_pattern=c["pattern"],
+        rows.append(dict(case_id=c["case_id"], src=c.get("src", "closed"), trig=trig["trigger_type"], truth=int(truth_fraud), true_pattern=c["pattern"],
                          p=ans.case.fraud_probability, verdict=ans.case.verdict, pred_pattern=ans.case.pattern,
                          f1=f1, prec=prec, rec=rec, true_exp=float(c["exposure_usd"]) if truth_fraud else 0.0,
                          pred_exp=ans.case.exposure_usd, sar_true=bool(c["report_filed"]), sar_pred=ans.sar.file,
@@ -75,7 +83,7 @@ def run(n: int, seed: int, cfg: Cfg | None, verbose: bool = False) -> dict:
 
 def summarize(df: pd.DataFrame, verbose: bool) -> dict:
     fr = df[df.truth == 1]
-    m = {"n": len(df), "n_fraud": len(fr), "n_cleared": int((df.truth == 0).sum())}
+    m = {"n": len(df), "n_fraud": len(fr), "n_cleared": int(((df.truth == 0) & (df.src == "closed")).sum()), "n_legit_alert": int((df.src == "legit_alert").sum())}
     m["auc"] = roc_auc_score(df.truth, df.p) if df.truth.nunique() > 1 else float("nan")
     m["brier"] = brier_score_loss(df.truth, df.p)
     dec = df[df.verdict != "uncertain"]
@@ -83,7 +91,10 @@ def summarize(df: pd.DataFrame, verbose: bool) -> dict:
     m["verdict_acc_decided"] = float(((dec.verdict == "fraud") == (dec.truth == 1)).mean()) if len(dec) else float("nan")
     m["verdict_acc_p50"] = float(((df.p >= 0.5) == (df.truth == 1)).mean())
     m["fraud_recall_p50"] = float((fr.p >= 0.5).mean())
-    m["cleared_fpr_p50"] = float((df[df.truth == 0].p >= 0.5).mean())
+    m["cleared_fpr_p50"] = float((df[(df.truth == 0) & (df.src == "closed")].p >= 0.5).mean())
+    la = df[df.src == "legit_alert"]
+    m["legit_alert_fpr_p50"] = float((la.p >= 0.5).mean()) if len(la) else float("nan")
+    m["legit_alert_mean_p"] = float(la.p.mean()) if len(la) else float("nan")
     pf = fr[fr.verdict != "legitimate"]
     m["pattern_acc"] = float((pf.pred_pattern == pf.true_pattern).mean()) if len(pf) else float("nan")
     m["episode_f1"] = float(fr.f1.mean())

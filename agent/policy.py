@@ -141,7 +141,7 @@ def recommend(a: Assessment, response: Response = None) -> list[ActionItem]:
         add("CREATE_CASE", "R7: disputed charge matches the customer's recurring pattern")
         add("VERIFY_WITH_CUSTOMER", "R7: confirm before any action; do not block")
         add("WARN_CUSTOMER", "R7: remind the customer of the recurring charge")
-    elif a.trigger_type == "customer_report" and p >= REPORT_SUPPORTED_P:   # R2: the report is a denial and evidence backs it
+    elif a.trigger_type == "customer_report" and p >= REPORT_SUPPORTED_P and not a.evidence_conflict:   # R2: the report is a denial and evidence backs it
         fraud_path("R2: customer reported the transaction as unauthorized and the evidence supports it")
     elif a.card_testing:                                          # R5
         if a.large_purchase_cleared:

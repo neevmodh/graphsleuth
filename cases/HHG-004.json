@@ -1,0 +1,133 @@
+{
+  "case_id": "HHG-004",
+  "case": {
+    "status": "escalated",
+    "verdict": "uncertain",
+    "fraud_probability": 0.445,
+    "pattern": "none",
+    "pattern_description": "",
+    "affected_txn_ids": [
+      "3583227"
+    ],
+    "first_suspicious_txn_id": "3583227",
+    "connected_card_ids": [],
+    "connected_device_profiles": [],
+    "exposure_usd": 128.33,
+    "evidence": [
+      {
+        "claim": "The calibrated transaction-level fraud model scores the flagged transaction 0.01; the bank's own risk score is 0.34 and is treated as an input, not a verdict.",
+        "source": "graph",
+        "ref": "query:score(txn=3583227)",
+        "entity_ids": [
+          "3583227"
+        ]
+      },
+      {
+        "claim": "Judged in context (neighbouring transactions on the card, timing, shared device, region and product) the alert has a fraud probability of 0.06, and 1 transaction(s) look like one episode.",
+        "source": "graph",
+        "ref": "query:episode_model(txn=3583227)",
+        "entity_ids": [
+          "3583227"
+        ]
+      },
+      {
+        "claim": "Amount $128.33 is 4.6x the card's prior median ($27.73).",
+        "source": "graph",
+        "ref": "query:card_profile(card=C08106-K1)",
+        "entity_ids": [
+          "3583227"
+        ]
+      },
+      {
+        "claim": "The device profile has never been seen on this card before.",
+        "source": "graph",
+        "ref": "query:card_window(card=C08106-K1)",
+        "entity_ids": [
+          "3583227"
+        ]
+      },
+      {
+        "claim": "Device profile is shared by 6 cards overall (75% New, 0% proxied): limited sharing.",
+        "source": "graph",
+        "ref": "query:device_neighbors",
+        "entity_ids": []
+      },
+      {
+        "claim": "The cardholder reported this transaction as unauthorized.",
+        "source": "customer",
+        "ref": "trigger:HHG-004",
+        "entity_ids": [
+          "3583227"
+        ]
+      },
+      {
+        "claim": "Customer report conflicts with the graph evidence (model support 0.01): No reply is presumed: the customer's report conflicts with the graph evidence, so the case is escalated for analyst review instead of guessing the outcome",
+        "source": "customer",
+        "ref": "evidence_request:1",
+        "entity_ids": [
+          "3583227"
+        ]
+      }
+    ],
+    "similar_prior_cases": [],
+    "summary": "The evidence on transaction 3583227 ($128.33) is ambiguous (fraud probability 0.44); the alert is neither confirmed nor cleared. Trigger: customer report. Tool calls: 7; closed cases consulted: none relevant.",
+    "written_to_graph": false,
+    "graph_case_id": "CASE-2016-1004"
+  },
+  "evidence_requests": [
+    {
+      "type": "customer_validation",
+      "asked_after_step": 7,
+      "assumed_response": "No reply is presumed: the customer's report conflicts with the graph evidence, so the case is escalated for analyst review instead of guessing the outcome"
+    }
+  ],
+  "next_best_actions": {
+    "initial": [
+      {
+        "action": "VERIFY_WITH_CUSTOMER",
+        "route": "auto",
+        "reason": "R1: single/weak signal (p < 0.70): verify before any block"
+      },
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "3a: probability >= 0.30 or the customer disputes the charge"
+      },
+      {
+        "action": "ESCALATE_TO_ANALYST",
+        "route": "auto",
+        "reason": "R8: uncertain and exposed (> $500) or the evidence conflicts"
+      }
+    ],
+    "final": [
+      {
+        "action": "VERIFY_WITH_CUSTOMER",
+        "route": "auto",
+        "reason": "R1: single/weak signal (p < 0.70): verify before any block"
+      },
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "3a: probability >= 0.30 or the customer disputes the charge"
+      },
+      {
+        "action": "ESCALATE_TO_ANALYST",
+        "route": "auto",
+        "reason": "R8: uncertain and exposed (> $500) or the evidence conflicts"
+      }
+    ],
+    "what_changed": "nothing"
+  },
+  "sar": {
+    "file": false,
+    "reason": "3a: fraud is not yet confirmed or strongly suspected; escalate for analyst review instead of reporting.",
+    "narrative": "",
+    "subjects": [],
+    "total_amount_usd": 0.0,
+    "activity_dates": []
+  },
+  "stop_reason": "Further steps are unlikely to change the decision.",
+  "tool_calls": 7,
+  "tokens": 0,
+  "latency_s": 0.05
+}

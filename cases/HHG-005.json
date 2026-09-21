@@ -1,0 +1,115 @@
+{
+  "case_id": "HHG-005",
+  "case": {
+    "status": "closed_legitimate",
+    "verdict": "legitimate",
+    "fraud_probability": 0.061,
+    "pattern": "none",
+    "pattern_description": "",
+    "affected_txn_ids": [],
+    "first_suspicious_txn_id": "",
+    "connected_card_ids": [],
+    "connected_device_profiles": [],
+    "exposure_usd": 0.0,
+    "evidence": [
+      {
+        "claim": "The calibrated transaction-level fraud model scores the flagged transaction 0.01; the bank's own risk score is 0.54 and is treated as an input, not a verdict.",
+        "source": "graph",
+        "ref": "query:score(txn=3523199)",
+        "entity_ids": [
+          "3523199"
+        ]
+      },
+      {
+        "claim": "The device profile has never been seen on this card before.",
+        "source": "graph",
+        "ref": "query:card_window(card=C02923-K1)",
+        "entity_ids": [
+          "3523199"
+        ]
+      },
+      {
+        "claim": "Device profile is shared by 112 cards overall (87% New, 0% proxied): common consumer device, weak link.",
+        "source": "graph",
+        "ref": "query:device_neighbors",
+        "entity_ids": []
+      },
+      {
+        "claim": "Closed case CC-2717 (confirmed_fraud, account_takeover, $896.08) is relevant: same card, same region.",
+        "source": "graph",
+        "ref": "query:similar_cases",
+        "entity_ids": [
+          "CC-2717"
+        ]
+      },
+      {
+        "claim": "Closed case CC-5296 (cleared, none, $0.00) is relevant: same region, same pattern.",
+        "source": "graph",
+        "ref": "query:similar_cases",
+        "entity_ids": [
+          "CC-5296"
+        ]
+      },
+      {
+        "claim": "Closed case CC-5249 (cleared, none, $0.00) is relevant: same region, same pattern.",
+        "source": "graph",
+        "ref": "query:similar_cases",
+        "entity_ids": [
+          "CC-5249"
+        ]
+      },
+      {
+        "claim": "Customer response (assumed): Customer confirms the purchase, e.g. on a new phone or while travelling (assumption: the evidence points to legitimate use)",
+        "source": "customer",
+        "ref": "evidence_request:1",
+        "entity_ids": [
+          "3523199"
+        ]
+      }
+    ],
+    "similar_prior_cases": [
+      "CC-2717",
+      "CC-5296",
+      "CC-5249"
+    ],
+    "summary": "The alert on transaction 3523199 ($100.07, online) looks legitimate (fraud probability 0.06); the bank's risk score of 0.54 is not corroborated by the card's own history. Trigger: risk score. Tool calls: 7; closed cases consulted: CC-2717, CC-5296, CC-5249. An evidence request was simulated and its assumed response is recorded in evidence_requests.",
+    "written_to_graph": false,
+    "graph_case_id": "CASE-2016-1005"
+  },
+  "evidence_requests": [
+    {
+      "type": "customer_validation",
+      "asked_after_step": 7,
+      "assumed_response": "Customer confirms the purchase, e.g. on a new phone or while travelling (assumption: the evidence points to legitimate use)"
+    }
+  ],
+  "next_best_actions": {
+    "initial": [
+      {
+        "action": "VERIFY_WITH_CUSTOMER",
+        "route": "auto",
+        "reason": "R1: single/weak signal (p < 0.70): verify before any block"
+      }
+    ],
+    "final": [
+      {
+        "action": "CLOSE_NO_FRAUD",
+        "route": "auto",
+        "reason": "R3: customer confirmed the transaction"
+      }
+    ],
+    "what_changed": "After the assumed customer confirmation, the recommendation moved from [VERIFY_WITH_CUSTOMER] to [CLOSE_NO_FRAUD]."
+  },
+  "sar": {
+    "file": false,
+    "reason": "3a: no fraud confirmed or strongly suspected, so no suspicious activity report is required.",
+    "narrative": "",
+    "subjects": [],
+    "total_amount_usd": 0.0,
+    "activity_dates": []
+  },
+  "stop_reason": "The assumed verification reply settled the question; further steps are unlikely to change the decision.",
+  "tool_calls": 7,
+  "tokens": 0,
+  "latency_s": 0.05
+}
