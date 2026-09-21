@@ -176,3 +176,27 @@ def test_legitimate_must_be_empty():
 def test_sar_false_fields_must_be_empty():
     with pytest.raises(ValidationError):
         Sar(file=False, reason="no", narrative="oops")
+
+
+# --- verify-then-close flow, customer reports and R7 outcome -------------------------------------------
+def test_legit_leaning_alert_verifies_then_closes():
+    a = Assessment(fraud_probability=0.10, exposure_usd=0, n_independent_evidence=3)
+    assert names(recommend(a)) == ["VERIFY_WITH_CUSTOMER"]          # no case below the 0.30 gate
+    assert names(recommend(a, "confirmed")) == ["CLOSE_NO_FRAUD"]   # R3
+
+
+def test_customer_report_supported_by_evidence_is_r2():
+    a = Assessment(fraud_probability=0.77, exposure_usd=55, trigger_type="customer_report", n_independent_evidence=3)
+    assert {"BLOCK_CARD", "CREATE_CASE"} <= set(names(recommend(a)))
+
+
+def test_customer_report_contradicted_by_evidence_verifies_and_escalates():
+    a = Assessment(fraud_probability=0.05, exposure_usd=40, trigger_type="customer_report", evidence_conflict=True)
+    out = set(names(recommend(a)))
+    assert "BLOCK_CARD" not in out
+    assert {"VERIFY_WITH_CUSTOMER", "CREATE_CASE", "ESCALATE_TO_ANALYST"} <= out
+
+
+def test_r7_confirmed_keeps_record_and_reminder():
+    a = Assessment(fraud_probability=0.1, trigger_type="customer_report", recurring_dispute=True)
+    assert set(names(recommend(a, "confirmed"))) == {"CREATE_CASE", "WARN_CUSTOMER", "CLOSE_NO_FRAUD"}

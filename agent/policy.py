@@ -23,6 +23,7 @@ AUTO = {
 CASE_GATE_P = 0.30          # 3a: open a case at fraud probability >= 0.30
 WEAK_SIGNAL_P = 0.70        # R1
 STOP_HIGH_P, STOP_LOW_P = 0.85, 0.15   # section 6
+REPORT_SUPPORTED_P = 0.50   # a customer report is acted on as R2 only when the evidence agrees
 REPORT_EXPOSURE = 1_000.0   # R2 / 3a
 ESCALATE_EXPOSURE = 500.0   # R4 / R8
 BLOCK_L2_EXPOSURE = 2_500.0  # section 2
@@ -99,11 +100,6 @@ def stop_reached(a: Assessment, response: Response = None) -> bool:
     return (p >= STOP_HIGH_P or p <= STOP_LOW_P) and a.n_independent_evidence >= 2
 
 
-def needs_evidence(a: Assessment) -> bool:
-    """Should the agent request more evidence (verify / step-up) before acting?"""
-    return not stop_reached(a) and not (a.trigger_type == "customer_report" and not a.recurring_dispute)
-
-
 def _item(action: str, reason: str, exposure: float) -> ActionItem:
     return ActionItem(action=action, route=route_for(action, exposure), reason=reason)
 
@@ -129,6 +125,9 @@ def recommend(a: Assessment, response: Response = None) -> list[ActionItem]:
             add("MONITOR_CONNECTED_CARDS", "R6: monitor every card sharing the origin")
 
     if response == "confirmed":                                   # R3
+        if a.recurring_dispute:                                   # R7 -> R3: keep the dispute record and the reminder
+            add("CREATE_CASE", "R7: dispute recorded; matches the customer's recurring pattern")
+            add("WARN_CUSTOMER", "R7: remind the customer of the recurring charge")
         add("CLOSE_NO_FRAUD", "R3: customer confirmed the transaction")
     elif response == "denied":                                    # R2
         fraud_path("R2: customer denies the transaction")
@@ -142,8 +141,8 @@ def recommend(a: Assessment, response: Response = None) -> list[ActionItem]:
         add("CREATE_CASE", "R7: disputed charge matches the customer's recurring pattern")
         add("VERIFY_WITH_CUSTOMER", "R7: confirm before any action; do not block")
         add("WARN_CUSTOMER", "R7: remind the customer of the recurring charge")
-    elif a.trigger_type == "customer_report":                     # the report is itself a denial (R2)
-        fraud_path("R2: customer reported the transaction as unauthorized")
+    elif a.trigger_type == "customer_report" and p >= REPORT_SUPPORTED_P:   # R2: the report is a denial and evidence backs it
+        fraud_path("R2: customer reported the transaction as unauthorized and the evidence supports it")
     elif a.card_testing:                                          # R5
         if a.large_purchase_cleared:
             fraud_path("R5: card testing and a purchase > $100 already cleared")
@@ -153,16 +152,15 @@ def recommend(a: Assessment, response: Response = None) -> list[ActionItem]:
             add("CREATE_CASE", "3a: evidence was requested")
     elif p >= STOP_HIGH_P and a.n_independent_evidence >= 2:      # strong, multi-evidence
         fraud_path("Stop rule: p >= 0.85 with >= 2 independent evidence items")
-    elif p <= STOP_LOW_P and a.n_independent_evidence >= 2:
-        add("CLOSE_NO_FRAUD", "Stop rule: p <= 0.15 with >= 2 independent evidence items")
-    else:                                                         # ambiguous: verify first
-        if p < WEAK_SIGNAL_P or a.n_independent_evidence < 2:
-            add("VERIFY_WITH_CUSTOMER", "R1: single/weak signal (p < 0.70): verify before any block")
-            add("CREATE_CASE", "3a: evidence was requested")
-        else:
+    else:                                                         # ambiguous or legitimate-leaning alert: verify first
+        add("VERIFY_WITH_CUSTOMER", "R1: single/weak signal (p < 0.70): verify before any block")
+        if p >= CASE_GATE_P or a.trigger_type == "customer_report":
+            add("CREATE_CASE", "3a: probability >= 0.30 or the customer disputes the charge")
+        if p >= WEAK_SIGNAL_P and a.n_independent_evidence >= 2:
+            del acts["VERIFY_WITH_CUSTOMER"]
             fraud_path("p >= 0.70 with multiple independent signals")
-        if a.verdict == "uncertain" and (exp > ESCALATE_EXPOSURE or a.evidence_conflict):   # R8
-            add("ESCALATE_TO_ANALYST", "R8: uncertain and exposed (> $500) or evidence conflicts")
+        if a.evidence_conflict or (a.verdict == "uncertain" and exp > ESCALATE_EXPOSURE):   # R8
+            add("ESCALATE_TO_ANALYST", "R8: uncertain and exposed (> $500) or the evidence conflicts")
 
     if a.undocumented_coordinated or a.pattern == "undocumented":  # R9
         add("CREATE_CASE", "R9: undocumented coordinated pattern")
