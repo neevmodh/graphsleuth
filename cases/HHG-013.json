@@ -80,7 +80,7 @@
       "CC-4294",
       "CC-3216"
     ],
-    "summary": "The alert on transaction 3526826 ($35.66, online) looks legitimate (fraud probability 0.11); the bank's risk score of 0.76 is not corroborated by the card's own history. Trigger: risk score. Tool calls: 7; closed cases consulted: CC-3761, CC-4294, CC-3216. An evidence request was simulated and its assumed response is recorded in evidence_requests.",
+    "summary": "The alert concerning transaction 3526826 ($35.66, online) appears legitimate (fraud probability 0.11); however, the bank\u2019s risk score of 0.76 is not corroborated by the card\u2019s own history. Trigger: risk score. Tool calls: 7; closed cases consulted: CC-3761, CC-4294, CC-3216. An evidence request was simulated and its assumed response is recorded in evidence_requests.",
     "written_to_graph": true,
     "graph_case_id": "CASE-2016-013"
   },
@@ -118,6 +118,6 @@
   },
   "stop_reason": "The assumed verification reply settled the question; further steps are unlikely to change the decision.",
   "tool_calls": 7,
-  "tokens": 0,
-  "latency_s": 3.79
+  "tokens": 820,
+  "latency_s": 23.63
 }

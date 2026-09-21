@@ -120,6 +120,6 @@
   },
   "stop_reason": "Fraud probability 0.99 with 4 independent evidence items reached the stop threshold (section 6).",
   "tool_calls": 7,
-  "tokens": 0,
-  "latency_s": 4.16
+  "tokens": 2054,
+  "latency_s": 44.18
 }

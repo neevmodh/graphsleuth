@@ -50,7 +50,7 @@
     "similar_prior_cases": [
       "CC-4160"
     ],
-    "summary": "1 transaction(s) totalling $292.36 on C11891-K1 are assessed as fraud (probability 0.91), matching card-not-present fraud: online use of the card number inconsistent with the cardholder's history. Trigger: risk score. Tool calls: 6; closed cases consulted: CC-4160.",
+    "summary": "1 transaction(s) totalling $292.36 on C11891-K1 is assessed as fraud (probability 0.91), matching the card-not-present fraud pattern of online use of the card number inconsistent with the cardholder's history. The trigger is the risk score. The investigation involved 6 tool calls, and the closed case consulted was CC-4160.",
     "written_to_graph": true,
     "graph_case_id": "CASE-2016-002"
   },
@@ -92,6 +92,6 @@
   },
   "stop_reason": "Fraud probability 0.91 with 3 independent evidence items reached the stop threshold (section 6).",
   "tool_calls": 6,
-  "tokens": 0,
-  "latency_s": 2.76
+  "tokens": 949,
+  "latency_s": 2.77
 }

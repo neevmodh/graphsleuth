@@ -60,11 +60,14 @@ The TigerGraph MCP server (`tigergraph-mcp`) connects to the workspace over stdi
 adapter that routes the agent's graph calls through it, and is not yet verified end to end.
 
 ## LLM layer
-`agent/llm.py` routes to Groq (fast tool loop) and Gemini (synthesis, embeddings) through their OpenAI-compatible endpoints,
-with retry/backoff, provider fallback, an on-disk cache and token accounting. `agent/explain.py` lets the model reword the
-case summary and the SAR narrative, but a fact guard rejects any rewrite that drops or invents a number, amount, date or ID
-(the template text is kept instead). With no keys everything runs offline on the templates. Set `GROQ_API_KEY` and
-`GEMINI_API_KEY` in `.env` to enable it; it has been tested with fake clients only, not against the real providers.
+`agent/llm.py` routes to Groq (`openai/gpt-oss-120b`, fast tool loop) and Gemini (`gemini-3.6-flash`, synthesis; embeddings) through
+their OpenAI-compatible endpoints, with retry/backoff, key rotation, provider fallback, an on-disk cache and token accounting.
+`agent/explain.py` lets the model reword the case summary and SAR narrative behind a **fact guard**: every number, amount, date and ID
+must survive, otherwise the template text is kept, and a failed rewrite gets one repair round naming the missing values.
+Measured with the real providers: 16 of 20 summaries were reworded and accepted; the SAR rewrites were rejected (the models drop card
+ids), so SARs stay on the checked template. Known limit: the guard checks facts, not meaning, so a model can still add a mild
+inference (e.g. turning "risk scores stay low" into "chosen to keep risk scores low"). `run_cases.py --no-llm` reproduces the
+template-only answers. Keys: `GROQ_API_KEY` / `GEMINI_API_KEY` in `.env`, comma-separated to rotate several.
 
 ## Quick start
 ```bash

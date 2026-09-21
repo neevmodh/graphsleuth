@@ -80,7 +80,7 @@
       "CC-5413",
       "CC-5018"
     ],
-    "summary": "The alert on transaction 3506725 ($1000.03, online) looks legitimate (fraud probability 0.02); the bank's risk score of 0.90 is not corroborated by the card's own history. Trigger: risk score. Tool calls: 7; closed cases consulted: CC-0873, CC-5413, CC-5018. An evidence request was simulated and its assumed response is recorded in evidence_requests.",
+    "summary": "The alert on transaction 3506725 ($1000.03, online) appears legitimate, with a fraud probability of 0.02; however, the bank\u2019s risk score of 0.90 is not supported by the card\u2019s own history. The trigger was the risk score. There were 7 tool calls, and the closed cases consulted were CC-0873, CC-5413, and CC-5018. An evidence request was simulated, and its assumed response is recorded in evidence_requests.",
     "written_to_graph": true,
     "graph_case_id": "CASE-2016-010"
   },
@@ -118,6 +118,6 @@
   },
   "stop_reason": "The assumed verification reply settled the question; further steps are unlikely to change the decision.",
   "tool_calls": 7,
-  "tokens": 0,
-  "latency_s": 3.72
+  "tokens": 741,
+  "latency_s": 23.03
 }

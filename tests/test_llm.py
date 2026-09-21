@@ -135,7 +135,7 @@ def test_polish_uses_the_llm_only_when_the_guard_passes(tmp_path):
     p = explain.polish(router(tmp_path, {"gemini": good}, providers=("gemini",)), ORIG, "summary")
     assert p.used_llm and "On 2016-11-21" in p.text
 
-    bad = FakeClient([resp("Card C13487-K1 had 5 transactions totalling $1,906.07 on 2016-11-21; see CC-4124 and R9.")])
+    bad = FakeClient([resp("Card C13487-K1 had 5 transactions totalling $1,906.07 on 2016-11-21; see CC-4124 and R9.")] * 2)
     p = explain.polish(router(tmp_path / "b", {"gemini": bad}, providers=("gemini",)), ORIG, "summary")
     assert not p.used_llm and p.text == ORIG and "fact guard rejected" in p.reason
 
@@ -177,3 +177,29 @@ def test_orchestrator_counts_tokens_and_keeps_the_answer_valid(tmp_path):
     ans = Orchestrator(b, None, llm=r).run_case(trig, write_memory=False)
     assert ans.tokens == 600 and ans.sar.file            # summary + SAR polished: 2 calls x 300 tokens
     Answer.model_validate(ans.model_dump())
+
+
+def test_a_rate_limited_key_rolls_over_to_the_next_key_of_the_same_provider(tmp_path):
+    g1, g2, m = FakeClient([HttpError(429)] * 2), FakeClient([resp("second groq key")]), FakeClient([resp("gemini")])
+    provs = [Provider(n, "http://x", "k", {"loop": "m", "synth": "m"}) for n in ("groq", "groq#2", "gemini")]
+    clients = {"groq": g1, "groq#2": g2, "gemini": m}
+    r = LLMRouter(provs, cache_dir=tmp_path, client_factory=lambda p: clients[p.name], sleep=lambda s: None, max_retries=1)
+    out = r.chat(MSG, role="loop")
+    assert out.provider == "groq#2" and out.text == "second groq key" and not m.kwargs      # gemini was never needed
+
+
+def test_keys_are_split_into_one_provider_each(monkeypatch):
+    from agent.llm import providers_from_env
+    monkeypatch.setenv("GROQ_API_KEY", "a, b")
+    monkeypatch.setenv("GEMINI_API_KEY", "c")
+    assert [p.name for p in providers_from_env()] == ["groq", "groq#2", "gemini"]
+
+
+def test_polish_repairs_a_rewrite_that_dropped_a_fact_after_being_told_which(tmp_path):
+    dropped = resp("Card C13487-K1 made 3 transactions on 2016-11-21; see CC-4124 and R9.")                       # lost $1,906.07
+    fixed = resp("On 2016-11-21 card C13487-K1 made 3 transactions totalling $1,906.07; see CC-4124 and R9.")
+    g = FakeClient([dropped, fixed])
+    p = explain.polish(router(tmp_path, {"gemini": g}, providers=("gemini",)), ORIG, "summary")
+    assert p.used_llm and "after repair" in p.reason and "1,906.07" in p.text
+    feedback = g.kwargs[1]["messages"][-1]["content"]
+    assert "1906.07" in feedback and "dropped" in feedback                                                       # the model was told exactly what to restore

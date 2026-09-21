@@ -74,7 +74,7 @@
       "CC-3484",
       "CC-2370"
     ],
-    "summary": "The alert on transaction 3553342 ($30.91, in person) looks legitimate (fraud probability 0.11); the bank's risk score of 0.55 is not corroborated by the card's own history. Trigger: risk score. Tool calls: 8; closed cases consulted: CC-0003, CC-3484, CC-2370. An evidence request was simulated and its assumed response is recorded in evidence_requests.",
+    "summary": "The alert concerning transaction 3553342 ($30.91, in person) appears legitimate, with a fraud probability of 0.11; however, the bank\u2019s risk score of 0.55 is not supported by the card\u2019s own history. The trigger was the risk score. There were 8 tool calls, and the analysis consulted the closed cases CC-0003, CC-3484, and CC-2370. An evidence request was simulated, and its assumed response is recorded in evidence_requests.",
     "written_to_graph": true,
     "graph_case_id": "CASE-2016-012"
   },
@@ -112,6 +112,6 @@
   },
   "stop_reason": "The assumed verification reply settled the question; further steps are unlikely to change the decision.",
   "tool_calls": 8,
-  "tokens": 0,
-  "latency_s": 3.75
+  "tokens": 740,
+  "latency_s": 23.07
 }

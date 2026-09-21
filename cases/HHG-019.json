@@ -82,7 +82,7 @@
       "CC-5026",
       "CC-4456"
     ],
-    "summary": "1 transaction(s) totalling $99.92 on C07987-K2 are assessed as fraud (probability 0.80), matching card-not-present fraud from a device new to the account. Trigger: risk score. Tool calls: 7; closed cases consulted: CC-5231, CC-5026, CC-4456. An evidence request was simulated and its assumed response is recorded in evidence_requests.",
+    "summary": "1 transaction(s) totalling $99.92 on C07987-K2 is assessed as fraud (probability 0.80), matching card\u2011not\u2011present fraud from a device new to the account; Trigger: risk score. Tool calls: 7; closed cases consulted: CC-5231, CC-5026, CC-4456. An evidence request was simulated and its assumed response is recorded in evidence_requests.",
     "written_to_graph": true,
     "graph_case_id": "CASE-2016-019"
   },
@@ -130,6 +130,6 @@
   },
   "stop_reason": "The assumed verification reply settled the question; further steps are unlikely to change the decision.",
   "tool_calls": 7,
-  "tokens": 0,
-  "latency_s": 4.28
+  "tokens": 2506,
+  "latency_s": 44.74
 }

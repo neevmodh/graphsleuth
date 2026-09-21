@@ -76,7 +76,7 @@
       "CC-2964",
       "CC-1066"
     ],
-    "summary": "The evidence on transaction 3514030 ($77.07) is ambiguous (fraud probability 0.61); the alert is neither confirmed nor cleared. Trigger: risk score. Tool calls: 8; closed cases consulted: CC-3587, CC-2964, CC-1066. An evidence request was simulated and its assumed response is recorded in evidence_requests.",
+    "summary": "Transaction 3514030 ($77.07) shows ambiguous evidence, with a fraud probability of 0.61, leaving the alert neither confirmed nor cleared. The trigger was a risk score. Tool calls: 8; closed cases consulted: CC-3587, CC-2964, CC-1066. An evidence request was simulated, and its assumed response is recorded in evidence_requests.",
     "written_to_graph": true,
     "graph_case_id": "CASE-2016-001"
   },
@@ -129,6 +129,6 @@
   },
   "stop_reason": "Evidence remains ambiguous after the graph and history checks and no reply is assumed; the recommendation is monitoring and escalation rather than a forced verdict.",
   "tool_calls": 8,
-  "tokens": 0,
-  "latency_s": 4.65
+  "tokens": 947,
+  "latency_s": 23.99
 }

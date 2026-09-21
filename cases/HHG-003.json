@@ -78,7 +78,7 @@
       "CC-3682",
       "CC-2935"
     ],
-    "summary": "2 transaction(s) totalling $165.93 on C08623-K2 are assessed as fraud (probability 0.99), matching card-present use in a billing region the cardholder has no history in. Trigger: customer report. Tool calls: 8; closed cases consulted: CC-4957, CC-3682, CC-2935.",
+    "summary": "2 transaction(s) totalling $165.93 on C08623-K2 are assessed as fraud (probability 0.99), matching card-present use in a billing region where the cardholder has no prior history. The trigger is a customer report. The investigation involved 8 tool calls, and the closed cases consulted were CC-4957, CC-3682, and CC-2935.",
     "written_to_graph": true,
     "graph_case_id": "CASE-2016-003"
   },
@@ -120,6 +120,6 @@
   },
   "stop_reason": "Fraud probability 0.99 with 3 independent evidence items reached the stop threshold (section 6).",
   "tool_calls": 8,
-  "tokens": 0,
-  "latency_s": 5.32
+  "tokens": 1756,
+  "latency_s": 44.49
 }

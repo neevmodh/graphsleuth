@@ -98,7 +98,7 @@
       "CC-3778",
       "CC-2121"
     ],
-    "summary": "The evidence on transaction 3583227 ($128.33) is ambiguous (fraud probability 0.44); the alert is neither confirmed nor cleared. Trigger: customer report. Tool calls: 7; closed cases consulted: CC-0696, CC-3778, CC-2121.",
+    "summary": "Transaction\u202f3583227\u202f($128.33) has ambiguous evidence, with a fraud probability of\u202f0.44; consequently, the alert remains neither confirmed nor cleared. The trigger was a customer report. There have been\u202f7\u202ftool calls, and closed cases\u202fCC-0696,\u202fCC-3778,\u202fand\u202fCC-2121\u202fwere consulted.",
     "written_to_graph": true,
     "graph_case_id": "CASE-2016-004"
   },
@@ -156,6 +156,6 @@
   },
   "stop_reason": "Further steps are unlikely to change the decision.",
   "tool_calls": 7,
-  "tokens": 0,
-  "latency_s": 3.75
+  "tokens": 542,
+  "latency_s": 23.03
 }

@@ -5,7 +5,8 @@ tiers need: retry with backoff on rate limits and 5xx, provider fallback, an on-
 and deterministic), and token accounting for the answer file's `tokens` field.
 
 With no API keys `available` is False and callers keep their template output, so the whole pipeline runs offline.
-NOT yet exercised against the real providers (no keys were available); tests use injected fake clients.
+Exercised against the real providers (Groq gpt-oss-120b, Gemini 3.x flash): Gemini often answers 503/429 on the free tier, which
+the retry/rotation/fallback absorbs. Unit tests use injected fake clients.
 """
 from __future__ import annotations
 
@@ -55,13 +56,16 @@ class LLMResult:
 
 
 def providers_from_env() -> list[Provider]:
-    out = []
-    if os.getenv("GROQ_API_KEY"):
-        m = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
-        out.append(Provider("groq", "https://api.groq.com/openai/v1", os.environ["GROQ_API_KEY"], {"loop": m, "synth": m}))
-    if os.getenv("GEMINI_API_KEY"):
-        m = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
-        out.append(Provider("gemini", "https://generativelanguage.googleapis.com/v1beta/openai/", os.environ["GEMINI_API_KEY"],
+    """One Provider per key: a comma-separated GROQ_API_KEY / GEMINI_API_KEY gives 'groq', 'groq#2', ... so a rate-limited
+    key rolls over to the next one before the router falls back to the other provider."""
+    out: list[Provider] = []
+    keys = lambda var: [k.strip() for k in os.getenv(var, "").split(",") if k.strip()]
+    m = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
+    for i, k in enumerate(keys("GROQ_API_KEY")):
+        out.append(Provider("groq" if i == 0 else f"groq#{i + 1}", "https://api.groq.com/openai/v1", k, {"loop": m, "synth": m}))
+    m = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
+    for i, k in enumerate(keys("GEMINI_API_KEY")):
+        out.append(Provider("gemini" if i == 0 else f"gemini#{i + 1}", "https://generativelanguage.googleapis.com/v1beta/openai/", k,
                             {"loop": m, "synth": m, "embed": os.getenv("GEMINI_EMBED_MODEL", "gemini-embedding-001")}))
     return out
 
@@ -115,7 +119,9 @@ class LLMRouter:
         return self._clients[name]
 
     def _order(self, role: str) -> list[str]:
-        return [n for n in self.ORDER.get(role, ["gemini", "groq"]) if n in self.providers and role in self.providers[n].models]
+        base = lambda n: n.split("#")[0]
+        return [n for b in self.ORDER.get(role, ["gemini", "groq"]) for n in self.providers
+                if base(n) == b and role in self.providers[n].models]
 
     def _key(self, kind: str, payload: dict) -> str:
         return hashlib.sha256(json.dumps({"k": kind, **payload}, sort_keys=True, default=str).encode()).hexdigest()

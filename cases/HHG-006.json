@@ -95,7 +95,7 @@
       }
     ],
     "similar_prior_cases": [],
-    "summary": "4 transaction(s) totalling $1,906.07 on C07297-K1 are assessed as fraud (probability 0.99), matching an undocumented pattern. 4 online purchases within an hour on one card, each just under $500 ($456.96 to $488.04, about 8x the card's normal amount). Amounts appear chosen to stay under an authorization or reporting threshold while draining the card; risk scores stay low. Found by scanning the card's recent window for bursts of near-threshold amounts. Trigger: customer report. Tool calls: 8; closed cases consulted: CC-5562, CC-5560, CC-5521.",
+    "summary": "A total of 4 transactions amounting to $1,906.07 on card C07297-K1 are assessed as fraud with a probability of 0.99, matching an undocumented pattern. These 4 online purchases occurred within an hour on the card, with each transaction individually priced just under $500 (ranging from $456.96 to $488.04, which is about 8x the card's normal amount). The transaction amounts appear to have been specifically selected to remain under an authorization or reporting threshold while exhausting the card's available funds, ensuring that risk scores stay low. This pattern was identified by scanning the card's recent window for bursts of near-threshold amounts following a trigger from a customer report. The investigation involved 8 tool calls and consulted closed cases CC-5562, CC-5560, and CC-5521.",
     "written_to_graph": true,
     "graph_case_id": "CASE-2016-006"
   },
@@ -163,6 +163,6 @@
   },
   "stop_reason": "Fraud probability 0.99 with 4 independent evidence items reached the stop threshold (section 6).",
   "tool_calls": 8,
-  "tokens": 0,
-  "latency_s": 4.68
+  "tokens": 2923,
+  "latency_s": 4.48
 }

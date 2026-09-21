@@ -59,9 +59,11 @@ exposure error of $0, and it refuses to guess when the evidence is ambiguous.
 5. **Raw device sharing is noise.** Common devices sit on hundreds of cards. The ring is rare *and* always New *and* always behind a proxy.
 6. **Use exact rules where the labels are exact.** Channel mix and `New` device determine four of the five documented patterns perfectly; a classifier is needed only for in-person account takeover vs out-of-region use.
 7. **A false "recurring charge".** Our first test called HHG-003 a subscription (gaps of 20 and 25 days); tightening to true monthly gaps removed it. Plausible-looking rules need a counter-check.
-8. **We stopped too early.** Our first ladder blocked at p >= 0.70, before the policy's own stop rule (p >= 0.85 with two independent evidence items). Moving the boundary halved wrongful blocks before verification (7% to 4% on identical samples) and made the recommendation visibly change after evidence, without touching accuracy.
+8. **The guard was right and my prompt was wrong.** The first real-model run had every rewrite rejected: I had asked for "concise", so the models dropped facts. Asking for a rewrite that keeps everything, plus one repair round naming the missing values, took summaries from 0 to 100% accepted.
+9. **We stopped too early.** Our first ladder blocked at p >= 0.70, before the policy's own stop rule (p >= 0.85 with two independent evidence items). Moving the boundary halved wrongful blocks before verification (7% to 4% on identical samples) and made the recommendation visibly change after evidence, without touching accuracy.
 
 ## 8. Limitations, said plainly (150 words)
+- The LLM fact guard checks numbers and IDs, not meaning: a real model turned an observation ("risk scores stay low") into a causal claim ("chosen to keep them low"). SAR rewrites were rejected outright because models drop card ids.
 - Simulated customer replies: they follow the agent's own belief, so they cannot validate it.
 - The ±72 h window uses transactions after the alert; a live system must use only what was known at alert time.
 - The dev set has no ground truth for the exam distribution; numbers are a proxy.
