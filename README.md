@@ -28,6 +28,15 @@ are enforced in code (`agent/policy.py`), so policy is never hallucinated.
 | `cases/` | The 20 benchmark answer files |
 | `docs/` | Data findings, architecture, blog |
 
+## Run the analyst UI
+```bash
+.venv/bin/python run_cases.py                 # writes cases/HHG-001..020.json (validated: python -m eval.validate_answers cases)
+.venv/bin/python -m uvicorn api.main:app --port 8000   # then open http://localhost:8000
+```
+Pick a case and press **Investigate** to watch each tool call stream in, then read the evidence, the initial vs final
+actions with their approval routes (L1/L2 actions wait for a human: Approve / Reject), the evidence graph, the
+transaction timeline and the suspicious activity report.
+
 ## Quick start
 ```bash
 python3.11 -m venv .venv && .venv/bin/pip install -r requirements.txt

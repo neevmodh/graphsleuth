@@ -112,7 +112,7 @@ class Investigator:
         tid, card = int(trig["flagged_txn_id"]), trig["card_id"]
 
         f = self._call(inv, "get_transaction", b.transaction, {"tid": tid},
-                       lambda r: f"{r['channel']} ${r['amt']:.2f} {r['prod']} at {r['ts']}, bank risk {r.get('bank_risk')}, model p={r.get('p')}", on_step)
+                       lambda r: f"{r['channel']} ${r['amt']:.2f} {r['prod']} at {r['ts']}, bank risk {r.get('bank_risk'):.2f}, model p={(r.get('p') or 0):.2f}", on_step)
         inv.flagged = f
         ts = f["ts"]
         inv.p_flagged = float(f.get("p") or 0.0)

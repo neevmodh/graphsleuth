@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GraphSleuth</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.30.2/cytoscape.min.js"></script>
+<style>
+:root{
+  --bg:#f6f7f9; --panel:#fff; --ink:#15181d; --muted:#5b6472; --line:#e3e6eb; --accent:#4c3fd1;
+  --ok:#1f8a4c; --warn:#b26a00; --bad:#c42b3a; --unc:#6b5bd2;
+  --ok-bg:#e5f5ec; --warn-bg:#fdf1de; --bad-bg:#fbe8ea; --unc-bg:#ece9fb; --chip:#eef0f4;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1216; --panel:#171b21; --ink:#e8ebf0; --muted:#9aa3b0; --line:#262c35; --accent:#8f84ff;
+  --ok:#4cc38a; --warn:#e3a13b; --bad:#ff6b78; --unc:#a99cff;
+  --ok-bg:#12291d; --warn-bg:#2d2311; --bad-bg:#33161a; --unc-bg:#1d1a33; --chip:#222831;}}
+:root[data-theme="dark"]{
+  --bg:#0f1216; --panel:#171b21; --ink:#e8ebf0; --muted:#9aa3b0; --line:#262c35; --accent:#8f84ff;
+  --ok:#4cc38a; --warn:#e3a13b; --bad:#ff6b78; --unc:#a99cff;
+  --ok-bg:#12291d; --warn-bg:#2d2311; --bad-bg:#33161a; --unc-bg:#1d1a33; --chip:#222831;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{display:flex;align-items:center;gap:14px;padding:12px 20px;border-bottom:1px solid var(--line);background:var(--panel);position:sticky;top:0;z-index:5}
+header h1{font-size:17px;margin:0;letter-spacing:.2px}
+header .tag{color:var(--muted);font-size:13px}
+header .sp{flex:1}
+.badge{font-size:12px;padding:2px 9px;border-radius:99px;background:var(--chip);color:var(--muted)}
+.badge.warn{background:var(--warn-bg);color:var(--warn)}
+main{display:grid;grid-template-columns:300px 1fr;min-height:calc(100vh - 54px)}
+aside{border-right:1px solid var(--line);background:var(--panel);overflow:auto;max-height:calc(100vh - 54px);position:sticky;top:54px}
+.case{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;color:inherit;padding:10px 16px;cursor:pointer;font:inherit}
+.case:hover{background:var(--chip)} .case.active{background:var(--unc-bg)}
+.case .r1{display:flex;justify-content:space-between;align-items:center;font-weight:600}
+.case .r2{color:var(--muted);font-size:12px;margin-top:2px}
+.chip{display:inline-block;font-size:11px;font-weight:600;padding:1px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.3px}
+.fraud{background:var(--bad-bg);color:var(--bad)} .legitimate{background:var(--ok-bg);color:var(--ok)}
+.uncertain{background:var(--unc-bg);color:var(--unc)} .none{background:var(--chip);color:var(--muted)}
+.auto{background:var(--ok-bg);color:var(--ok)} .L1{background:var(--warn-bg);color:var(--warn)} .L2{background:var(--bad-bg);color:var(--bad)}
+section.wrap{padding:20px 24px;max-width:1240px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin-bottom:16px}
+.card h2{margin:0 0 10px;font-size:13px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media (max-width:980px){main{grid-template-columns:1fr}aside{position:static;max-height:220px;border-right:0;border-bottom:1px solid var(--line)}.grid2{grid-template-columns:1fr}.grid3{grid-template-columns:1fr 1fr}}
+.kv{display:flex;flex-direction:column;gap:2px}.kv b{font-size:20px}.kv span{color:var(--muted);font-size:12px}
+button.primary{background:var(--accent);color:#fff;border:0;border-radius:8px;padding:8px 16px;font:600 13px system-ui;cursor:pointer}
+button.primary:disabled{opacity:.5;cursor:default}
+button.mini{border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:6px;padding:3px 10px;font:12px system-ui;cursor:pointer;margin-left:6px}
+button.mini.yes{border-color:var(--ok);color:var(--ok)} button.mini.no{border-color:var(--bad);color:var(--bad)}
+.steps{list-style:none;margin:0;padding:0}
+.steps li{display:grid;grid-template-columns:26px 150px 1fr 56px;gap:8px;padding:6px 0;border-bottom:1px dashed var(--line);animation:in .25s ease}
+.steps .n{color:var(--muted)} .steps .t{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--accent)} .steps .ms{color:var(--muted);text-align:right;font-size:12px}
+@keyframes in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.gauge{position:relative;height:14px;border-radius:99px;background:linear-gradient(90deg,var(--ok-bg),var(--unc-bg) 35%,var(--unc-bg) 65%,var(--bad-bg));border:1px solid var(--line);margin:8px 0 4px}
+.gauge i{position:absolute;top:-4px;width:4px;height:22px;background:var(--ink);border-radius:2px;transform:translateX(-2px)}
+.gauge u{position:absolute;top:0;bottom:0;width:1px;background:var(--muted);opacity:.5}
+.ev{display:flex;gap:8px;margin:6px 0}.src{font-size:10px;font-weight:700;text-transform:uppercase;padding:1px 6px;border-radius:4px;background:var(--chip);color:var(--muted);height:fit-content;margin-top:2px;min-width:62px;text-align:center}
+.src.graph{color:var(--accent)} .src.customer{color:var(--warn)}
+.act{display:flex;gap:8px;align-items:flex-start;margin:8px 0}.act .nm{font-weight:600;font-family:ui-monospace,Menlo,monospace;font-size:12.5px}
+.act .why{color:var(--muted);font-size:12.5px}
+.muted{color:var(--muted)} .small{font-size:12.5px}
+#graph{height:340px;border:1px solid var(--line);border-radius:8px}
+pre.sar{white-space:pre-wrap;font:13px/1.55 ui-monospace,Menlo,monospace;background:var(--chip);border-radius:8px;padding:12px;margin:0}
+svg text{fill:var(--muted);font:11px system-ui}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:6px}.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.empty{padding:60px 20px;text-align:center;color:var(--muted)}
+</style>
+</head>
+<body>
+<header>
+  <h1>GraphSleuth</h1><span class="tag">An agentic fraud investigator that thinks in graphs</span>
+  <span class="sp"></span>
+  <span class="badge warn" id="be" title="TigerGraph backend is not connected yet">backend: local DuckDB</span>
+  <button class="mini" id="theme">theme</button>
+</header>
+<main>
+  <aside id="queue"></aside>
+  <section class="wrap" id="view"><div class="empty">Select a case to investigate.</div></section>
+</main>
+
+<script>
+const $ = (s, r=document) => r.querySelector(s);
+function h(tag, attrs={}, ...kids){
+  const e = document.createElement(tag);
+  for (const [k,v] of Object.entries(attrs)){ if (k==='class') e.className=v; else if (k.startsWith('on')) e.addEventListener(k.slice(2),v); else if (v!==null && v!==undefined) e.setAttribute(k,v); }
+  for (const c of kids.flat()){ if (c===null||c===undefined||c===false) continue; e.append(c.nodeType?c:document.createTextNode(String(c))); }
+  return e;
+}
+const money = x => '$' + Number(x).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+const chip = (cls, text) => h('span',{class:'chip '+cls}, text);
+const trigIcon = t => ({risk_score:'score',customer_report:'customer',analyst_request:'analyst'}[t]||t);
+let cases = [], current = null, es = null;
+
+async function loadQueue(){
+  cases = await (await fetch('/api/cases')).json();
+  const q = $('#queue'); q.replaceChildren();
+  for (const c of cases){
+    q.append(h('button',{class:'case'+(current===c.case_id?' active':''), id:'c-'+c.case_id, onclick:()=>select(c.case_id)},
+      h('div',{class:'r1'}, c.case_id, c.verdict?chip(c.verdict,c.verdict):chip('none','not run')),
+      h('div',{class:'r2'}, trigIcon(c.trigger_type)+' · '+c.opened_at.slice(0,10)+(c.p!==undefined?' · p='+c.p.toFixed(2):'')+(c.sar?' · SAR':''))));
+  }
+}
+async function select(id){
+  if (es){ es.close(); es=null; }
+  current = id;
+  document.querySelectorAll('.case').forEach(b=>b.classList.toggle('active', b.id==='c-'+id));
+  const d = await (await fetch('/api/cases/'+id)).json();
+  render(d.trigger, d.answer, null, null, d.approvals, []);
+}
+
+function render(trig, ans, windowData, graph, approvals, steps){
+  const v = $('#view'); v.replaceChildren();
+  const running = steps && steps.running;
+  v.append(h('div',{class:'card'},
+    h('div',{style:'display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap'},
+      h('div',{}, h('div',{style:'font-size:18px;font-weight:700'}, trig.case_id+' · '+trigIcon(trig.trigger_type).replace(/^./,c=>c.toUpperCase())+' alert'),
+        h('div',{class:'muted small'}, 'opened '+trig.opened_at+' · flagged transaction '+trig.flagged_txn_id+' · card '+trig.card_id)),
+      h('div',{}, h('button',{class:'primary', id:'run', onclick:()=>run(trig.case_id)}, ans?'Re-run investigation live':'Investigate'))),
+    h('p',{style:'margin:10px 0 0'}, trig.trigger_text)));
+
+  v.append(h('div',{class:'card', id:'stepcard'}, h('h2',{},'Investigation steps (tool calls)'),
+    h('ul',{class:'steps', id:'steps'}), h('div',{class:'muted small', id:'stephint'}, ans?'Press "Re-run investigation live" to replay the steps as the agent takes them.':'')));
+
+  if (!ans){ return; }
+  const c = ans.case, n = ans.next_best_actions;
+  const p = c.fraud_probability;
+  v.append(h('div',{class:'card'},
+    h('div',{class:'grid3'},
+      h('div',{class:'kv'}, h('span',{},'Verdict'), h('b',{}, chip(c.verdict,c.verdict))),
+      h('div',{class:'kv'}, h('span',{},'Pattern'), h('b',{style:'font-size:15px'}, c.pattern.replaceAll('_',' '))),
+      h('div',{class:'kv'}, h('span',{},'Exposure'), h('b',{}, money(c.exposure_usd))),
+      h('div',{class:'kv'}, h('span',{},'Status'), h('b',{style:'font-size:15px'}, c.status.replaceAll('_',' ')))),
+    h('div',{class:'small muted',style:'margin-top:12px'}, 'Fraud probability '+p.toFixed(2)+' (uncertain band 0.35–0.65)'),
+    h('div',{class:'gauge'}, h('u',{style:'left:35%'}), h('u',{style:'left:65%'}), h('i',{style:'left:'+(p*100)+'%'})),
+    h('p',{style:'margin:10px 0 0'}, c.summary)));
+
+  // actions
+  const actCol = (title, list, isFinal) => h('div',{}, h('h2',{},title), list.map(a => {
+    const st = (approvals||{})[a.action];
+    const ctl = (isFinal && a.route!=='auto') ? h('span',{},
+        st ? chip(st.decision==='approved'?'legitimate':'fraud', st.decision) :
+        [h('button',{class:'mini yes',onclick:()=>decide(trig.case_id,a.action,'approved')},'Approve'), h('button',{class:'mini no',onclick:()=>decide(trig.case_id,a.action,'rejected')},'Reject')]) : null;
+    return h('div',{class:'act'}, chip(a.route,a.route==='auto'?'auto':a.route+(a.route==='L1'?' lead':' manager')),
+      h('div',{}, h('div',{}, h('span',{class:'nm'},a.action), ctl), h('div',{class:'why'},a.reason)));
+  }));
+  v.append(h('div',{class:'card'}, h('div',{class:'grid2'}, actCol('Before requested evidence',n.initial,false), actCol('After requested evidence',n.final,true)),
+    h('p',{class:'small',style:'margin:12px 0 0'}, h('b',{},'What changed: '), n.what_changed),
+    ans.evidence_requests.length?h('div',{class:'small muted',style:'margin-top:8px'}, ans.evidence_requests.map(r=>h('div',{}, '↳ '+r.type.replaceAll('_',' ')+' requested after step '+r.asked_after_step+' — assumed response: '+r.assumed_response))):null,
+    h('p',{class:'small muted',style:'margin:8px 0 0'}, 'The agent may execute only “auto” actions. L1 and L2 actions wait for a human.')));
+
+  v.append(h('div',{class:'grid2'},
+    h('div',{class:'card'}, h('h2',{},'Evidence'), c.evidence.map(e=>h('div',{class:'ev'}, h('span',{class:'src '+e.source}, e.source), h('div',{class:'small'}, e.claim)))),
+    h('div',{class:'card'}, h('h2',{},'Transactions around the alert'), h('div',{id:'tl'}, windowData?'':h('div',{class:'muted small'},'Run live to plot the card’s window.')),
+      h('div',{class:'legend'}, h('span',{},h('i',{style:'background:var(--bad)'}),'in episode'), h('span',{},h('i',{style:'background:var(--muted);opacity:.5'}),'other'), h('span',{},'◆ flagged')),
+      h('h2',{style:'margin-top:16px'},'Memory: similar closed cases'), h('div',{class:'small'}, c.similar_prior_cases.length?c.similar_prior_cases.join(', '):'none relevant'))));
+
+  v.append(h('div',{class:'card'}, h('h2',{},'Evidence graph'), h('div',{id:'graph'}, graph?'':h('div',{class:'muted small',style:'padding:14px'},'Run live to draw the graph.'))));
+  v.append(h('div',{class:'card'}, h('h2',{},'Suspicious activity report'),
+    ans.sar.file ? h('div',{}, h('div',{class:'small muted',style:'margin-bottom:8px'}, ans.sar.reason+' · '+money(ans.sar.total_amount_usd)+' · '+ans.sar.activity_dates.join(' → ')), h('pre',{class:'sar'}, ans.sar.narrative))
+                 : h('div',{class:'small'}, 'No report. '+ans.sar.reason)));
+  v.append(h('div',{class:'card small muted'}, 'Stop reason: '+ans.stop_reason+' · '+ans.tool_calls+' tool calls · '+ans.latency_s+' s · written to TigerGraph: '+(c.written_to_graph?'yes ('+c.graph_case_id+')':'no (local case memory only)')));
+  if (windowData) drawTimeline(windowData);
+  if (graph) drawGraph(graph);
+}
+
+function drawTimeline(w){
+  const box = $('#tl'); if (!box||!w.length) return; box.replaceChildren();
+  const W = 520, H = 190, m = {l:36,r:10,t:8,b:22};
+  const xs = w.map(d=>+new Date(d.ts.replace(' ','T'))), x0 = Math.min(...xs), x1 = Math.max(...xs)||x0+1;
+  const ly = d => Math.log10(d.amt+1), y1 = Math.max(...w.map(ly),1) * 1.12;
+  const X = t => m.l + (t-x0)/(x1-x0||1)*(W-m.l-m.r), Y = a => H-m.b - a/y1*(H-m.t-m.b);
+  const ns='http://www.w3.org/2000/svg', el=(t,a)=>{const e=document.createElementNS(ns,t);for(const k in a)e.setAttribute(k,a[k]);return e;};
+  const svg = el('svg',{viewBox:`0 0 ${W} ${H}`,width:'100%'});
+  for (const a of [1,10,100,1000,10000]) if (Math.log10(a+1)<=y1){ svg.append(el('line',{x1:m.l,x2:W-m.r,y1:Y(Math.log10(a+1)),y2:Y(Math.log10(a+1)),stroke:'currentColor','stroke-opacity':.12}));
+      const t=el('text',{x:m.l-4,y:Y(Math.log10(a+1))+3,'text-anchor':'end'}); t.textContent='$'+a; svg.append(t); }
+  for (const d of w){
+    const cx=X(+new Date(d.ts.replace(' ','T'))), cy=Y(ly(d));
+    const node = d.flagged ? el('rect',{x:cx-6,y:cy-6,width:12,height:12,transform:`rotate(45 ${cx} ${cy})`,fill:d.in_episode?'var(--bad)':'var(--muted)',stroke:'var(--ink)','stroke-width':1.5})
+                           : el('circle',{cx,cy,r:d.in_episode?5:3.5,fill:d.in_episode?'var(--bad)':'var(--muted)','fill-opacity':d.in_episode?.9:.45});
+    const t = el('title',{}); t.textContent = `${d.ts}  ${money(d.amt)}  ${d.channel}  first-stage p=${(d.p??0).toFixed(2)}${d.m!=null?'  episode p='+d.m.toFixed(2):''}`; node.append(t); svg.append(node);
+  }
+  box.append(svg);
+}
+
+function drawGraph(g){
+  const box = $('#graph'); if (!box) return;
+  if (typeof cytoscape==='undefined'){ box.replaceChildren(h('div',{class:'muted small',style:'padding:14px'},'Graph library unavailable offline.')); return; }
+  box.replaceChildren();
+  const cs = getComputedStyle(document.documentElement), col = n => cs.getPropertyValue(n).trim();
+  const color = {customer:col('--muted'),card:col('--accent'),txn:col('--bad'),device:col('--warn'),connected:col('--bad'),closedcase:col('--ok')};
+  const cy = cytoscape({container:box, elements:[...g.nodes.map(n=>({data:n})), ...g.edges.map((e,i)=>({data:{id:'e'+i,source:e.s,target:e.t,label:e.label}}))],
+    style:[{selector:'node',style:{'background-color':ele=>color[ele.data('type')]||'#888',label:'data(label)','font-size':9,color:col('--ink'),'text-valign':'bottom','text-margin-y':3,width:ele=>ele.data('focus')?26:ele.data('type')==='device'?24:14,height:ele=>ele.data('focus')?26:ele.data('type')==='device'?24:14}},
+           {selector:'edge',style:{width:1,'line-color':col('--line'),'curve-style':'bezier','target-arrow-shape':'triangle','target-arrow-color':col('--muted'),'arrow-scale':.6}}],
+    layout:{name:'concentric',animate:false,padding:24,minNodeSpacing:16,startAngle:0,
+            concentric:n=>({device:5,card:4,txn:3,customer:2,connected:1,closedcase:1}[n.data('type')]||1),levelWidth:()=>1}});
+  cy.resize(); cy.fit(undefined,24);
+  cy.on('mouseover','node',e=>{const t=e.target.data('title'); box.title=t||e.target.data('label');});
+}
+
+async function decide(id, action, decision){
+  const r = await fetch('/api/cases/'+id+'/approve',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action,decision})});
+  if (r.ok) select(id); else alert((await r.json()).detail||'failed');
+}
+
+function run(id){
+  if (es) es.close();
+  const btn = $('#run'); btn.disabled = true; btn.textContent = 'Investigating…';
+  const list = $('#steps'); list.replaceChildren(); $('#stephint').textContent = '';
+  es = new EventSource('/api/cases/'+id+'/run?pace=0.35');
+  es.addEventListener('step', e => { const s = JSON.parse(e.data);
+    list.append(h('li',{}, h('span',{class:'n'},s.n), h('span',{class:'t'},s.tool), h('span',{}, s.summary), h('span',{class:'ms'}, s.ms+' ms'))); });
+  es.addEventListener('done', async e => { es.close(); es=null; const d = JSON.parse(e.data);
+    const t = (await (await fetch('/api/cases/'+id)).json());
+    const items = [...list.children].map(li=>li.cloneNode(true));
+    render(t.trigger, d.answer, d.window, d.graph, t.approvals, {running:false});
+    const nl = $('#steps'); items.forEach(li=>nl.append(li)); $('#stephint').textContent=''; loadQueue(); });
+  es.addEventListener('error', e => { if (e.data){ const d = JSON.parse(e.data); $('#stephint').textContent = 'Error: '+d.message; } es && es.close(); es=null; btn.disabled=false; btn.textContent='Investigate'; });
+}
+
+$('#theme').onclick = () => { const r = document.documentElement; r.dataset.theme = (r.dataset.theme==='dark'||(!r.dataset.theme&&matchMedia('(prefers-color-scheme:dark)').matches))?'light':'dark'; };
+fetch('/api/meta').then(r=>r.json()).then(m=>{ if (m.tigergraph){ $('#be').textContent='backend: TigerGraph'; $('#be').classList.remove('warn'); }});
+loadQueue().then(()=>{ if (cases.length) select(cases[0].case_id); });
+</script>
+</body>
+</html>

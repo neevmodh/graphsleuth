@@ -62,6 +62,7 @@ class Orchestrator:
     def __init__(self, backend: GraphBackend, memory: CaseMemory | None = None, cfg: Cfg | None = None):
         cfg = cfg or Cfg(fraud_p=UNCERTAIN_HI, legit_p=UNCERTAIN_LO)
         self.backend, self.memory = backend, memory
+        self.last: Investigation | None = None
         path = EP_DEV_PATH if getattr(backend, "variant", "final") == "dev" else EP_PATH
         self.inv = Investigator(backend, cfg, EpisodeModel(path) if path.exists() else None)
 
@@ -69,6 +70,7 @@ class Orchestrator:
         t0 = time.perf_counter()
         trig = {**trig, "opened_at": str(trig["opened_at"])}
         inv = self.inv.investigate(trig, on_step)
+        self.last = inv                  # kept for the UI (window, episode scores)
         a: Assessment = inv.assessment
         p = a.fraud_probability
         verdict = "fraud" if p >= UNCERTAIN_HI else "legitimate" if p <= UNCERTAIN_LO else "uncertain"
