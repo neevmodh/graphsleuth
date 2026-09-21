@@ -3,8 +3,12 @@ queries installed: gsql -g GraphSleuth graph/queries.gsql ; INSTALL QUERY ALL).
 
 Passes when the TigerGraph backend reproduces the local backend's answer for the ring case and a false-alarm case."""
 import os
+from pathlib import Path
 
 import pytest
+from dotenv import load_dotenv
+
+load_dotenv(Path(__file__).resolve().parents[1] / ".env")   # so skipif sees TG_HOST regardless of import order
 
 pytestmark = pytest.mark.skipif(not os.getenv("TG_HOST"), reason="TG_HOST not set: no live TigerGraph instance")
 

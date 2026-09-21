@@ -127,8 +127,8 @@
       "CC-2971"
     ],
     "summary": "3 transaction(s) totalling $439.61 on C13487-K1 are assessed as fraud (probability 0.92), matching an undocumented pattern. A single rare device profile (SM-G935F Build/NRD90M | Android 7.0 | chrome 62.0 for android | 1920x1080) transacts on 28 different cards inside one burst (2016-11-14 to 2016-12-04). Every transaction shows the device as New for the account and behind an anonymous proxy, purchases are ordinary online amounts, and the bank's risk scores stay low, so no single transaction looks alarming. Found by expanding from the flagged transaction to its device and counting distinct cards. The same device profile links 27 other cards, so this is treated as a coordinated ring, not an isolated compromise. Trigger: analyst request. Tool calls: 8; closed cases consulted: CC-3035, CC-2985, CC-2971.",
-    "written_to_graph": false,
-    "graph_case_id": "CASE-2016-1014"
+    "written_to_graph": true,
+    "graph_case_id": "CASE-2016-014"
   },
   "evidence_requests": [],
   "next_best_actions": {
@@ -233,5 +233,5 @@
   "stop_reason": "A shared-device ring across 28 cards was identified and the affected cards are named; further queries would not change the actions (R6/R9).",
   "tool_calls": 8,
   "tokens": 0,
-  "latency_s": 0.06
+  "latency_s": 11.3
 }

@@ -31,35 +31,35 @@
         ]
       },
       {
-        "claim": "Billing region 444.0: 10 prior transactions on this card; within +-5 days 1 in-region transactions on 1 day(s) and 26 elsewhere (see pattern assessment).",
+        "claim": "Billing region 444: 10 prior transactions on this card; within +-5 days 1 in-region transactions on 1 day(s) and 26 elsewhere (see pattern assessment).",
         "source": "graph",
-        "ref": "query:region_history(card=C12382-K1,addr1=444.0)",
+        "ref": "query:region_history(card=C12382-K1,addr1=444)",
         "entity_ids": [
           "3514030"
         ]
       },
       {
-        "claim": "Closed case CC-3765 (confirmed_fraud, account_takeover, $6180.62) is relevant: same region.",
+        "claim": "Closed case CC-3587 (confirmed_fraud, out_of_region_use, $49.09) is relevant: same card, same pattern.",
         "source": "graph",
         "ref": "query:similar_cases",
         "entity_ids": [
-          "CC-3765"
+          "CC-3587"
         ]
       },
       {
-        "claim": "Closed case CC-2800 (confirmed_fraud, account_takeover, $23421.18) is relevant: same region.",
+        "claim": "Closed case CC-2964 (confirmed_fraud, out_of_region_use, $171.08) is relevant: same card, same pattern.",
         "source": "graph",
         "ref": "query:similar_cases",
         "entity_ids": [
-          "CC-2800"
+          "CC-2964"
         ]
       },
       {
-        "claim": "Closed case CC-2511 (confirmed_fraud, account_takeover, $1286.48) is relevant: same region.",
+        "claim": "Closed case CC-1066 (confirmed_fraud, out_of_region_use, $170.98) is relevant: same card, same pattern.",
         "source": "graph",
         "ref": "query:similar_cases",
         "entity_ids": [
-          "CC-2511"
+          "CC-1066"
         ]
       },
       {
@@ -71,10 +71,14 @@
         ]
       }
     ],
-    "similar_prior_cases": [],
-    "summary": "The evidence on transaction 3514030 ($77.07) is ambiguous (fraud probability 0.61); the alert is neither confirmed nor cleared. Trigger: risk score. Tool calls: 8; closed cases consulted: CC-3765, CC-2800, CC-2511. An evidence request was simulated and its assumed response is recorded in evidence_requests.",
-    "written_to_graph": false,
-    "graph_case_id": "CASE-2016-1001"
+    "similar_prior_cases": [
+      "CC-3587",
+      "CC-2964",
+      "CC-1066"
+    ],
+    "summary": "The evidence on transaction 3514030 ($77.07) is ambiguous (fraud probability 0.61); the alert is neither confirmed nor cleared. Trigger: risk score. Tool calls: 8; closed cases consulted: CC-3587, CC-2964, CC-1066. An evidence request was simulated and its assumed response is recorded in evidence_requests.",
+    "written_to_graph": true,
+    "graph_case_id": "CASE-2016-001"
   },
   "evidence_requests": [
     {
@@ -126,5 +130,5 @@
   "stop_reason": "Evidence remains ambiguous after the graph and history checks and no reply is assumed; the recommendation is monitoring and escalation rather than a forced verdict.",
   "tool_calls": 8,
   "tokens": 0,
-  "latency_s": 0.14
+  "latency_s": 4.65
 }

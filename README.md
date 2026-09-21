@@ -8,9 +8,11 @@ TigerGraph knowledge graph and GraphRAG over policy and past cases, assesses ris
 progresses a case, recommends next-best actions within policy and approval limits, and writes what it learned
 back to the graph as case memory.
 
-> Status: work in progress. See the [issues](../../issues) and milestones for the phased plan.
-> Working end to end on a local DuckDB backend: all 20 benchmark cases produce validated answer files (`cases/`).
-> Pending: TigerGraph Savanna backend (GSQL queries, GraphRAG, case write-back), LLM layer, UI. Dev results: [docs/eval_results.md](docs/eval_results.md).
+> Status: runs end to end on **TigerGraph Savanna**. The graph (590,742 transactions, 14,318 cards, 5,565 closed cases,
+> ~2.3M edges, counts verified against the source) is loaded, 13 GSQL queries are installed, and all 20 benchmark cases run
+> through them and are written back to the graph as `FraudCase` vertices. The TigerGraph answers are identical to the local
+> backend's (0 differences over 100 field groups). Pending: GraphRAG (needs a Gemini key), routing calls through the MCP
+> server end to end, a real-provider run of the LLM layer. Held-out results: [docs/eval_results.md](docs/eval_results.md).
 
 ## Design principle
 **The LLM proposes; a deterministic policy engine disposes.** Fraud probability comes from graph features and a
@@ -39,16 +41,23 @@ transaction timeline and the suspicious activity report.
 
 ## TigerGraph backend
 The agent talks to the graph through one interface (`agent/backend.py`). `GRAPHSLEUTH_BACKEND=tigergraph` switches it to
-`agent/tg_backend.py`, which calls the installed GSQL queries in `graph/queries.gsql`:
+`agent/tg_backend.py`, which calls the installed GSQL queries in `graph/queries.gsql`. Setup on a Savanna workspace
+(auto-suspend and auto-resume ON):
 ```bash
-python -m data.export_tg                       # writes load-ready CSVs to data/store/tg/
-# on the Savanna workspace: schema, load, queries
-gsql graph/schema.gsql && gsql -g GraphSleuth graph/load.gsql && gsql -g GraphSleuth graph/queries.gsql
-gsql -g GraphSleuth "INSTALL QUERY ALL"
-GRAPHSLEUTH_BACKEND=tigergraph python run_cases.py        # then: pytest tests/test_tg_live.py
+cp .env.example .env                           # TG_HOST + TG_SECRET (a Database Secret; no password needed)
+python -m data.export_tg                       # load-ready CSVs in data/store/tg/
+python - <<'PY'                                # local-schema graph, so it never touches other graphs in the workspace
+from pyTigerGraph import TigerGraphConnection; import os
+from dotenv import load_dotenv; load_dotenv()
+c = TigerGraphConnection(host=os.environ["TG_HOST"], graphname="", gsqlSecret=os.environ["TG_SECRET"], tgCloud=True); c.getToken(os.environ["TG_SECRET"])
+print(c.gsql(open("graph/schema.gsql").read()))
+PY
+python -m data.load_tg                         # REST loader, idempotent (~25 min for the full graph)
+python graph/install_queries.py                # creates and installs the 13 queries (~4 min)
+GRAPHSLEUTH_BACKEND=tigergraph python run_cases.py && pytest tests/test_tg_live.py
 ```
-Status: the schema and all 13 queries were type-checked against a real TigerGraph 4.2.5. The backend class is unit-tested
-against a fake connection only; it has not yet run against a live instance (`tests/test_tg_live.py` will verify it).
+The TigerGraph MCP server (`tigergraph-mcp`) connects to the workspace over stdio (verified); `agent/mcp_conn.py` is the
+adapter that routes the agent's graph calls through it, and is not yet verified end to end.
 
 ## LLM layer
 `agent/llm.py` routes to Groq (fast tool loop) and Gemini (synthesis, embeddings) through their OpenAI-compatible endpoints,

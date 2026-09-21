@@ -373,9 +373,9 @@ class Investigator:
         if sig.get("region"):
             r = sig["region"]
             trip = r["days_in_region_near"] >= 2
-            add(f"Billing region {r['addr1']}: {r['n_before']} prior transactions on this card; within +-5 days {r['in_region_near']} in-region transactions on "
+            add(f"Billing region {int(r['addr1'])}: {r['n_before']} prior transactions on this card; within +-5 days {r['in_region_near']} in-region transactions on "
                 f"{r['days_in_region_near']} day(s) and {r['elsewhere_near']} elsewhere ({'consistent with travel' if trip and r['n_before'] == 0 else 'see pattern assessment'}).",
-                "graph", f"query:region_history(card={inv.trigger['card_id']},addr1={r['addr1']})", [str(tid)])
+                "graph", f"query:region_history(card={inv.trigger['card_id']},addr1={int(r['addr1'])})", [str(tid)])
         if sig.get("recurring", {}).get("is_recurring"):
             r = sig["recurring"]
             add(f"The identical amount and product occurred {r['n_prior']} times earlier on this card at roughly monthly gaps ({r['gaps_days']} days, {r['rate_per_30d']} per 30 days): matches the customer's own recurring pattern (R7). No merchant field exists, so amount, product and cadence are the proxy.",

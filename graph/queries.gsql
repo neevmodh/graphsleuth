@@ -138,7 +138,7 @@ CREATE OR REPLACE QUERY closed_cases_device(VERTEX<DeviceProfile> dev, DATETIME 
 CREATE OR REPLACE QUERY closed_cases_region(VERTEX<BillingRegion> region, DATETIME before) FOR GRAPH GraphSleuth SYNTAX v3 {
   Start = {region};
   C = SELECT cc FROM Start:r -(REGION_OF>)- Transaction:t -(INVOLVED_IN>)- ClosedCase:cc WHERE cc.closed_at < before
-      ORDER BY cc.opened_at DESC LIMIT 200;
+      ORDER BY cc.opened_at DESC LIMIT 2000;
   PRINT C[C.id AS case_id, C.outcome AS outcome, C.pattern AS pattern, C.exposure AS exposure, C.opened_at AS opened_at];
 }
 

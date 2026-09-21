@@ -53,19 +53,19 @@
         ]
       },
       {
+        "claim": "Closed case CC-5026 (confirmed_fraud, out_of_region_use, $309.86) is relevant: same card.",
+        "source": "graph",
+        "ref": "query:similar_cases",
+        "entity_ids": [
+          "CC-5026"
+        ]
+      },
+      {
         "claim": "Closed case CC-4456 (confirmed_fraud, card_not_present_new_device, $1449.99) is relevant: same region, same pattern.",
         "source": "graph",
         "ref": "query:similar_cases",
         "entity_ids": [
           "CC-4456"
-        ]
-      },
-      {
-        "claim": "Closed case CC-4432 (confirmed_fraud, card_not_present_new_device, $800.15) is relevant: same region, same pattern.",
-        "source": "graph",
-        "ref": "query:similar_cases",
-        "entity_ids": [
-          "CC-4432"
         ]
       },
       {
@@ -79,12 +79,12 @@
     ],
     "similar_prior_cases": [
       "CC-5231",
-      "CC-4456",
-      "CC-4432"
+      "CC-5026",
+      "CC-4456"
     ],
-    "summary": "1 transaction(s) totalling $99.92 on C07987-K2 are assessed as fraud (probability 0.80), matching card-not-present fraud from a device new to the account. Trigger: risk score. Tool calls: 7; closed cases consulted: CC-5231, CC-4456, CC-4432. An evidence request was simulated and its assumed response is recorded in evidence_requests.",
-    "written_to_graph": false,
-    "graph_case_id": "CASE-2016-1019"
+    "summary": "1 transaction(s) totalling $99.92 on C07987-K2 are assessed as fraud (probability 0.80), matching card-not-present fraud from a device new to the account. Trigger: risk score. Tool calls: 7; closed cases consulted: CC-5231, CC-5026, CC-4456. An evidence request was simulated and its assumed response is recorded in evidence_requests.",
+    "written_to_graph": true,
+    "graph_case_id": "CASE-2016-019"
   },
   "evidence_requests": [
     {
@@ -131,5 +131,5 @@
   "stop_reason": "The assumed verification reply settled the question; further steps are unlikely to change the decision.",
   "tool_calls": 7,
   "tokens": 0,
-  "latency_s": 0.06
+  "latency_s": 4.28
 }

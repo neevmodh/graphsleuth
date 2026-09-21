@@ -51,19 +51,19 @@
         ]
       },
       {
+        "claim": "Closed case CC-4816 (cleared, none, $0.00) is relevant: same region, same pattern.",
+        "source": "graph",
+        "ref": "query:similar_cases",
+        "entity_ids": [
+          "CC-4816"
+        ]
+      },
+      {
         "claim": "Closed case CC-4637 (cleared, none, $0.00) is relevant: same region, same pattern.",
         "source": "graph",
         "ref": "query:similar_cases",
         "entity_ids": [
           "CC-4637"
-        ]
-      },
-      {
-        "claim": "Closed case CC-4553 (cleared, none, $0.00) is relevant: same region, same pattern.",
-        "source": "graph",
-        "ref": "query:similar_cases",
-        "entity_ids": [
-          "CC-4553"
         ]
       },
       {
@@ -77,12 +77,12 @@
     ],
     "similar_prior_cases": [
       "CC-1313",
-      "CC-4637",
-      "CC-4553"
+      "CC-4816",
+      "CC-4637"
     ],
-    "summary": "The alert on transaction 3464869 ($599.94, online) looks legitimate (fraud probability 0.02); the bank's risk score of 0.77 is not corroborated by the card's own history. Trigger: risk score. Tool calls: 7; closed cases consulted: CC-1313, CC-4637, CC-4553. An evidence request was simulated and its assumed response is recorded in evidence_requests.",
-    "written_to_graph": false,
-    "graph_case_id": "CASE-2016-1015"
+    "summary": "The alert on transaction 3464869 ($599.94, online) looks legitimate (fraud probability 0.02); the bank's risk score of 0.77 is not corroborated by the card's own history. Trigger: risk score. Tool calls: 7; closed cases consulted: CC-1313, CC-4816, CC-4637. An evidence request was simulated and its assumed response is recorded in evidence_requests.",
+    "written_to_graph": true,
+    "graph_case_id": "CASE-2016-015"
   },
   "evidence_requests": [
     {
@@ -119,5 +119,5 @@
   "stop_reason": "The assumed verification reply settled the question; further steps are unlikely to change the decision.",
   "tool_calls": 7,
   "tokens": 0,
-  "latency_s": 0.05
+  "latency_s": 3.8
 }

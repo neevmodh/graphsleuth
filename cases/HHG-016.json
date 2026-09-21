@@ -55,8 +55,8 @@
     ],
     "similar_prior_cases": [],
     "summary": "1 transaction(s) totalling $59.67 on C09988-K1 are assessed as fraud (probability 0.99), matching card-not-present fraud from a device new to the account. Trigger: customer report. Tool calls: 7; closed cases consulted: none relevant.",
-    "written_to_graph": false,
-    "graph_case_id": "CASE-2016-1016"
+    "written_to_graph": true,
+    "graph_case_id": "CASE-2016-016"
   },
   "evidence_requests": [],
   "next_best_actions": {
@@ -97,5 +97,5 @@
   "stop_reason": "Fraud probability 0.99 with 3 independent evidence items reached the stop threshold (section 6).",
   "tool_calls": 7,
   "tokens": 0,
-  "latency_s": 0.05
+  "latency_s": 3.08
 }

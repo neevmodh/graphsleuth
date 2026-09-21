@@ -33,11 +33,19 @@
         ]
       },
       {
-        "claim": "Billing region 264.0: 2220 prior transactions on this card; within +-5 days 130 in-region transactions on 10 day(s) and 14 elsewhere (see pattern assessment).",
+        "claim": "Billing region 264: 2220 prior transactions on this card; within +-5 days 130 in-region transactions on 10 day(s) and 14 elsewhere (see pattern assessment).",
         "source": "graph",
-        "ref": "query:region_history(card=C09933-K2,addr1=264.0)",
+        "ref": "query:region_history(card=C09933-K2,addr1=264)",
         "entity_ids": [
           "3514948"
+        ]
+      },
+      {
+        "claim": "Closed case CC-5521 (confirmed_fraud, account_takeover, $730.52) is relevant: same card, same region, same pattern.",
+        "source": "graph",
+        "ref": "query:similar_cases",
+        "entity_ids": [
+          "CC-5521"
         ]
       },
       {
@@ -49,30 +57,22 @@
         ]
       },
       {
-        "claim": "Closed case CC-5354 (confirmed_fraud, account_takeover, $1700.92) is relevant: same region, same pattern.",
+        "claim": "Closed case CC-4597 (confirmed_fraud, account_takeover, $68.91) is relevant: same card, same region, same pattern.",
         "source": "graph",
         "ref": "query:similar_cases",
         "entity_ids": [
-          "CC-5354"
-        ]
-      },
-      {
-        "claim": "Closed case CC-5155 (confirmed_fraud, account_takeover, $3003.98) is relevant: same region, same pattern.",
-        "source": "graph",
-        "ref": "query:similar_cases",
-        "entity_ids": [
-          "CC-5155"
+          "CC-4597"
         ]
       }
     ],
     "similar_prior_cases": [
+      "CC-5521",
       "CC-4787",
-      "CC-5354",
-      "CC-5155"
+      "CC-4597"
     ],
-    "summary": "2 transaction(s) totalling $148.89 on C09933-K2 are assessed as fraud (probability 0.97), matching account takeover: mixed-channel activity inconsistent with the cardholder, pointing to compromised credentials. Trigger: risk score. Tool calls: 8; closed cases consulted: CC-4787, CC-5354, CC-5155.",
-    "written_to_graph": false,
-    "graph_case_id": "CASE-2016-1007"
+    "summary": "2 transaction(s) totalling $148.89 on C09933-K2 are assessed as fraud (probability 0.97), matching account takeover: mixed-channel activity inconsistent with the cardholder, pointing to compromised credentials. Trigger: risk score. Tool calls: 8; closed cases consulted: CC-5521, CC-4787, CC-4597.",
+    "written_to_graph": true,
+    "graph_case_id": "CASE-2016-007"
   },
   "evidence_requests": [],
   "next_best_actions": {
@@ -113,5 +113,5 @@
   "stop_reason": "Fraud probability 0.97 with 2 independent evidence items reached the stop threshold (section 6).",
   "tool_calls": 8,
   "tokens": 0,
-  "latency_s": 0.07
+  "latency_s": 5.52
 }

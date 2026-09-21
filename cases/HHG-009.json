@@ -61,22 +61,21 @@
         ]
       },
       {
-        "claim": "Closed case CC-5557 (confirmed_fraud, card_not_present_fraud, $300.08) is relevant: same pattern.",
+        "claim": "Closed case CC-5443 (confirmed_fraud, out_of_region_use, $326.98) is relevant: same region.",
         "source": "graph",
         "ref": "query:similar_cases",
         "entity_ids": [
-          "CC-5557"
+          "CC-5443"
         ]
       }
     ],
     "similar_prior_cases": [
       "CC-3342",
-      "CC-0838",
-      "CC-5557"
+      "CC-0838"
     ],
-    "summary": "1 transaction(s) totalling $30.02 on C08299-K1 are assessed as fraud (probability 0.99), matching card-not-present fraud: online use of the card number inconsistent with the cardholder's history. Trigger: customer report. Tool calls: 7; closed cases consulted: CC-3342, CC-0838, CC-5557.",
-    "written_to_graph": false,
-    "graph_case_id": "CASE-2016-1009"
+    "summary": "1 transaction(s) totalling $30.02 on C08299-K1 are assessed as fraud (probability 0.99), matching card-not-present fraud: online use of the card number inconsistent with the cardholder's history. Trigger: customer report. Tool calls: 7; closed cases consulted: CC-3342, CC-0838, CC-5443.",
+    "written_to_graph": true,
+    "graph_case_id": "CASE-2016-009"
   },
   "evidence_requests": [],
   "next_best_actions": {
@@ -117,5 +116,5 @@
   "stop_reason": "Fraud probability 0.99 with 2 independent evidence items reached the stop threshold (section 6).",
   "tool_calls": 7,
   "tokens": 0,
-  "latency_s": 0.06
+  "latency_s": 4.09
 }

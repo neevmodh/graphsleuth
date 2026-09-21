@@ -29,11 +29,27 @@
         ]
       },
       {
-        "claim": "Billing region 494.0: 21 prior transactions on this card; within +-5 days 2 in-region transactions on 2 day(s) and 84 elsewhere (see pattern assessment).",
+        "claim": "Billing region 494: 21 prior transactions on this card; within +-5 days 2 in-region transactions on 2 day(s) and 84 elsewhere (see pattern assessment).",
         "source": "graph",
-        "ref": "query:region_history(card=C05876-K2,addr1=494.0)",
+        "ref": "query:region_history(card=C05876-K2,addr1=494)",
         "entity_ids": [
           "3553342"
+        ]
+      },
+      {
+        "claim": "Closed case CC-0003 (cleared, none, $0.00) is relevant: same card, same pattern.",
+        "source": "graph",
+        "ref": "query:similar_cases",
+        "entity_ids": [
+          "CC-0003"
+        ]
+      },
+      {
+        "claim": "Closed case CC-3484 (cleared, none, $0.00) is relevant: same region, same pattern.",
+        "source": "graph",
+        "ref": "query:similar_cases",
+        "entity_ids": [
+          "CC-3484"
         ]
       },
       {
@@ -42,22 +58,6 @@
         "ref": "query:similar_cases",
         "entity_ids": [
           "CC-2370"
-        ]
-      },
-      {
-        "claim": "Closed case CC-0388 (cleared, none, $0.00) is relevant: same region, same pattern.",
-        "source": "graph",
-        "ref": "query:similar_cases",
-        "entity_ids": [
-          "CC-0388"
-        ]
-      },
-      {
-        "claim": "Closed case CC-5463 (cleared, none, $0.00) is relevant: same pattern.",
-        "source": "graph",
-        "ref": "query:similar_cases",
-        "entity_ids": [
-          "CC-5463"
         ]
       },
       {
@@ -70,13 +70,13 @@
       }
     ],
     "similar_prior_cases": [
-      "CC-2370",
-      "CC-0388",
-      "CC-5463"
+      "CC-0003",
+      "CC-3484",
+      "CC-2370"
     ],
-    "summary": "The alert on transaction 3553342 ($30.91, in person) looks legitimate (fraud probability 0.11); the bank's risk score of 0.55 is not corroborated by the card's own history. Trigger: risk score. Tool calls: 8; closed cases consulted: CC-2370, CC-0388, CC-5463. An evidence request was simulated and its assumed response is recorded in evidence_requests.",
-    "written_to_graph": false,
-    "graph_case_id": "CASE-2016-1012"
+    "summary": "The alert on transaction 3553342 ($30.91, in person) looks legitimate (fraud probability 0.11); the bank's risk score of 0.55 is not corroborated by the card's own history. Trigger: risk score. Tool calls: 8; closed cases consulted: CC-0003, CC-3484, CC-2370. An evidence request was simulated and its assumed response is recorded in evidence_requests.",
+    "written_to_graph": true,
+    "graph_case_id": "CASE-2016-012"
   },
   "evidence_requests": [
     {
@@ -113,5 +113,5 @@
   "stop_reason": "The assumed verification reply settled the question; further steps are unlikely to change the decision.",
   "tool_calls": 8,
   "tokens": 0,
-  "latency_s": 0.05
+  "latency_s": 3.75
 }

@@ -43,6 +43,30 @@
         "entity_ids": []
       },
       {
+        "claim": "Closed case CC-3761 (cleared, none, $0.00) is relevant: same card, same pattern.",
+        "source": "graph",
+        "ref": "query:similar_cases",
+        "entity_ids": [
+          "CC-3761"
+        ]
+      },
+      {
+        "claim": "Closed case CC-4294 (confirmed_fraud, account_takeover, $506.01) is relevant: same card.",
+        "source": "graph",
+        "ref": "query:similar_cases",
+        "entity_ids": [
+          "CC-4294"
+        ]
+      },
+      {
+        "claim": "Closed case CC-3216 (confirmed_fraud, card_not_present_new_device, $449.97) is relevant: same card.",
+        "source": "graph",
+        "ref": "query:similar_cases",
+        "entity_ids": [
+          "CC-3216"
+        ]
+      },
+      {
         "claim": "Customer response (assumed): Customer confirms the purchase, e.g. on a new phone or while travelling (assumption: the evidence points to legitimate use)",
         "source": "customer",
         "ref": "evidence_request:1",
@@ -51,10 +75,14 @@
         ]
       }
     ],
-    "similar_prior_cases": [],
-    "summary": "The alert on transaction 3526826 ($35.66, online) looks legitimate (fraud probability 0.11); the bank's risk score of 0.76 is not corroborated by the card's own history. Trigger: risk score. Tool calls: 7; closed cases consulted: none relevant. An evidence request was simulated and its assumed response is recorded in evidence_requests.",
-    "written_to_graph": false,
-    "graph_case_id": "CASE-2016-1013"
+    "similar_prior_cases": [
+      "CC-3761",
+      "CC-4294",
+      "CC-3216"
+    ],
+    "summary": "The alert on transaction 3526826 ($35.66, online) looks legitimate (fraud probability 0.11); the bank's risk score of 0.76 is not corroborated by the card's own history. Trigger: risk score. Tool calls: 7; closed cases consulted: CC-3761, CC-4294, CC-3216. An evidence request was simulated and its assumed response is recorded in evidence_requests.",
+    "written_to_graph": true,
+    "graph_case_id": "CASE-2016-013"
   },
   "evidence_requests": [
     {
@@ -91,5 +119,5 @@
   "stop_reason": "The assumed verification reply settled the question; further steps are unlikely to change the decision.",
   "tool_calls": 7,
   "tokens": 0,
-  "latency_s": 0.06
+  "latency_s": 3.79
 }

@@ -40,3 +40,11 @@ seeded samples (seed 11): accuracy metrics are unchanged (the policy does not to
 receiving a block or decline *before* verification fell from 7% to 4%; fraud cases whose recommendation changes after
 evidence rose from 29% to 32%; action agreement with the bank's own actions was flat (0.716 to 0.718). On the 20 exam
 cases exactly one changed (HHG-019, p = 0.80), with an identical final answer.
+
+## A retrieval bug found by cross-checking backends
+Running the 20 cases on TigerGraph and diffing against the local backend exposed a bug in the local case-memory query: a
+flag computed with `max()` over a case's transactions was `NULL` for in-person-only cases (no device), so the score became
+`NULL` and the row was silently dropped. Earlier fraud on the same card (a repeat victim) was missing from `similar_prior_cases`
+for in-person cases. Fixed (flags default to 0; an entity link is required, the pattern only boosts rank). It changed the memory
+lists of 16 answers and **no** verdict, pattern, exposure, affected transaction or final action; held-out metrics are unchanged.
+After the fix the two backends agree exactly (0 differences over 100 field groups).

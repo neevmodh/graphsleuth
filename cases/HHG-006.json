@@ -70,38 +70,34 @@
         ]
       },
       {
-        "claim": "Closed case CC-4124 (confirmed_fraud, undocumented, $1922.37) is relevant: same pattern.",
+        "claim": "Closed case CC-5562 (confirmed_fraud, account_takeover, $2961.98) is relevant: same region.",
         "source": "graph",
         "ref": "query:similar_cases",
         "entity_ids": [
-          "CC-4124"
+          "CC-5562"
         ]
       },
       {
-        "claim": "Closed case CC-4086 (confirmed_fraud, undocumented, $1871.13) is relevant: same pattern.",
+        "claim": "Closed case CC-5560 (confirmed_fraud, out_of_region_use, $3727.10) is relevant: same region.",
         "source": "graph",
         "ref": "query:similar_cases",
         "entity_ids": [
-          "CC-4086"
+          "CC-5560"
         ]
       },
       {
-        "claim": "Closed case CC-3907 (confirmed_fraud, undocumented, $1922.65) is relevant: same pattern.",
+        "claim": "Closed case CC-5521 (confirmed_fraud, account_takeover, $730.52) is relevant: same region.",
         "source": "graph",
         "ref": "query:similar_cases",
         "entity_ids": [
-          "CC-3907"
+          "CC-5521"
         ]
       }
     ],
-    "similar_prior_cases": [
-      "CC-4124",
-      "CC-4086",
-      "CC-3907"
-    ],
-    "summary": "4 transaction(s) totalling $1,906.07 on C07297-K1 are assessed as fraud (probability 0.99), matching an undocumented pattern. 4 online purchases within an hour on one card, each just under $500 ($456.96 to $488.04, about 8x the card's normal amount). Amounts appear chosen to stay under an authorization or reporting threshold while draining the card; risk scores stay low. Found by scanning the card's recent window for bursts of near-threshold amounts. Trigger: customer report. Tool calls: 8; closed cases consulted: CC-4124, CC-4086, CC-3907.",
-    "written_to_graph": false,
-    "graph_case_id": "CASE-2016-1006"
+    "similar_prior_cases": [],
+    "summary": "4 transaction(s) totalling $1,906.07 on C07297-K1 are assessed as fraud (probability 0.99), matching an undocumented pattern. 4 online purchases within an hour on one card, each just under $500 ($456.96 to $488.04, about 8x the card's normal amount). Amounts appear chosen to stay under an authorization or reporting threshold while draining the card; risk scores stay low. Found by scanning the card's recent window for bursts of near-threshold amounts. Trigger: customer report. Tool calls: 8; closed cases consulted: CC-5562, CC-5560, CC-5521.",
+    "written_to_graph": true,
+    "graph_case_id": "CASE-2016-006"
   },
   "evidence_requests": [],
   "next_best_actions": {
@@ -154,7 +150,7 @@
   "sar": {
     "file": true,
     "reason": "R2/R6: exposure, shared origin or coordinated pattern meets the report bar",
-    "narrative": "Who: customer C07297, holder of mastercard debit card C07297-K1, is the subject of this report. What: 4 online transactions totalling $1,906.07 were made on the card on 2016-11-21 between 20:00 and 20:30 in billing region 264, 476 and are not consistent with the cardholder's history; the cardholder reported them as unauthorized. How: 4 online purchases within an hour on one card, each just under $500 ($456.96 to $488.04, about 8x the card's normal amount). Amounts appear chosen to stay under an authorization or reporting threshold while draining the card; risk scores stay low. Found by scanning the card's recent window for bursts of near-threshold amounts. Why suspicious: repeating purchases within minutes while keeping each just under a round authorization threshold is consistent with deliberate structuring to avoid review, and the amounts are several times the card's normal spending. The activity matches previously confirmed fraud cases (CC-4124, CC-4086, CC-3907). Assessment: fraud probability 0.99 from a calibrated model over the card's history and graph evidence; the bank's own risk score on the flagged transaction was 0.25. The card is to be blocked and reissued; the case is recorded in the investigation graph for future analysts, and this report is filed because the activity meets the reporting threshold.",
+    "narrative": "Who: customer C07297, holder of mastercard debit card C07297-K1, is the subject of this report. What: 4 online transactions totalling $1,906.07 were made on the card on 2016-11-21 between 20:00 and 20:30 in billing region 264, 476 and are not consistent with the cardholder's history; the cardholder reported them as unauthorized. How: 4 online purchases within an hour on one card, each just under $500 ($456.96 to $488.04, about 8x the card's normal amount). Amounts appear chosen to stay under an authorization or reporting threshold while draining the card; risk scores stay low. Found by scanning the card's recent window for bursts of near-threshold amounts. Why suspicious: repeating purchases within minutes while keeping each just under a round authorization threshold is consistent with deliberate structuring to avoid review, and the amounts are several times the card's normal spending. Assessment: fraud probability 0.99 from a calibrated model over the card's history and graph evidence; the bank's own risk score on the flagged transaction was 0.25. The card is to be blocked and reissued; the case is recorded in the investigation graph for future analysts, and this report is filed because the activity meets the reporting threshold.",
     "subjects": [
       "C07297",
       "C07297-K1"
@@ -168,5 +164,5 @@
   "stop_reason": "Fraud probability 0.99 with 4 independent evidence items reached the stop threshold (section 6).",
   "tool_calls": 8,
   "tokens": 0,
-  "latency_s": 0.06
+  "latency_s": 4.68
 }

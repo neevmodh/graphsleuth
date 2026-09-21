@@ -35,6 +35,14 @@
         "entity_ids": []
       },
       {
+        "claim": "Closed case CC-2857 (confirmed_fraud, account_takeover, $539.97) is relevant: same card, same region.",
+        "source": "graph",
+        "ref": "query:similar_cases",
+        "entity_ids": [
+          "CC-2857"
+        ]
+      },
+      {
         "claim": "Closed case CC-2717 (confirmed_fraud, account_takeover, $896.08) is relevant: same card, same region.",
         "source": "graph",
         "ref": "query:similar_cases",
@@ -43,19 +51,11 @@
         ]
       },
       {
-        "claim": "Closed case CC-5296 (cleared, none, $0.00) is relevant: same region, same pattern.",
+        "claim": "Closed case CC-2400 (confirmed_fraud, account_takeover, $350.99) is relevant: same card, same region.",
         "source": "graph",
         "ref": "query:similar_cases",
         "entity_ids": [
-          "CC-5296"
-        ]
-      },
-      {
-        "claim": "Closed case CC-5249 (cleared, none, $0.00) is relevant: same region, same pattern.",
-        "source": "graph",
-        "ref": "query:similar_cases",
-        "entity_ids": [
-          "CC-5249"
+          "CC-2400"
         ]
       },
       {
@@ -68,13 +68,13 @@
       }
     ],
     "similar_prior_cases": [
+      "CC-2857",
       "CC-2717",
-      "CC-5296",
-      "CC-5249"
+      "CC-2400"
     ],
-    "summary": "The alert on transaction 3523199 ($100.07, online) looks legitimate (fraud probability 0.06); the bank's risk score of 0.54 is not corroborated by the card's own history. Trigger: risk score. Tool calls: 7; closed cases consulted: CC-2717, CC-5296, CC-5249. An evidence request was simulated and its assumed response is recorded in evidence_requests.",
-    "written_to_graph": false,
-    "graph_case_id": "CASE-2016-1005"
+    "summary": "The alert on transaction 3523199 ($100.07, online) looks legitimate (fraud probability 0.06); the bank's risk score of 0.54 is not corroborated by the card's own history. Trigger: risk score. Tool calls: 7; closed cases consulted: CC-2857, CC-2717, CC-2400. An evidence request was simulated and its assumed response is recorded in evidence_requests.",
+    "written_to_graph": true,
+    "graph_case_id": "CASE-2016-005"
   },
   "evidence_requests": [
     {
@@ -111,5 +111,5 @@
   "stop_reason": "The assumed verification reply settled the question; further steps are unlikely to change the decision.",
   "tool_calls": 7,
   "tokens": 0,
-  "latency_s": 0.05
+  "latency_s": 4.35
 }

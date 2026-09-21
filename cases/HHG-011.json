@@ -51,6 +51,30 @@
         ]
       },
       {
+        "claim": "Closed case CC-4743 (cleared, none, $0.00) is relevant: same card, same pattern.",
+        "source": "graph",
+        "ref": "query:similar_cases",
+        "entity_ids": [
+          "CC-4743"
+        ]
+      },
+      {
+        "claim": "Closed case CC-4501 (confirmed_fraud, card_testing, $1508.58) is relevant: same card.",
+        "source": "graph",
+        "ref": "query:similar_cases",
+        "entity_ids": [
+          "CC-4501"
+        ]
+      },
+      {
+        "claim": "Closed case CC-3905 (confirmed_fraud, card_not_present_new_device, $1397.53) is relevant: same card.",
+        "source": "graph",
+        "ref": "query:similar_cases",
+        "entity_ids": [
+          "CC-3905"
+        ]
+      },
+      {
         "claim": "Customer report conflicts with the graph evidence (model support 0.00): No reply is presumed: the customer's report conflicts with the graph evidence, so the case is escalated for analyst review instead of guessing the outcome",
         "source": "customer",
         "ref": "evidence_request:1",
@@ -59,10 +83,14 @@
         ]
       }
     ],
-    "similar_prior_cases": [],
-    "summary": "The evidence on transaction 3583368 ($131.30) is ambiguous (fraud probability 0.23); the alert is neither confirmed nor cleared. Trigger: customer report. Tool calls: 7; closed cases consulted: none relevant.",
-    "written_to_graph": false,
-    "graph_case_id": "CASE-2016-1011"
+    "similar_prior_cases": [
+      "CC-4743",
+      "CC-4501",
+      "CC-3905"
+    ],
+    "summary": "The evidence on transaction 3583368 ($131.30) is ambiguous (fraud probability 0.23); the alert is neither confirmed nor cleared. Trigger: customer report. Tool calls: 7; closed cases consulted: CC-4743, CC-4501, CC-3905.",
+    "written_to_graph": true,
+    "graph_case_id": "CASE-2016-011"
   },
   "evidence_requests": [
     {
@@ -119,5 +147,5 @@
   "stop_reason": "Further steps are unlikely to change the decision.",
   "tool_calls": 7,
   "tokens": 0,
-  "latency_s": 0.05
+  "latency_s": 5.44
 }

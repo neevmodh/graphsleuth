@@ -13,9 +13,13 @@ import time
 from datetime import timedelta
 
 import pandas as pd
+from dotenv import load_dotenv
 
 from .backend import _clean
 from .schemas import Case
+from .scorer import ROOT
+
+load_dotenv(ROOT / ".env")
 
 SENTINEL = -1   # TigerGraph has no NULL; the exporter writes -1 for "unknown" numbers
 
@@ -211,7 +215,7 @@ class TigerGraphBackend:
                 continue
             d["same_pattern"] = int(bool(pattern) and d["pattern"] == pattern)
             d["score"] = 3 * d["same_device"] + 3 * d["same_card"] + d["same_region"] + 2 * d["same_pattern"]
-            if d["same_device"] + d["same_card"] + d["same_region"] + d["same_pattern"] > 0:
+            if d["same_device"] + d["same_card"] + d["same_region"] > 0:      # an entity link is required (as in LocalBackend)
                 out.append(d)
         out.sort(key=lambda d: (d["score"], d["opened_at"]), reverse=True)   # best match first, newest first on ties
         return _clean(out[:k])

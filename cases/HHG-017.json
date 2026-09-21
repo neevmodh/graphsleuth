@@ -73,8 +73,8 @@
       "CC-5376"
     ],
     "summary": "The alert on transaction 3450629 ($100.09, online) looks legitimate (fraud probability 0.16); the bank's risk score of 0.57 is not corroborated by the card's own history. Trigger: risk score. Tool calls: 7; closed cases consulted: CC-1383, CC-5448, CC-5376. An evidence request was simulated and its assumed response is recorded in evidence_requests.",
-    "written_to_graph": false,
-    "graph_case_id": "CASE-2016-1017"
+    "written_to_graph": true,
+    "graph_case_id": "CASE-2016-017"
   },
   "evidence_requests": [
     {
@@ -111,5 +111,5 @@
   "stop_reason": "The assumed verification reply settled the question; further steps are unlikely to change the decision.",
   "tool_calls": 7,
   "tokens": 0,
-  "latency_s": 0.06
+  "latency_s": 4.23
 }

@@ -169,7 +169,7 @@ class LocalBackend:
                       before_ts: str, exclude_case: str | None = None, k: int = 5) -> list[dict]:
         """Closed cases most relevant to this alert (structural retrieval; the GraphRAG layer adds
         vector similarity over the case narratives on top of this)."""
-        dev = _q(device_profile) if device_profile else "NULL"
+        dev = _q(device_profile) if isinstance(device_profile, str) and device_profile else "NULL"   # NaN is truthy: test the type
         reg = float(addr1) if addr1 is not None and addr1 == addr1 else "NULL"
         df = self.con.execute(f"""
             WITH ct AS (SELECT c.case_id, c.card_id, c.outcome, c.pattern, c.exposure_usd, c.opened_at,
@@ -178,13 +178,14 @@ class LocalBackend:
                           AND c.closed_at < {_q(before_ts)} AND c.case_id <> {_q(exclude_case or '')}),
             sc AS (SELECT ct.case_id, any_value(ct.card_id) card, any_value(ct.outcome) outcome, any_value(ct.pattern) pattern,
                           any_value(ct.exposure_usd) exposure, any_value(ct.opened_at) opened_at,
-                          max((f.device_profile = {dev} AND f.dev_cards <= 60)::INT) same_device,   -- a device on hundreds of cards links nothing
-                          max((f.addr1 = {reg})::INT) same_region,
-                          max((ct.card_id = {_q(card_id)})::INT) same_card,
-                          max(({_q(pattern or '')} <> '' AND ct.pattern = {_q(pattern or '')})::INT) same_pattern
+                          -- flags default to 0: a comparison with a NULL device/region is NULL, and NULL would silently drop the row
+                          coalesce(max((f.device_profile = {dev} AND f.dev_cards <= 60)::INT), 0) same_device,   -- a device on hundreds of cards links nothing
+                          coalesce(max((f.addr1 = {reg})::INT), 0) same_region,
+                          coalesce(max((ct.card_id = {_q(card_id)})::INT), 0) same_card,
+                          coalesce(max(({_q(pattern or '')} <> '' AND ct.pattern = {_q(pattern or '')})::INT), 0) same_pattern
                    FROM ct JOIN feat f ON f.tid = ct.tid GROUP BY ct.case_id)
             SELECT *, 3 * same_device + 3 * same_card + same_region + 2 * same_pattern AS score
-            FROM sc WHERE same_device + same_card + same_region + same_pattern > 0
+            FROM sc WHERE same_device + same_card + same_region > 0   -- an entity link is required; the pattern only boosts rank
             ORDER BY score DESC, opened_at DESC LIMIT {int(k)}""").df()
         return _clean(df.to_dict("records"))
 

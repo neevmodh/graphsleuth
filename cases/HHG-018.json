@@ -33,9 +33,9 @@
         ]
       },
       {
-        "claim": "Billing region 126.0: 565 prior transactions on this card; within +-5 days 41 in-region transactions on 8 day(s) and 358 elsewhere (see pattern assessment).",
+        "claim": "Billing region 126: 565 prior transactions on this card; within +-5 days 41 in-region transactions on 8 day(s) and 358 elsewhere (see pattern assessment).",
         "source": "graph",
-        "ref": "query:region_history(card=C02354-K2,addr1=126.0)",
+        "ref": "query:region_history(card=C02354-K2,addr1=126)",
         "entity_ids": [
           "3491361"
         ]
@@ -49,38 +49,38 @@
         ]
       },
       {
-        "claim": "Closed case CC-0454 (confirmed_fraud, account_takeover, $940.94) is relevant: same card, same pattern.",
+        "claim": "Closed case CC-1450 (confirmed_fraud, account_takeover, $2351.25) is relevant: same card, same region, same pattern.",
         "source": "graph",
         "ref": "query:similar_cases",
         "entity_ids": [
-          "CC-0454"
+          "CC-1450"
         ]
       },
       {
-        "claim": "Closed case CC-0255 (confirmed_fraud, account_takeover, $1167.08) is relevant: same card, same pattern.",
+        "claim": "Closed case CC-4070 (confirmed_fraud, account_takeover, $2064.03) is relevant: same card, same pattern.",
         "source": "graph",
         "ref": "query:similar_cases",
         "entity_ids": [
-          "CC-0255"
+          "CC-4070"
         ]
       },
       {
-        "claim": "Closed case CC-4447 (confirmed_fraud, account_takeover, $2173.10) is relevant: same region, same pattern.",
+        "claim": "Closed case CC-3899 (confirmed_fraud, account_takeover, $567.93) is relevant: same card, same pattern.",
         "source": "graph",
         "ref": "query:similar_cases",
         "entity_ids": [
-          "CC-4447"
+          "CC-3899"
         ]
       }
     ],
     "similar_prior_cases": [
-      "CC-0454",
-      "CC-0255",
-      "CC-4447"
+      "CC-1450",
+      "CC-4070",
+      "CC-3899"
     ],
-    "summary": "2 transaction(s) totalling $80.04 on C02354-K2 are assessed as fraud (probability 0.98), matching account takeover: mixed-channel activity inconsistent with the cardholder, pointing to compromised credentials. Trigger: customer report. Tool calls: 8; closed cases consulted: CC-0454, CC-0255, CC-4447.",
-    "written_to_graph": false,
-    "graph_case_id": "CASE-2016-1018"
+    "summary": "2 transaction(s) totalling $80.04 on C02354-K2 are assessed as fraud (probability 0.98), matching account takeover: mixed-channel activity inconsistent with the cardholder, pointing to compromised credentials. Trigger: customer report. Tool calls: 8; closed cases consulted: CC-1450, CC-4070, CC-3899.",
+    "written_to_graph": true,
+    "graph_case_id": "CASE-2016-018"
   },
   "evidence_requests": [],
   "next_best_actions": {
@@ -121,5 +121,5 @@
   "stop_reason": "Fraud probability 0.98 with 3 independent evidence items reached the stop threshold (section 6).",
   "tool_calls": 8,
   "tokens": 0,
-  "latency_s": 0.06
+  "latency_s": 5.18
 }

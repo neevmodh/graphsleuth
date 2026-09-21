@@ -33,9 +33,9 @@
         ]
       },
       {
-        "claim": "Billing region 330.0: 42 prior transactions on this card; within +-5 days 9 in-region transactions on 5 day(s) and 67 elsewhere (see pattern assessment).",
+        "claim": "Billing region 330: 42 prior transactions on this card; within +-5 days 9 in-region transactions on 5 day(s) and 67 elsewhere (see pattern assessment).",
         "source": "graph",
-        "ref": "query:region_history(card=C08623-K2,addr1=330.0)",
+        "ref": "query:region_history(card=C08623-K2,addr1=330)",
         "entity_ids": [
           "3530164"
         ]
@@ -49,36 +49,38 @@
         ]
       },
       {
-        "claim": "Closed case CC-1589 (cleared, none, $0.00) is relevant: same card.",
+        "claim": "Closed case CC-4957 (confirmed_fraud, out_of_region_use, $48.02) is relevant: same card, same pattern.",
         "source": "graph",
         "ref": "query:similar_cases",
         "entity_ids": [
-          "CC-1589"
+          "CC-4957"
         ]
       },
       {
-        "claim": "Closed case CC-5528 (confirmed_fraud, card_not_present_new_device, $60.08) is relevant: same region.",
+        "claim": "Closed case CC-3682 (confirmed_fraud, out_of_region_use, $300.51) is relevant: same card, same pattern.",
         "source": "graph",
         "ref": "query:similar_cases",
         "entity_ids": [
-          "CC-5528"
+          "CC-3682"
         ]
       },
       {
-        "claim": "Closed case CC-5517 (confirmed_fraud, card_not_present_fraud, $139.83) is relevant: same region.",
+        "claim": "Closed case CC-2935 (confirmed_fraud, out_of_region_use, $238.00) is relevant: same card, same pattern.",
         "source": "graph",
         "ref": "query:similar_cases",
         "entity_ids": [
-          "CC-5517"
+          "CC-2935"
         ]
       }
     ],
     "similar_prior_cases": [
-      "CC-1589"
+      "CC-4957",
+      "CC-3682",
+      "CC-2935"
     ],
-    "summary": "2 transaction(s) totalling $165.93 on C08623-K2 are assessed as fraud (probability 0.99), matching card-present use in a billing region the cardholder has no history in. Trigger: customer report. Tool calls: 8; closed cases consulted: CC-1589, CC-5528, CC-5517.",
-    "written_to_graph": false,
-    "graph_case_id": "CASE-2016-1003"
+    "summary": "2 transaction(s) totalling $165.93 on C08623-K2 are assessed as fraud (probability 0.99), matching card-present use in a billing region the cardholder has no history in. Trigger: customer report. Tool calls: 8; closed cases consulted: CC-4957, CC-3682, CC-2935.",
+    "written_to_graph": true,
+    "graph_case_id": "CASE-2016-003"
   },
   "evidence_requests": [],
   "next_best_actions": {
@@ -116,8 +118,8 @@
     "total_amount_usd": 0.0,
     "activity_dates": []
   },
-  "stop_reason": "Fraud probability 0.99 with 2 independent evidence items reached the stop threshold (section 6).",
+  "stop_reason": "Fraud probability 0.99 with 3 independent evidence items reached the stop threshold (section 6).",
   "tool_calls": 8,
   "tokens": 0,
-  "latency_s": 0.06
+  "latency_s": 5.32
 }
