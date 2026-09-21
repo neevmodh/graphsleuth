@@ -11,3 +11,4 @@ data/store/
 *.duckdb
 *.parquet
 .DS_Store
+.venv-mcp/

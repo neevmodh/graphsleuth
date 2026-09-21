@@ -1,0 +1,5 @@
+# The TigerGraph MCP server runs in its own virtualenv (.venv-mcp) because it needs pyTigerGraph 2.x, while the loader and
+# backend use pyTigerGraph 1.x:   python3.11 -m venv .venv-mcp && .venv-mcp/bin/pip install -r requirements-mcp.txt
+# The agent process only needs the MCP *client*:   .venv/bin/pip install mcp
+tigergraph-mcp>=1.0.3
+python-dotenv>=1.0
