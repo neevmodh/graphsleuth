@@ -7,10 +7,11 @@ import time
 from dataclasses import dataclass
 from typing import Callable
 
-from . import narrative
+from . import explain, narrative
 from .backend import GraphBackend
 from .episode import EP_DEV_PATH, EP_PATH, EpisodeModel
 from .investigator import Cfg, Investigation, Investigator, Step
+from .llm import LLMRouter
 from .memory import CaseMemory
 from .policy import Assessment, recommend
 from .schemas import Answer, Case, Evidence, EvidenceRequest, NextBestActions, Sar
@@ -59,15 +60,16 @@ def simulate_evidence(inv: Investigation, initial, verdict: str) -> Simulated:
 
 
 class Orchestrator:
-    def __init__(self, backend: GraphBackend, memory: CaseMemory | None = None, cfg: Cfg | None = None):
+    def __init__(self, backend: GraphBackend, memory: CaseMemory | None = None, cfg: Cfg | None = None, llm: LLMRouter | None = None):
         cfg = cfg or Cfg(fraud_p=UNCERTAIN_HI, legit_p=UNCERTAIN_LO)
-        self.backend, self.memory = backend, memory
+        self.backend, self.memory, self.llm = backend, memory, llm
         self.last: Investigation | None = None
         path = EP_DEV_PATH if getattr(backend, "variant", "final") == "dev" else EP_PATH
         self.inv = Investigator(backend, cfg, EpisodeModel(path) if path.exists() else None)
 
     def run_case(self, trig: dict, on_step: Callable[[Step], None] | None = None, write_memory: bool = True) -> Answer:
         t0 = time.perf_counter()
+        tok0 = self.llm.snapshot() if self.llm else 0
         trig = {**trig, "opened_at": str(trig["opened_at"])}
         inv = self.inv.investigate(trig, on_step)
         self.last = inv                  # kept for the UI (window, episode scores)
@@ -95,8 +97,9 @@ class Orchestrator:
 
         sar_file = "FILE_REPORT" in final_names
         if sar_file:
+            sar_text = explain.polish(self.llm, narrative.sar_narrative(inv), "sar")
             sar = Sar(file=True, reason=next(x.reason for x in final if x.action == "FILE_REPORT"),
-                      narrative=narrative.sar_narrative(inv), subjects=narrative.sar_subjects(inv),
+                      narrative=sar_text.text, subjects=narrative.sar_subjects(inv),
                       total_amount_usd=inv.exposure, activity_dates=[inv.span[0][:10], inv.span[1][:10]])
         else:
             sar = Sar(file=False, reason=_no_report_reason(inv, a, verdict))
@@ -109,7 +112,7 @@ class Orchestrator:
             affected_txn_ids=[str(t) for t in inv.episode], first_suspicious_txn_id=inv.first_suspicious,
             connected_card_ids=inv.connected_cards, connected_device_profiles=inv.connected_devices,
             exposure_usd=inv.exposure, evidence=evidence, similar_prior_cases=similar_ids,
-            summary=narrative.summary(inv, verdict, p, sim.response))
+            summary=explain.polish(self.llm, narrative.summary(inv, verdict, p, sim.response), "summary").text)
         if write_memory and self.memory is not None:
             graph_case_id, written = self.memory.write(trig, case, inv, final)
             case.written_to_graph, case.graph_case_id = written, graph_case_id
@@ -118,7 +121,7 @@ class Orchestrator:
         return Answer(
             case_id=trig["case_id"], case=case, evidence_requests=[sim.request] if sim.request else [],
             next_best_actions=nba, sar=sar, stop_reason=_stop_reason(inv, a, sim, verdict),
-            tool_calls=len(inv.steps), tokens=0, latency_s=round(time.perf_counter() - t0, 2))
+            tool_calls=len(inv.steps), tokens=(self.llm.snapshot() - tok0) if self.llm else 0, latency_s=round(time.perf_counter() - t0, 2))
 
 
 def _what_changed(initial, final, response) -> str:

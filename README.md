@@ -50,6 +50,13 @@ GRAPHSLEUTH_BACKEND=tigergraph python run_cases.py        # then: pytest tests/t
 Status: the schema and all 13 queries were type-checked against a real TigerGraph 4.2.5. The backend class is unit-tested
 against a fake connection only; it has not yet run against a live instance (`tests/test_tg_live.py` will verify it).
 
+## LLM layer
+`agent/llm.py` routes to Groq (fast tool loop) and Gemini (synthesis, embeddings) through their OpenAI-compatible endpoints,
+with retry/backoff, provider fallback, an on-disk cache and token accounting. `agent/explain.py` lets the model reword the
+case summary and the SAR narrative, but a fact guard rejects any rewrite that drops or invents a number, amount, date or ID
+(the template text is kept instead). With no keys everything runs offline on the templates. Set `GROQ_API_KEY` and
+`GEMINI_API_KEY` in `.env` to enable it; it has been tested with fake clients only, not against the real providers.
+
 ## Quick start
 ```bash
 python3.11 -m venv .venv && .venv/bin/pip install -r requirements.txt

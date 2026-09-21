@@ -14,6 +14,7 @@ import os
 import pandas as pd
 
 from agent.backend_factory import make_backend
+from agent.llm import LLMRouter
 from agent.orchestrator import Orchestrator
 
 
@@ -22,11 +23,14 @@ def main() -> None:
     ap.add_argument("--out", default="cases")
     ap.add_argument("--case", default=None)
     ap.add_argument("--no-memory", action="store_true")
+    ap.add_argument("--no-llm", action="store_true", help="skip the LLM polish even when keys are set")
     a = ap.parse_args()
 
     backend, memory, name = make_backend()           # GRAPHSLEUTH_BACKEND=tigergraph switches to the TigerGraph backend
     print(f"backend: {name}")
-    orch = Orchestrator(backend, None if a.no_memory else memory)
+    llm = None if a.no_llm else LLMRouter.from_env()
+    print("llm: " + (", ".join(llm.providers) if llm and llm.available else "off (no API keys; template narratives)"))
+    orch = Orchestrator(backend, None if a.no_memory else memory, llm=llm)
     out = Path(a.out)
     out.mkdir(exist_ok=True)
     data_dir = os.getenv("DATA_DIR", "../dataset/HHGOA_IEEE")
