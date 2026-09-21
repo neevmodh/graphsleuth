@@ -11,11 +11,11 @@ The exam has no answer key, so this is the only measurement of accuracy we have;
 | Brier score (calibration) | 0.096 |
 | Fraud recall at p >= 0.5 | 0.868 |
 | False-positive rate, cleared alerts | 0.08 |
-| False-positive rate, legitimate look-alikes | 0.24 |
-| Verdict accuracy on decided cases | 0.913 |
+| False-positive rate, legitimate look-alikes | 0.16 to 0.32 (varies by sample; 4 seeds) |
+| Verdict accuracy on decided cases | 0.91 to 0.93 (4 seeds) |
 | Uncertain rate | 0.095 |
 | Pattern accuracy (fraud cases) | 0.844 |
-| Episode F1 (which transactions belong to the fraud) | 0.836 |
+| Episode F1 (which transactions belong to the fraud) | 0.79 to 0.84 (4 seeds) |
 | Median exposure error | $0.00 |
 | Report (SAR) decision accuracy | 0.941 |
 | Final-action Jaccard vs the bank's own actions | 0.70 |
@@ -27,8 +27,16 @@ The exam has no answer key, so this is the only measurement of accuracy we have;
    accuracy therefore drives the report decision, which is why episode accuracy matters most.
 3. Negatives must be matched to positives *within each bank-risk band*. Otherwise the model learns "medium risk score
    means fraud" (all cleared alerts score above 0.7). A `USING SAMPLE` placed before `WHERE` silently starved the
-   negatives once; the balanced retrain made the harness honest (legit look-alike FPR 24%, not hidden).
+   negatives once; the balanced retrain made the harness honest (legit look-alike FPR of 16% to 32% depending on the sample, not hidden).
 4. The pattern labels follow exact rules (channel mix, `id_15 = New`) except in-person account takeover vs
    out-of-region use (~83% separable); rules are used where they are exact and a classifier only for that pair.
 5. Two undocumented patterns exist, both rule-detected: a rare-device ring across many cards, and threshold structuring
    (several purchases just under $500 within an hour).
+
+## Verify before block (policy change)
+The ladder used to block directly at p >= 0.70 with two independent evidence items. That stops before the policy's own
+stop rule (section 6: p >= 0.85 with two independent items), so it now verifies first below 0.85. Measured on identical
+seeded samples (seed 11): accuracy metrics are unchanged (the policy does not touch probabilities); a legitimate case
+receiving a block or decline *before* verification fell from 7% to 4%; fraud cases whose recommendation changes after
+evidence rose from 29% to 32%; action agreement with the bank's own actions was flat (0.716 to 0.718). On the 20 exam
+cases exactly one changed (HHG-019, p = 0.80), with an identical final answer.

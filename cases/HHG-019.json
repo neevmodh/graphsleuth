@@ -67,6 +67,14 @@
         "entity_ids": [
           "CC-4432"
         ]
+      },
+      {
+        "claim": "Customer response (assumed): Customer states they did not make the flagged transaction(s) and still holds the card",
+        "source": "customer",
+        "ref": "evidence_request:1",
+        "entity_ids": [
+          "3503878"
+        ]
       }
     ],
     "similar_prior_cases": [
@@ -74,17 +82,23 @@
       "CC-4456",
       "CC-4432"
     ],
-    "summary": "1 transaction(s) totalling $99.92 on C07987-K2 are assessed as fraud (probability 0.80), matching card-not-present fraud from a device new to the account. Trigger: risk score. Tool calls: 7; closed cases consulted: CC-5231, CC-4456, CC-4432.",
+    "summary": "1 transaction(s) totalling $99.92 on C07987-K2 are assessed as fraud (probability 0.80), matching card-not-present fraud from a device new to the account. Trigger: risk score. Tool calls: 7; closed cases consulted: CC-5231, CC-4456, CC-4432. An evidence request was simulated and its assumed response is recorded in evidence_requests.",
     "written_to_graph": false,
     "graph_case_id": "CASE-2016-1019"
   },
-  "evidence_requests": [],
+  "evidence_requests": [
+    {
+      "type": "customer_validation",
+      "asked_after_step": 7,
+      "assumed_response": "Customer states they did not make the flagged transaction(s) and still holds the card"
+    }
+  ],
   "next_best_actions": {
     "initial": [
       {
-        "action": "BLOCK_CARD",
-        "route": "L1",
-        "reason": "p >= 0.70 with multiple independent signals"
+        "action": "VERIFY_WITH_CUSTOMER",
+        "route": "auto",
+        "reason": "R1 and section 6: not yet at the stop threshold (p < 0.85 or fewer than 2 independent evidence items): verify before any block"
       },
       {
         "action": "CREATE_CASE",
@@ -96,15 +110,15 @@
       {
         "action": "BLOCK_CARD",
         "route": "L1",
-        "reason": "p >= 0.70 with multiple independent signals"
+        "reason": "R2: customer denies the transaction"
       },
       {
         "action": "CREATE_CASE",
         "route": "auto",
-        "reason": "3a: probability >= 0.30 or the customer disputes the charge"
+        "reason": "R2: customer denies the transaction"
       }
     ],
-    "what_changed": "nothing"
+    "what_changed": "After the assumed customer denial, the recommendation moved from [VERIFY_WITH_CUSTOMER, CREATE_CASE] to [BLOCK_CARD, CREATE_CASE]."
   },
   "sar": {
     "file": false,
@@ -114,7 +128,7 @@
     "total_amount_usd": 0.0,
     "activity_dates": []
   },
-  "stop_reason": "Further steps are unlikely to change the decision.",
+  "stop_reason": "The assumed verification reply settled the question; further steps are unlikely to change the decision.",
   "tool_calls": 7,
   "tokens": 0,
   "latency_s": 0.05

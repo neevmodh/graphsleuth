@@ -152,13 +152,11 @@ def recommend(a: Assessment, response: Response = None) -> list[ActionItem]:
             add("CREATE_CASE", "3a: evidence was requested")
     elif p >= STOP_HIGH_P and a.n_independent_evidence >= 2:      # strong, multi-evidence
         fraud_path("Stop rule: p >= 0.85 with >= 2 independent evidence items")
-    else:                                                         # ambiguous or legitimate-leaning alert: verify first
-        add("VERIFY_WITH_CUSTOMER", "R1: single/weak signal (p < 0.70): verify before any block")
+    else:   # not yet at the stop rule (p >= 0.85 with >= 2 independent items): verify first. Blocking at 0.70 would stop
+            # before the policy's own stop threshold, and verification is cheap (auto route, low customer impact).
+        add("VERIFY_WITH_CUSTOMER", "R1 and section 6: not yet at the stop threshold (p < 0.85 or fewer than 2 independent evidence items): verify before any block")
         if p >= CASE_GATE_P or a.trigger_type == "customer_report":
             add("CREATE_CASE", "3a: probability >= 0.30 or the customer disputes the charge")
-        if p >= WEAK_SIGNAL_P and a.n_independent_evidence >= 2:
-            del acts["VERIFY_WITH_CUSTOMER"]
-            fraud_path("p >= 0.70 with multiple independent signals")
         if a.evidence_conflict or (a.verdict == "uncertain" and exp > ESCALATE_EXPOSURE):   # R8
             add("ESCALATE_TO_ANALYST", "R8: uncertain and exposed (> $500) or the evidence conflicts")
 

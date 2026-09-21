@@ -200,3 +200,22 @@ def test_customer_report_contradicted_by_evidence_verifies_and_escalates():
 def test_r7_confirmed_keeps_record_and_reminder():
     a = Assessment(fraud_probability=0.1, trigger_type="customer_report", recurring_dispute=True)
     assert set(names(recommend(a, "confirmed"))) == {"CREATE_CASE", "WARN_CUSTOMER", "CLOSE_NO_FRAUD"}
+
+
+# --- verify before block until the stop rule is met (section 6) ---------------------------------------------
+def test_mid_confidence_fraud_verifies_first_then_blocks_on_denial():
+    a = Assessment(fraud_probability=0.78, exposure_usd=100, n_independent_evidence=3)
+    assert "BLOCK_CARD" not in names(recommend(a))                                # 0.70-0.85 is not yet the stop rule
+    assert names(recommend(a))[0] == "VERIFY_WITH_CUSTOMER"
+    assert {"BLOCK_CARD", "CREATE_CASE"} <= set(names(recommend(a, "denied")))    # R2 after the customer denies
+
+
+def test_high_probability_with_one_evidence_item_still_verifies():
+    a = Assessment(fraud_probability=0.9, exposure_usd=100, n_independent_evidence=1)
+    assert "BLOCK_CARD" not in names(recommend(a))
+
+
+def test_stop_rule_met_blocks_without_verification():
+    a = Assessment(fraud_probability=0.86, exposure_usd=100, n_independent_evidence=2)
+    out = names(recommend(a))
+    assert "BLOCK_CARD" in out and "VERIFY_WITH_CUSTOMER" not in out

@@ -46,7 +46,7 @@ def simulate_evidence(inv: Investigation, initial, verdict: str) -> Simulated:
         resp, text = "no_reply", "No reply within 24 hours (assumption: the evidence is too ambiguous to presume the customer's answer)"
     elif verdict == "fraud":
         resp = "denied"
-        text = ("Customer states they did not make these purchases and still holds the card" if kind == "customer_validation"
+        text = ("Customer states they did not make the flagged transaction(s) and still holds the card" if kind == "customer_validation"
                 else "Step-up authentication is not completed (assumed: the actor is not the cardholder)")
     else:
         resp = "confirmed"

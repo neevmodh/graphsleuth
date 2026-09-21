@@ -12,7 +12,7 @@
 ## 0. TL;DR (3 sentences)
 An agent that investigates card-fraud alerts, decides *how sure it is*, and recommends actions inside policy and
 approval limits. Its best find was a fraud ring with no risky-looking transaction (risk score 0.05), visible only by
-linking cards through a shared device. On held-out cases it reaches 91% verdict accuracy on decided cases and a median
+linking cards through a shared device. On held-out cases it reaches over 90% verdict accuracy on decided cases and a median
 exposure error of $0, and it refuses to guess when the evidence is ambiguous.
 
 ## 1. The problem (150 words)
@@ -49,7 +49,7 @@ exposure error of $0, and it refuses to guess when the evidence is ambiguous.
 
 ## 6. Results (150 words + one table)
 - Table from `docs/eval_results.md` (held-out October cases). State the sample and that there is no answer key for the exam.
-- Include the uncomfortable number: **24% false positives on legit look-alikes** (unflagged transactions with risk at or above 0.5).
+- Include the uncomfortable number: **16% to 32% false positives on legit look-alikes** across four samples (unflagged transactions with risk at or above 0.5).
 
 ## 7. What we learned (the heart of the post, ~500 words)
 1. **The risk score is a trap.** Negatives must be matched to positives *within each risk band*, or the model learns "medium score means fraud".

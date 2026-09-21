@@ -88,7 +88,7 @@
       {
         "action": "VERIFY_WITH_CUSTOMER",
         "route": "auto",
-        "reason": "R1: single/weak signal (p < 0.70): verify before any block"
+        "reason": "R1 and section 6: not yet at the stop threshold (p < 0.85 or fewer than 2 independent evidence items): verify before any block"
       }
     ],
     "final": [

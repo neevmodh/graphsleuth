@@ -233,5 +233,5 @@
   "stop_reason": "A shared-device ring across 28 cards was identified and the affected cards are named; further queries would not change the actions (R6/R9).",
   "tool_calls": 8,
   "tokens": 0,
-  "latency_s": 3.09
+  "latency_s": 0.05
 }

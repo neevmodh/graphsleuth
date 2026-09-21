@@ -33,7 +33,7 @@ def sample_cases(b: LocalBackend, per_group: int, seed: int, start: str = "2016-
     # legitimate look-alikes: unflagged October transactions with an elevated bank risk score (never in any case)
     la = b.query(f"""SELECT * FROM (SELECT f.tid, f.card_id, f.customer_id, f.ts FROM feat f JOIN tx t ON t.TransactionID = f.tid
         WHERE f.ts >= '{start}' AND f.ts < '2016-11-01' AND t.risk_score >= 0.5 AND f.tid NOT IN
-          (SELECT CAST(unnest(string_split(txn_ids,'|')) AS BIGINT) FROM closed_cases WHERE txn_ids <> '')) USING SAMPLE {per_group} ROWS""")
+          (SELECT CAST(unnest(string_split(txn_ids,'|')) AS BIGINT) FROM closed_cases WHERE txn_ids <> '')) USING SAMPLE reservoir({per_group} ROWS) REPEATABLE ({seed})""")
     for r in la.itertuples():
         out.append({"case_id": f"LA-{r.tid}", "customer_id": r.customer_id, "card_id": r.card_id,
                     "opened_at": r.ts + pd.Timedelta(hours=6), "outcome": "cleared", "pattern": "none", "txn_ids": str(r.tid),
@@ -72,12 +72,13 @@ def run(n: int, seed: int, cfg: Cfg | None, verbose: bool = False) -> dict:
         f1 = 0.0 if prec + rec == 0 else 2 * prec * rec / (prec + rec)
         true_actions = set(c["actions_taken"].split("|")) | ({"FILE_REPORT"} if c["report_filed"] else set())
         pred_actions = {a.action for a in ans.next_best_actions.final}
+        ini = {a.action for a in ans.next_best_actions.initial}
         j = len(true_actions & pred_actions) / len(true_actions | pred_actions)
         rows.append(dict(case_id=c["case_id"], src=c.get("src", "closed"), trig=trig["trigger_type"], truth=int(truth_fraud), true_pattern=c["pattern"],
                          p=ans.case.fraud_probability, verdict=ans.case.verdict, pred_pattern=ans.case.pattern,
                          f1=f1, prec=prec, rec=rec, true_exp=float(c["exposure_usd"]) if truth_fraud else 0.0,
                          pred_exp=ans.case.exposure_usd, sar_true=bool(c["report_filed"]), sar_pred=ans.sar.file,
-                         jaccard=j, n_true=len(true_tx), n_pred=len(pred_tx), steps=ans.tool_calls))
+                         jaccard=j, initial_harsh=bool(ini & {'BLOCK_CARD', 'DECLINE_TRANSACTION', 'BLOCK_ALL_CARDS'}), changed=ans.next_best_actions.what_changed != 'nothing', n_true=len(true_tx), n_pred=len(pred_tx), steps=ans.tool_calls))
     return summarize(pd.DataFrame(rows), verbose)
 
 
@@ -104,6 +105,9 @@ def summarize(df: pd.DataFrame, verbose: bool) -> dict:
     m["sar_acc"] = float((df.sar_pred == df.sar_true).mean())
     m["action_jaccard"] = float(df.jaccard.mean())
     m["steps_mean"] = float(df.steps.mean())
+    leg = df[df.truth == 0]
+    m["harsh_before_verify_on_legit"] = float(leg.initial_harsh.mean()) if len(leg) else float("nan")   # wrongful-block risk
+    m["fraud_recommendation_changes"] = float(fr.changed.mean())                                        # shows evidence updating the plan
     if verbose:
         print(df.groupby("true_pattern").agg(n=("p", "size"), p=("p", "mean"), f1=("f1", "mean"), jac=("jaccard", "mean"),
                                              fraud_verdict=("verdict", lambda s: (s == "fraud").mean()),
