@@ -1,47 +1,50 @@
-// GraphSleuth graph schema (TigerGraph 4.x). Run:  gsql graph/schema.gsql
-// Numeric attributes that can be missing in the source use -1 as the "unknown" sentinel (TigerGraph has no NULL);
-// agent/tg_backend.py maps -1 back to NaN so the models see the same values as on the local backend.
+// GraphSleuth graph schema (TigerGraph 4.x). LOCAL schema: the types belong to this graph only, so it can share a
+// workspace with other graphs (Savanna's sample graph already defines a global `Card`) and nothing global is dropped.
+// Run:  gsql graph/schema.gsql        (re-running fails on CREATE GRAPH if it already exists; drop the graph first)
+//
+// Numeric attributes that can be missing use -1 as the "unknown" sentinel (TigerGraph has no NULL);
+// agent/tg_backend.py maps -1 back to NaN. Transaction attributes: p = calibrated stage-1 fraud probability, p_oof = the
+// out-of-fold score used by the context model, pat_* = pattern-class probabilities, the rest are behavioural features.
+// Reserved words avoided: `proxy` (-> via_proxy) and `Case` (-> FraudCase).
 
-DROP ALL
+CREATE GRAPH GraphSleuth()
+USE GRAPH GraphSleuth
 
-CREATE VERTEX Customer (PRIMARY_ID id STRING) WITH primary_id_as_attribute="true"
-CREATE VERTEX Card (PRIMARY_ID id STRING, customer_id STRING, card4 STRING, card6 STRING) WITH primary_id_as_attribute="true"
-// Transaction attributes: p = calibrated stage-1 fraud probability, p_oof = out-of-fold score used by the context model,
-// pat_* = pattern-class probabilities, the rest are behavioural features materialised from the card's history.
-CREATE VERTEX Transaction (
-  PRIMARY_ID tid INT, ts DATETIME, amt DOUBLE, prod STRING, channel STRING, addr1 DOUBLE, bank_risk DOUBLE,
-  p DOUBLE, p_oof DOUBLE,
-  dev_new INT, dev_unseen INT, addr1_new INT, prod_new INT, via_proxy INT,
-  amt_ratio_med DOUBLE, gap_prev_h DOUBLE, n_1h INT, n_small_1h INT, addr1_prior_n INT, prior_n INT,
-  pat_ato DOUBLE, pat_cnp DOUBLE, pat_cnpnd DOUBLE, pat_oor DOUBLE, pat_none DOUBLE,
-  card_id STRING
-) WITH primary_id_as_attribute="true"
-CREATE VERTEX DeviceProfile (PRIMARY_ID id STRING, n_cards INT, new_frac DOUBLE, proxy_frac DOUBLE) WITH primary_id_as_attribute="true"
-CREATE VERTEX BillingRegion (PRIMARY_ID addr1 INT) WITH primary_id_as_attribute="true"
-CREATE VERTEX EmailDomain (PRIMARY_ID domain STRING) WITH primary_id_as_attribute="true"
-CREATE VERTEX ClosedCase (
-  PRIMARY_ID id STRING, outcome STRING, pattern STRING, exposure DOUBLE, opened_at DATETIME, closed_at DATETIME,
-  report_filed BOOL, notes STRING
-) WITH primary_id_as_attribute="true"
-// FraudCase: what the agent writes back (case memory)
-CREATE VERTEX FraudCase (
-  PRIMARY_ID id STRING, case_id STRING, verdict STRING, pattern STRING, fraud_probability DOUBLE, exposure DOUBLE,
-  status STRING, summary STRING, created DATETIME
-) WITH primary_id_as_attribute="true"
-
-CREATE DIRECTED EDGE OWNS (FROM Customer, TO Card) WITH REVERSE_EDGE="OWNED_BY"
-CREATE DIRECTED EDGE MADE (FROM Card, TO Transaction) WITH REVERSE_EDGE="MADE_BY"
-CREATE DIRECTED EDGE FROM_DEVICE (FROM Transaction, TO DeviceProfile) WITH REVERSE_EDGE="DEVICE_OF"
-CREATE DIRECTED EDGE BILLED_IN (FROM Transaction, TO BillingRegion) WITH REVERSE_EDGE="REGION_OF"
-CREATE DIRECTED EDGE PURCHASER_EMAIL (FROM Transaction, TO EmailDomain) WITH REVERSE_EDGE="EMAIL_OF"
-CREATE DIRECTED EDGE NEXT (FROM Transaction, TO Transaction) WITH REVERSE_EDGE="PREVIOUS"
-CREATE DIRECTED EDGE INVOLVES (FROM ClosedCase, TO Transaction) WITH REVERSE_EDGE="INVOLVED_IN"
-CREATE DIRECTED EDGE ON_CARD (FROM ClosedCase, TO Card) WITH REVERSE_EDGE="HAS_CLOSED_CASE"
-CREATE DIRECTED EDGE CONNECTED_TO (FROM ClosedCase, TO Card) WITH REVERSE_EDGE="CONNECTED_FROM"
-CREATE DIRECTED EDGE HAS_CASE (FROM Card, TO FraudCase) WITH REVERSE_EDGE="CASE_OF"
-CREATE DIRECTED EDGE CASE_TXN (FROM FraudCase, TO Transaction) WITH REVERSE_EDGE="TXN_IN_CASE"
-CREATE DIRECTED EDGE CASE_DEVICE (FROM FraudCase, TO DeviceProfile) WITH REVERSE_EDGE="DEVICE_IN_CASE"
-CREATE DIRECTED EDGE CASE_CONNECTED (FROM FraudCase, TO Card) WITH REVERSE_EDGE="CONNECTED_IN_CASE"
-CREATE DIRECTED EDGE SIMILAR_TO (FROM FraudCase, TO ClosedCase) WITH REVERSE_EDGE="SIMILAR_FROM"
-
-CREATE GRAPH GraphSleuth (*)
+CREATE SCHEMA_CHANGE JOB graphsleuth_schema FOR GRAPH GraphSleuth {
+  ADD VERTEX Customer (PRIMARY_ID id STRING) WITH primary_id_as_attribute="true";
+  ADD VERTEX Card (PRIMARY_ID id STRING, customer_id STRING, card4 STRING, card6 STRING) WITH primary_id_as_attribute="true";
+  ADD VERTEX Transaction (
+    PRIMARY_ID tid INT, ts DATETIME, amt DOUBLE, prod STRING, channel STRING, addr1 DOUBLE, bank_risk DOUBLE,
+    p DOUBLE, p_oof DOUBLE,
+    dev_new INT, dev_unseen INT, addr1_new INT, prod_new INT, via_proxy INT,
+    amt_ratio_med DOUBLE, gap_prev_h DOUBLE, n_1h INT, n_small_1h INT, addr1_prior_n INT, prior_n INT,
+    pat_ato DOUBLE, pat_cnp DOUBLE, pat_cnpnd DOUBLE, pat_oor DOUBLE, pat_none DOUBLE,
+    card_id STRING
+  ) WITH primary_id_as_attribute="true";
+  ADD VERTEX DeviceProfile (PRIMARY_ID id STRING, n_cards INT, new_frac DOUBLE, proxy_frac DOUBLE) WITH primary_id_as_attribute="true";
+  ADD VERTEX BillingRegion (PRIMARY_ID addr1 INT) WITH primary_id_as_attribute="true";
+  ADD VERTEX EmailDomain (PRIMARY_ID domain STRING) WITH primary_id_as_attribute="true";
+  ADD VERTEX ClosedCase (
+    PRIMARY_ID id STRING, outcome STRING, pattern STRING, exposure DOUBLE, opened_at DATETIME, closed_at DATETIME,
+    report_filed BOOL, notes STRING
+  ) WITH primary_id_as_attribute="true";
+  ADD VERTEX FraudCase (
+    PRIMARY_ID id STRING, case_id STRING, verdict STRING, pattern STRING, fraud_probability DOUBLE, exposure DOUBLE,
+    status STRING, summary STRING, created DATETIME
+  ) WITH primary_id_as_attribute="true";
+  ADD DIRECTED EDGE OWNS (FROM Customer, TO Card) WITH REVERSE_EDGE="OWNED_BY";
+  ADD DIRECTED EDGE MADE (FROM Card, TO Transaction) WITH REVERSE_EDGE="MADE_BY";
+  ADD DIRECTED EDGE FROM_DEVICE (FROM Transaction, TO DeviceProfile) WITH REVERSE_EDGE="DEVICE_OF";
+  ADD DIRECTED EDGE BILLED_IN (FROM Transaction, TO BillingRegion) WITH REVERSE_EDGE="REGION_OF";
+  ADD DIRECTED EDGE PURCHASER_EMAIL (FROM Transaction, TO EmailDomain) WITH REVERSE_EDGE="EMAIL_OF";
+  ADD DIRECTED EDGE NEXT (FROM Transaction, TO Transaction) WITH REVERSE_EDGE="PREVIOUS";
+  ADD DIRECTED EDGE INVOLVES (FROM ClosedCase, TO Transaction) WITH REVERSE_EDGE="INVOLVED_IN";
+  ADD DIRECTED EDGE ON_CARD (FROM ClosedCase, TO Card) WITH REVERSE_EDGE="HAS_CLOSED_CASE";
+  ADD DIRECTED EDGE CONNECTED_TO (FROM ClosedCase, TO Card) WITH REVERSE_EDGE="CONNECTED_FROM";
+  ADD DIRECTED EDGE HAS_CASE (FROM Card, TO FraudCase) WITH REVERSE_EDGE="CASE_OF";
+  ADD DIRECTED EDGE CASE_TXN (FROM FraudCase, TO Transaction) WITH REVERSE_EDGE="TXN_IN_CASE";
+  ADD DIRECTED EDGE CASE_DEVICE (FROM FraudCase, TO DeviceProfile) WITH REVERSE_EDGE="DEVICE_IN_CASE";
+  ADD DIRECTED EDGE CASE_CONNECTED (FROM FraudCase, TO Card) WITH REVERSE_EDGE="CONNECTED_IN_CASE";
+  ADD DIRECTED EDGE SIMILAR_TO (FROM FraudCase, TO ClosedCase) WITH REVERSE_EDGE="SIMILAR_FROM";
+}
+RUN SCHEMA_CHANGE JOB graphsleuth_schema

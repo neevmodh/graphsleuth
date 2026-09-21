@@ -31,7 +31,7 @@ def main() -> None:
         SELECT f.tid, strftime(f.ts, '%Y-%m-%d %H:%M:%S') ts, f.amt, f.prod, f.channel, {n('f.addr1')} addr1, t.risk_score bank_risk,
                {n('s.p')} p, {n('o.p')} p_oof,
                CAST({n('f.dev_new')} AS INT) dev_new, CAST({n('f.dev_unseen')} AS INT) dev_unseen, CAST({n('f.addr1_new')} AS INT) addr1_new,
-               CAST({n('f.prod_new')} AS INT) prod_new, f.proxy, {n('f.amt_ratio_med')} amt_ratio_med, {n('f.gap_prev_h')} gap_prev_h,
+               CAST({n('f.prod_new')} AS INT) prod_new, f.proxy AS via_proxy, {n('f.amt_ratio_med')} amt_ratio_med, {n('f.gap_prev_h')} gap_prev_h,
                f.n_1h, f.n_small_1h, f.addr1_prior_n, f.prior_n,
                {n('s.pat_account_takeover')} pat_ato, {n('s.pat_card_not_present_fraud')} pat_cnp,
                {n('s.pat_card_not_present_new_device')} pat_cnpnd, {n('s.pat_out_of_region_use')} pat_oor, {n('s.pat_none')} pat_none,
