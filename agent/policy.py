@@ -117,7 +117,10 @@ def recommend(a: Assessment, response: Response = None) -> list[ActionItem]:
         acts.setdefault(action, reason)
 
     def fraud_path(basis: str) -> None:
-        add("BLOCK_CARD", basis)
+        if a.confirmed_fraud_cards >= 2 or a.credentials_compromised:   # R10
+            add("BLOCK_ALL_CARDS", f"{basis} (R10: at least two of the customer's cards show confirmed fraud or credentials are compromised)")
+        else:
+            add("BLOCK_CARD", basis)
         add("CREATE_CASE", basis)
         if sar_required(a, fraud_strongly_suspected=True):
             add("FILE_REPORT", "R2/R6: exposure, shared origin or coordinated pattern meets the report bar")

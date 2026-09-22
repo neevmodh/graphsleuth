@@ -35,6 +35,8 @@ app = FastAPI(title="GraphSleuth")
 _lock = threading.Lock()
 import os
 
+TOKEN_BUDGET = int(os.getenv("GRAPHSLEUTH_TOKEN_BUDGET", "150000"))   # soft session budget, purely for the UI's fuel gauge
+
 _TG = os.getenv("GRAPHSLEUTH_BACKEND", "local").lower() == "tigergraph"
 _shared = make_backend() if _TG else None          # TigerGraph connections are shared; DuckDB ones are per request (thread safety)
 _memory = _shared[1] if _TG else LocalCaseMemory()
@@ -64,7 +66,16 @@ def load_approvals() -> dict:
 
 @app.get("/api/meta")
 def meta():
-    return {"backend": "tigergraph" if _TG else "local-duckdb", "tigergraph": _TG, "llm": list(_llm.providers), "cases": len(pack())}
+    used = _llm.tokens
+    return {
+        "backend": "tigergraph" if _TG else "local-duckdb", "tigergraph": _TG, "llm": list(_llm.providers), "cases": len(pack()),
+        "usage": {
+            "tokens_used": used, "tokens_budget": TOKEN_BUDGET, "tokens_left": max(TOKEN_BUDGET - used, 0),
+            "pct_used": round(min(used / TOKEN_BUDGET, 1.0) * 100, 1) if TOKEN_BUDGET else 0,
+            "calls": _llm.calls, "cache_hits": _llm.cache_hits,
+            "cache_hit_rate": round(_llm.cache_hits / _llm.calls * 100, 1) if _llm.calls else 0,
+        },
+    }
 
 
 @app.get("/api/cases")

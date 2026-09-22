@@ -129,6 +129,7 @@ class TigerGraphBackend:
         dev = (r.get("device_by_tid") or {}).get(str(int(tid)))
         row = self._txn_row(a, dev)
         row["card_id"] = a.get("card_id")
+        row["P_emaildomain"] = (r.get("email_by_tid") or {}).get(str(int(tid)))
         card = self.conn.getVerticesById("Card", a.get("card_id"))
         if card:
             c = card[0]["attributes"] if isinstance(card, list) else card.get("attributes", {})
@@ -189,6 +190,11 @@ class TigerGraphBackend:
         per = b.groupby("card_id").agg(n=("tid", "count"), total=("amt", "sum"), first_ts=("ts", "min"), last_ts=("ts", "max"),
                                        tids=("tid", list)).reset_index()
         return _clean({"burst_start": b["ts"].min(), "burst_end": b["ts"].max(), "txns": len(b), "cards": per.to_dict("records")})
+
+    def email_history(self, card_id: str, email: str, ts: str) -> dict:
+        r = self._run("email_history", card=(card_id, "Card"), email=email, before=ts)
+        return _clean({"n_before": r.get("n_before", 0), "first_seen": r.get("first_seen") if r.get("n_before") else None,
+                       "n_distinct_domains_before": r.get("n_distinct_domains_before", 0)})
 
     def region_history(self, card_id: str, addr1: float, ts: str) -> dict:
         t0 = pd.Timestamp(ts)

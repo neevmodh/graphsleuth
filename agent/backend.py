@@ -27,6 +27,7 @@ class GraphBackend(Protocol):
     def card_profile(self, card_id: str, before_ts: str) -> dict: ...
     def card_window(self, card_id: str, ts: str, hours_before: float, hours_after: float) -> pd.DataFrame: ...
     def device_neighbors(self, device_profile: str, ts: str, days: int) -> dict: ...
+    def email_history(self, card_id: str, email: str, ts: str) -> dict: ...
     def region_history(self, card_id: str, addr1: float, ts: str) -> dict: ...
     def region_cluster(self, addr1: float, ts: str, days: int) -> dict: ...
     def recurring_check(self, card_id: str, tid: int) -> dict: ...
@@ -119,6 +120,21 @@ class LocalBackend:
         per = b.groupby("card_id").agg(n=("tid", "count"), total=("amt", "sum"), first_ts=("ts", "min"), last_ts=("ts", "max"),
                                        tids=("tid", list)).reset_index()
         return _clean({"burst_start": b["ts"].min(), "burst_end": b["ts"].max(), "txns": len(b), "cards": per.to_dict("records")})
+
+    def email_history(self, card_id: str, email: str, ts: str) -> dict:
+        """Has this card used this purchaser email domain before, and how many distinct domains has it used? Only 59
+        distinct domains exist in the whole dataset (mostly gmail.com/yahoo.com/...), so raw sharing across cards is
+        meaningless -- the signal is per-card consistency, the same idea as dev_unseen for devices."""
+        r = self.con.execute(f"""
+            WITH hx AS (
+                SELECT f.ts, t.P_emaildomain AS dom FROM feat f JOIN tx t ON t.TransactionID = f.tid
+                WHERE f.card_id = {_q(card_id)} AND f.ts < {_q(ts)} AND t.P_emaildomain IS NOT NULL AND t.P_emaildomain <> ''
+            )
+            SELECT count(*) FILTER (WHERE dom = {_q(email)}) n_before,
+                   min(ts) FILTER (WHERE dom = {_q(email)}) first_seen,
+                   count(DISTINCT dom) n_distinct_domains_before
+            FROM hx""").fetchone()
+        return _clean({"n_before": r[0], "first_seen": r[1] if r[0] else None, "n_distinct_domains_before": r[2]})
 
     def region_history(self, card_id: str, addr1: float, ts: str) -> dict:
         r = self.con.execute(f"""

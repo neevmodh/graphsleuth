@@ -98,9 +98,21 @@ class Investigator:
         self.em = episode_model          # second-stage episode model (agent/episode.py); None => stage-1 fallback
 
     # ---- tool wrapper ---------------------------------------------------------------------------
-    def _call(self, inv: Investigation, tool: str, fn: Callable, args: dict, summarize: Callable, on_step=None):
+    def _call(self, inv: Investigation, tool: str, fn: Callable, args: dict, summarize: Callable, on_step=None,
+              required: bool = True, default=None):
+        """`required=False` tools are enrichment: a transient graph/MCP failure is recorded as a skipped
+        step and the investigation continues with `default`, instead of losing the whole case record."""
         t0 = time.perf_counter()
-        out = fn(**args)
+        try:
+            out = fn(**args)
+        except Exception as e:                                     # noqa: BLE001
+            if required:
+                raise
+            step = Step(len(inv.steps) + 1, tool, args, f"skipped ({type(e).__name__}: {str(e)[:70]})", (time.perf_counter() - t0) * 1000)
+            inv.steps.append(step)
+            if on_step:
+                on_step(step)
+            return default
         step = Step(len(inv.steps) + 1, tool, args, summarize(out), (time.perf_counter() - t0) * 1000)
         inv.steps.append(step)
         if on_step:
@@ -148,7 +160,8 @@ class Investigator:
         dev = f.get("device_profile")
         if dev and f["channel"] == "online":
             nb = self._call(inv, "device_neighbors", b.device_neighbors, {"device_profile": dev, "ts": ts, "days": 14},
-                            lambda r: f"device on {r['cards']} cards, {round((r['new_frac'] or 0) * 100)}% New, {round((r['proxy_frac'] or 0) * 100)}% proxied, {len(r['closed_cases'])} closed cases", on_step)
+                            lambda r: f"device on {r['cards']} cards, {round((r['new_frac'] or 0) * 100)}% New, {round((r['proxy_frac'] or 0) * 100)}% proxied, {len(r['closed_cases'])} closed cases", on_step,
+                            required=False, default={"txns": 0, "cards": 0, "new_frac": 0.0, "proxy_frac": 0.0, "first_ts": None, "last_ts": None, "closed_cases": []})
             sig["device"] = {k: nb[k] for k in ("txns", "cards", "new_frac", "proxy_frac", "first_ts", "last_ts")}
             sig["device_closed_cases"] = nb["closed_cases"]
             if (nb["cards"] >= cfg.ring_min_cards and (nb["new_frac"] or 0) >= cfg.ring_min_new_frac
@@ -166,14 +179,39 @@ class Investigator:
         region = None
         if f["channel"] == "in_person" and f.get("addr1") == f.get("addr1"):
             region = self._call(inv, "region_history", b.region_history, {"card_id": card, "addr1": f["addr1"], "ts": ts},
-                                lambda r: f"region {r['addr1']}: {r['n_before']} prior txns; +-5d: {r['in_region_near']} in region on {r['days_in_region_near']} day(s), {r['elsewhere_near']} elsewhere", on_step)
+                                lambda r: f"region {r['addr1']}: {r['n_before']} prior txns; +-5d: {r['in_region_near']} in region on {r['days_in_region_near']} day(s), {r['elsewhere_near']} elsewhere", on_step,
+                                required=False, default={"addr1": f["addr1"], "n_before": 0, "first_seen": None, "n_near": 0, "in_region_near": 0, "elsewhere_near": 0, "days_in_region_near": 0})
             sig["region"] = region
             sig["region_cluster"] = self._call(inv, "region_cluster", b.region_cluster, {"addr1": f["addr1"], "ts": ts, "days": 7},
-                                               lambda r: f"region {r['addr1']}: {r['cards']} cards, {r['likely_fraud_txns']} likely-fraud txns in +-7d", on_step)
+                                               lambda r: f"region {r['addr1']}: {r['cards']} cards, {r['likely_fraud_txns']} likely-fraud txns in +-7d", on_step,
+                                               required=False, default={"addr1": f["addr1"], "txns": 0, "cards": 0, "avg_p": None, "likely_fraud_txns": 0})
+
+        email = f.get("P_emaildomain")
+        if email and f["channel"] == "online" and hasattr(b, "email_history"):
+            eh = self._call(inv, "email_history", b.email_history, {"card_id": card, "email": email, "ts": ts},
+                            lambda r: f"'{email}': {r['n_before']} prior txns on this card, {r['n_distinct_domains_before']} other domain(s) used before", on_step,
+                            required=False, default={"n_before": 0, "first_seen": None, "n_distinct_domains_before": 0})
+            sig["email"] = {**eh, "domain": email, "new": eh["n_before"] == 0 and eh["n_distinct_domains_before"] > 0}
 
         rec = self._call(inv, "recurring_check", b.recurring_check, {"card_id": card, "tid": tid},
-                         lambda r: f"{r['n_prior']} earlier identical-amount txns, {r['monthly_gaps']} roughly-monthly gaps, {r['rate_per_30d']}/30d -> recurring={r['is_recurring']}", on_step)
+                         lambda r: f"{r['n_prior']} earlier identical-amount txns, {r['monthly_gaps']} roughly-monthly gaps, {r['rate_per_30d']}/30d -> recurring={r['is_recurring']}", on_step,
+                         required=False, default={"n_same_amount": 0, "n_prior": 0, "monthly_gaps": 0, "gaps_days": [], "rate_per_30d": 0.0, "is_recurring": False})
         sig["recurring"] = rec
+
+        # ---- other cards on this customer (R10: BLOCK_ALL_CARDS only when >=2 cards confirmed fraud) ---------
+        confirmed_other = 0
+        if inv.p_flagged >= 0.5 and hasattr(b, "customer_cards"):
+            others = [c for c in self._call(inv, "customer_cards", b.customer_cards, {"customer_id": trig["customer_id"]},
+                                             lambda r: f"{len(r)} card(s) on this customer", on_step, required=False, default=[card])
+                      if c != card]
+            for oc in others:
+                hist = self._call(inv, "similar_cases", b.similar_cases,
+                                  {"card_id": oc, "device_profile": None, "addr1": None, "pattern": None,
+                                   "before_ts": trig["opened_at"], "k": 5},
+                                  lambda r, _oc=oc: f"other card {_oc}: {len(r)} closed case(s)", on_step, required=False, default=[])
+                if any(h.get("same_card") and h.get("outcome") == "confirmed_fraud" for h in hist):
+                    confirmed_other += 1
+        sig["confirmed_other_cards"] = confirmed_other
 
         # ---- probability -------------------------------------------------------------------------------
         p = inv.p_flagged
@@ -199,7 +237,8 @@ class Investigator:
         sim = self._call(inv, "similar_cases", b.similar_cases,
                          {"card_id": card, "device_profile": dev, "addr1": f.get("addr1"), "pattern": inv.pattern,
                           "before_ts": trig["opened_at"], "exclude_case": trig.get("case_id"), "k": 5},
-                         lambda r: f"{len(r)} similar closed cases: " + ", ".join(x["case_id"] for x in r[:5]), on_step)
+                         lambda r: f"{len(r)} similar closed cases: " + ", ".join(x["case_id"] for x in r[:5]), on_step,
+                         required=False, default=[])
         inv.similar = sim
         inv.signals = sig
         if self.rag is not None:
@@ -431,10 +470,19 @@ class Investigator:
             add(f"Billing region {int(r['addr1'])}: {r['n_before']} prior transactions on this card; within +-5 days {r['in_region_near']} in-region transactions on "
                 f"{r['days_in_region_near']} day(s) and {r['elsewhere_near']} elsewhere ({'consistent with travel' if trip and r['n_before'] == 0 else 'see pattern assessment'}).",
                 "graph", f"query:region_history(card={inv.trigger['card_id']},addr1={int(r['addr1'])})", [str(tid)])
+        if sig.get("email"):
+            e = sig["email"]
+            add((f"Purchaser email domain '{e['domain']}' has never been used on this card before, though {e['n_distinct_domains_before']} "
+                 f"other domain(s) have: a changed email is one of the signals behind account takeover (R1)." if e["new"] else
+                 f"Purchaser email domain '{e['domain']}' matches this card's own history ({e['n_before']} prior transactions)."),
+                "graph", f"query:email_history(card={inv.trigger['card_id']})", [str(tid)])
         if sig.get("recurring", {}).get("is_recurring"):
             r = sig["recurring"]
             add(f"The identical amount and product occurred {r['n_prior']} times earlier on this card at roughly monthly gaps ({r['gaps_days']} days, {r['rate_per_30d']} per 30 days): matches the customer's own recurring pattern (R7). No merchant field exists, so amount, product and cadence are the proxy.",
                 "graph", f"query:recurring_check(txn={tid})", [str(tid)])
+        if sig.get("confirmed_other_cards"):
+            add(f"{sig['confirmed_other_cards']} other card(s) belonging to this customer show confirmed fraud in closed cases (R10).",
+                "graph", f"query:similar_cases(customer={inv.trigger['customer_id']})", [])
         if inv.trigger["trigger_type"] == "customer_report":
             add("The cardholder reported this transaction as unauthorized.", "customer", f"trigger:{inv.trigger['case_id']}", [str(tid)])
         for c in inv.similar[:3]:
@@ -475,10 +523,14 @@ class Investigator:
             families += int(not sig["testing"]["hit"] and not sig["structuring"]["hit"] and not sig["ring"]["hit"])
         recurring = sig["recurring"]["is_recurring"] and inv.trigger["trigger_type"] == "customer_report"
         conflict = (inv.trigger["trigger_type"] == "customer_report" and inv.p_flagged < 0.15 and not recurring)
+        confirmed_other = sig.get("confirmed_other_cards", 0)
+        confirmed_fraud_cards = confirmed_other + (1 if fraud_lean else 0)
+        credentials_compromised = fraud_lean and confirmed_other >= 1 and (f.get("dev_unseen") == 1 or sig.get("email", {}).get("new"))
         return Assessment(
             fraud_probability=inv.p_case, exposure_usd=inv.exposure, trigger_type=inv.trigger["trigger_type"],
             n_independent_evidence=max(families, 1), evidence_conflict=conflict, pattern=inv.pattern,
             card_testing=bool(sig["testing"]["hit"] and sig["testing"]["flagged_in_run"]),
             large_purchase_cleared=bool(sig["testing"].get("large_cleared")),
             shared_origin=bool(sig["ring"]["hit"]), connected_fraud_cards=list(inv.connected_cards) if sig["ring"]["hit"] else [],
-            recurring_dispute=bool(recurring), undocumented_coordinated=bool(sig["ring"]["hit"]))
+            recurring_dispute=bool(recurring), undocumented_coordinated=bool(sig["ring"]["hit"]),
+            confirmed_fraud_cards=confirmed_fraud_cards, credentials_compromised=bool(credentials_compromised))

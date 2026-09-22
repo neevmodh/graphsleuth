@@ -11,7 +11,7 @@ back to the graph as case memory.
 ![Architecture](docs/architecture.svg)
 
 > Status: runs end to end on **TigerGraph Savanna**. The graph (590,742 transactions, 14,318 cards, 5,565 closed cases,
-> ~2.3M edges, counts verified against the source) is loaded, 16 GSQL queries are installed, and all 20 benchmark cases run
+> ~2.3M edges, counts verified against the source) is loaded, 17 GSQL queries are installed, and all 20 benchmark cases run
 > through them and are written back to the graph as `FraudCase` vertices. The TigerGraph answers are identical to the local
 > backend's (0 differences over 100 field groups). GraphRAG is live (policy/typology/regulatory chunks retrieved via
 > TigerVector over the TigerGraph MCP server, grounding evidence, the case summary and the SAR narrative), agent calls
@@ -62,7 +62,7 @@ c = TigerGraphConnection(host=os.environ["TG_HOST"], graphname="", gsqlSecret=os
 print(c.gsql(open("graph/schema.gsql").read()))
 PY
 python -m data.load_tg                         # REST loader, idempotent (~25 min for the full graph)
-python graph/install_queries.py                # creates and installs the 16 queries (~5 min)
+python graph/install_queries.py                # creates and installs the 17 queries (~5 min)
 GRAPHSLEUTH_BACKEND=tigergraph python run_cases.py && pytest tests/test_tg_live.py
 ```
 The TigerGraph MCP server (`tigergraph-mcp`) connects to the workspace over stdio (verified: 69 tools listed);

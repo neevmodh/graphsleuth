@@ -17,11 +17,13 @@ CREATE OR REPLACE QUERY card_window(VERTEX<Card> card, DATETIME t_from, DATETIME
   PRINT @@dev AS device_by_tid;
 }
 
-// ---- a single transaction with its device --------------------------------------------------------------------------------
+// ---- a single transaction with its device and purchaser email domain -----------------------------------------------------
 CREATE OR REPLACE QUERY get_transaction(VERTEX<Transaction> txn) FOR GRAPH GraphSleuth SYNTAX v3 {
   MapAccum<INT, STRING> @@dev;
+  MapAccum<INT, STRING> @@em;
   Start = {txn};
   D = SELECT d FROM Start:t -(FROM_DEVICE>)- DeviceProfile:d ACCUM @@dev += (t.tid -> d.id);
+  E = SELECT e FROM Start:t -(PURCHASER_EMAIL>)- EmailDomain:e ACCUM @@em += (t.tid -> e.domain);
   PRINT Start[Start.tid AS tid, Start.ts AS ts, Start.amt AS amt, Start.prod AS prod, Start.channel AS channel, Start.addr1 AS addr1,
               Start.bank_risk AS bank_risk, Start.p AS p, Start.p_oof AS p_oof, Start.dev_new AS dev_new, Start.dev_unseen AS dev_unseen,
               Start.addr1_new AS addr1_new, Start.prod_new AS prod_new, Start.via_proxy AS via_proxy, Start.amt_ratio_med AS amt_ratio_med,
@@ -29,6 +31,7 @@ CREATE OR REPLACE QUERY get_transaction(VERTEX<Transaction> txn) FOR GRAPH Graph
               Start.prior_n AS prior_n, Start.pat_ato AS pat_ato, Start.pat_cnp AS pat_cnp, Start.pat_cnpnd AS pat_cnpnd,
               Start.pat_oor AS pat_oor, Start.pat_none AS pat_none, Start.card_id AS card_id];
   PRINT @@dev AS device_by_tid;
+  PRINT @@em AS email_by_tid;
 }
 
 // ---- baseline behaviour of a card before a moment ---------------------------------------------------------------------------
@@ -97,6 +100,19 @@ CREATE OR REPLACE QUERY region_history(VERTEX<Card> card, DOUBLE addr1, DATETIME
             END;
   PRINT @@n_before AS n_before, @@first_seen AS first_seen, @@n_near AS n_near, @@in_region AS in_region,
         @@elsewhere AS elsewhere, @@days_in.size() AS days_in_region;
+}
+
+// ---- did this card use this purchaser email domain before, and how many distinct domains has it used? (#2 identity signal, -----------
+// the PURCHASER_EMAIL edge loaded onto every online transaction but never queried until now) -------------------------------------------
+CREATE OR REPLACE QUERY email_history(VERTEX<Card> card, STRING email, DATETIME before) FOR GRAPH GraphSleuth SYNTAX v3 {
+  SumAccum<INT> @@n_before;
+  MinAccum<DATETIME> @@first_seen;
+  SetAccum<STRING> @@domains_before;
+  Start = {card};
+  T = SELECT e FROM Start:c -(MADE>)- Transaction:t -(PURCHASER_EMAIL>)- EmailDomain:e WHERE t.ts < before
+      ACCUM @@domains_before += e.domain,
+            CASE WHEN e.domain == email THEN @@n_before += 1, @@first_seen += t.ts END;
+  PRINT @@n_before AS n_before, @@first_seen AS first_seen, @@domains_before.size() AS n_distinct_domains_before;
 }
 
 // ---- how busy is a billing region around a moment --------------------------------------------------------------------------------------

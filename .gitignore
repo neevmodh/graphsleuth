@@ -12,3 +12,5 @@ data/store/
 *.parquet
 .DS_Store
 .venv-mcp/
+# frozen demo data: regenerate with scripts/freeze_static.py (needs live TG + LLM credentials, like everything else)
+static_demo/data/

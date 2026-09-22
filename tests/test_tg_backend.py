@@ -74,6 +74,31 @@ def test_recurring_check_needs_true_monthly_gaps():
     assert not TigerGraphBackend(FakeConn({**tx, "recurring_txns": [{"ts": ragged}]})).recurring_check("C1-K1", 9)["is_recurring"]
 
 
+def test_transaction_reads_the_purchaser_email_domain():
+    conn = FakeConn({"get_transaction": [{"Start": [txn(7, "2016-12-01 10:00:00")]}, {"device_by_tid": {}}, {"email_by_tid": {"7": "gmail.com"}}]})
+    t = TigerGraphBackend(conn).transaction(7)
+    assert t["P_emaildomain"] == "gmail.com"
+
+
+def test_transaction_email_domain_is_none_when_the_query_has_no_email_hop():
+    conn = FakeConn({"get_transaction": [{"Start": [txn(7, "2016-12-01 10:00:00")]}, {"device_by_tid": {}}]})   # no email_by_tid part at all
+    t = TigerGraphBackend(conn).transaction(7)
+    assert t["P_emaildomain"] is None
+
+
+def test_email_history_reports_prior_use_and_distinct_domains():
+    conn = FakeConn({"email_history": [{"n_before": 4, "first_seen": "2016-08-01 00:00:00", "n_distinct_domains_before": 1}]})
+    r = TigerGraphBackend(conn).email_history("C1-K1", "gmail.com", "2016-12-01 00:00:00")
+    assert conn.calls[0] == ("email_history", {"card": ("C1-K1", "Card"), "email": "gmail.com", "before": "2016-12-01 00:00:00"})
+    assert r == {"n_before": 4, "first_seen": "2016-08-01 00:00:00", "n_distinct_domains_before": 1}
+
+
+def test_email_history_first_seen_is_none_when_never_used_before():
+    conn = FakeConn({"email_history": [{"n_before": 0, "n_distinct_domains_before": 2}]})
+    r = TigerGraphBackend(conn).email_history("C1-K1", "outlook.com", "2016-12-01 00:00:00")
+    assert r["n_before"] == 0 and r["first_seen"] is None
+
+
 def test_similar_cases_scores_and_excludes_the_case_itself():
     def cc(i, pat):
         return {"v_id": i, "attributes": {"case_id": i, "outcome": "confirmed_fraud", "pattern": pat, "exposure": 10.0, "opened_at": "2016-09-01 00:00:00"}}

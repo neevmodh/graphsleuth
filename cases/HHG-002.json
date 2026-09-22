@@ -39,6 +39,14 @@
         ]
       },
       {
+        "claim": "Purchaser email domain 'hotmail.com' matches this card's own history (7 prior transactions).",
+        "source": "graph",
+        "ref": "query:email_history(card=C11891-K1)",
+        "entity_ids": [
+          "3478782"
+        ]
+      },
+      {
         "claim": "Closed case CC-4160 (confirmed_fraud, card_not_present_fraud, $90.54) is relevant: same card, same pattern.",
         "source": "graph",
         "ref": "query:similar_cases",
@@ -81,7 +89,7 @@
       "CC-1273",
       "CC-3853"
     ],
-    "summary": "1 transaction(s) totalling $292.36 on C11891-K1 are assessed as fraud (probability 0.91), matching card-not-present fraud: online use of the card number inconsistent with the cardholder's history. Trigger: risk score. Tool calls: 7; closed cases consulted: CC-4160.",
+    "summary": "1 transaction(s) totalling $292.36 on C11891-K1 are assessed as fraud with a probability of 0.91, matching card-not-present fraud involving online use of the card number that is inconsistent with the cardholder's history. The primary trigger was the risk score. This assessment involved 8 tool calls, with closed cases consulted: CC-4160.",
     "written_to_graph": true,
     "graph_case_id": "CASE-2016-002"
   },
@@ -122,7 +130,7 @@
     "activity_dates": []
   },
   "stop_reason": "Fraud probability 0.91 with 3 independent evidence items reached the stop threshold (section 6).",
-  "tool_calls": 7,
-  "tokens": 2939,
-  "latency_s": 38.04
+  "tool_calls": 8,
+  "tokens": 2733,
+  "latency_s": 690.0
 }
