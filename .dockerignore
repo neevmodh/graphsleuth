@@ -1,0 +1,36 @@
+# Git
+.git
+.gitignore
+
+# Python
+.venv/
+.venv-mcp/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.ruff_cache/
+
+# Local env (secrets go in Railway environment variables, not here)
+.env
+
+# Dataset — large, not needed at runtime (models are already trained)
+dataset/
+
+# data/store IS needed (trained models, DuckDB, corpus) — do NOT ignore it here
+# Only exclude the TigerGraph loader CSVs which are large and not used by the API
+data/store/tg/
+
+# Node / frontend build artefacts
+node_modules/
+ui/dist/
+
+# macOS
+.DS_Store
+
+# Docs and eval (not needed at runtime)
+docs/
+eval/
+
+# Tests
+tests/

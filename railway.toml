@@ -1,0 +1,10 @@
+[build]
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+startCommand = "/app/docker-entrypoint.sh"
+healthcheckPath = "/api/meta"
+healthcheckTimeout = 120          # allow TigerGraph wake-up (up to 150s on cold start)
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3
