@@ -159,7 +159,7 @@
       "CC-2971",
       "CC-2649"
     ],
-    "summary": "3 transaction(s) totalling $439.61 on C13487-K1 are assessed as fraud (probability 0.92), matching an undocumented pattern. A single rare device profile (SM-G935F Build/NRD90M | Android 7.0 | chrome 62.0 for android | 1920x1080) transacted on 28 different cards within a burst spanning 2016-11-14 to 2016-12-04. Each transaction shows the device as New for the account and operating behind an anonymous proxy; the purchases are ordinary online amounts and the bank\u2019s risk scores remain low, so no single transaction appears alarming. This was discovered by expanding from the flagged transaction to its device and counting distinct cards. The same device profile links 27 other cards, so this is treated as a coordinated ring rather than an isolated compromise. Trigger: analyst request. Tool calls: 10; closed cases consulted: CC-3035, CC-2985, CC-2971.",
+    "summary": "3 transaction(s) totalling $439.61 on C13487-K1 are assessed as fraud (probability 0.92), matching an undocumented pattern. A single rare device profile (SM-G935F Build/NRD90M | Android 7.0 | chrome 62.0 for android | 1920x1080) transacted on 28 different cards within a burst spanning 2016-11-14 to 2016-12-04 (full detail in pattern_description). The same device profile links 27 other cards, so this is treated as a coordinated ring rather than an isolated compromise. Trigger: analyst request. Tool calls: 10; closed cases consulted: CC-3035, CC-2985, CC-2971.",
     "written_to_graph": true,
     "graph_case_id": "CASE-2016-014"
   },

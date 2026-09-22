@@ -29,7 +29,7 @@ def summary(inv: Investigation, verdict: str, p: float, response: str | None) ->
         s.append(f"{len(inv.episode)} transaction(s) totalling ${inv.exposure:,.2f} on {card} are assessed as fraud "
                  f"(probability {p:.2f}), matching {_PATTERN_TEXT.get(inv.pattern, inv.pattern)}.")
         if inv.pattern == "undocumented":
-            s.append(inv.pattern_description)
+            s.append(inv.pattern_description.split(". ", 1)[0].rstrip(".") + ".")   # one-line pointer; full detail lives in pattern_description
         if inv.connected_cards:
             s.append(f"The same device profile links {len(inv.connected_cards)} other cards, so this is treated as a coordinated ring, not an isolated compromise.")
     elif verdict == "legitimate":

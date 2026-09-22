@@ -64,6 +64,7 @@ exposure error of $0, and it refuses to guess when the evidence is ambiguous.
 7. **A false "recurring charge".** Our first test called HHG-003 a subscription (gaps of 20 and 25 days); tightening to true monthly gaps removed it. Plausible-looking rules need a counter-check.
 8. **The guard was right and my prompt was wrong.** The first real-model run had every rewrite rejected: I had asked for "concise", so the models dropped facts. Asking for a rewrite that keeps everything, plus one repair round naming the missing values, took summaries from 0 to 100% accepted.
 9. **We stopped too early.** Our first ladder blocked at p >= 0.70, before the policy's own stop rule (p >= 0.85 with two independent evidence items). Moving the boundary halved wrongful blocks before verification (7% to 4% on identical samples) and made the recommendation visibly change after evidence, without touching accuracy.
+10. **Not every "shared origin" in R6 generalizes.** The policy names three: device, billing region, recipient email. We measured before wiring region in: billing regions hold 90-580 active cards in a 7-day window, and 8-16 of them always score >=0.5 by the model's ordinary false-positive rate — there is no threshold that separates a real ring from a big city. Device profiles work as a ring signal because they are a rare, specific fingerprint; regions are a coarse geography shared by hundreds of unrelated customers. We measured this on all 20 exam cases before deciding, then implemented R6 for device-sharing only rather than ship a rule that would flag ordinary regional commerce as coordinated fraud.
 
 ## 8. Limitations, said plainly (150 words)
 - The LLM fact guard checks numbers and IDs, not meaning: a real model turned an observation ("risk scores stay low") into a causal claim ("chosen to keep them low"). SAR rewrites were rejected outright because models drop card ids.
@@ -71,6 +72,7 @@ exposure error of $0, and it refuses to guess when the evidence is ambiguous.
 - The ±72 h window uses transactions after the alert; a live system must use only what was known at alert time.
 - The dev set has no ground truth for the exam distribution; numbers are a proxy.
 - Two undocumented patterns were found by inspecting closed cases; a third may exist.
+- R6's shared-origin detection covers device profiles only, not billing region or recipient email. Region sharing was tested and dropped for lack of signal (see "what we learned" #10). Recipient email (`R_emaildomain`) is not in the graph schema at all — it would need a schema change and a full reload, which we chose not to risk against the live workspace this close to the deadline.
 
 ## 9. What we would improve with more time (100 words)
 - LLM-directed tool selection (the planner is rule-based today) with the policy engine unchanged.
