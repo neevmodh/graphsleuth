@@ -1,5 +1,5 @@
 """Create (if needed) and install every query in graph/queries.gsql on the Savanna workspace, timing the compile."""
-import os, re, sys, time
+import os, re, time
 from pathlib import Path
 from dotenv import load_dotenv
 

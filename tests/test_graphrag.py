@@ -1,6 +1,5 @@
 """GraphRAG retrieval and grounded rationale, with fake router / MCP / connection (no network)."""
 from pathlib import Path
-from types import SimpleNamespace
 
 import pytest
 
