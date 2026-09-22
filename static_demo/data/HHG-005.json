@@ -1,0 +1,311 @@
+{
+  "trigger": {
+    "opened_at": "2016-12-08 03:38:37",
+    "trigger_type": "risk_score",
+    "trigger_text": "Real-time model scored transaction 3523199 ($100.07, online) at 0.54. Review and decide.",
+    "flagged_txn_id": 3523199,
+    "card_id": "C02923-K1",
+    "customer_id": "C02923",
+    "risk_score": 0.54,
+    "case_id": "HHG-005"
+  },
+  "answer": {
+    "case_id": "HHG-005",
+    "case": {
+      "status": "closed_legitimate",
+      "verdict": "legitimate",
+      "fraud_probability": 0.061,
+      "pattern": "none",
+      "pattern_description": "",
+      "affected_txn_ids": [],
+      "first_suspicious_txn_id": "",
+      "connected_card_ids": [],
+      "connected_device_profiles": [],
+      "exposure_usd": 0.0,
+      "evidence": [
+        {
+          "claim": "The calibrated transaction-level fraud model scores the flagged transaction 0.01; the bank's own risk score is 0.54 and is treated as an input, not a verdict.",
+          "source": "graph",
+          "ref": "query:score(txn=3523199)",
+          "entity_ids": [
+            "3523199"
+          ]
+        },
+        {
+          "claim": "The device profile has never been seen on this card before.",
+          "source": "graph",
+          "ref": "query:card_window(card=C02923-K1)",
+          "entity_ids": [
+            "3523199"
+          ]
+        },
+        {
+          "claim": "Device profile is shared by 112 cards overall (87% New, 0% proxied): common consumer device, weak link.",
+          "source": "graph",
+          "ref": "query:device_neighbors",
+          "entity_ids": []
+        },
+        {
+          "claim": "Closed case CC-2857 (confirmed_fraud, account_takeover, $539.97) is relevant: same card, same region.",
+          "source": "graph",
+          "ref": "query:similar_cases",
+          "entity_ids": [
+            "CC-2857"
+          ]
+        },
+        {
+          "claim": "Closed case CC-2717 (confirmed_fraud, account_takeover, $896.08) is relevant: same card, same region.",
+          "source": "graph",
+          "ref": "query:similar_cases",
+          "entity_ids": [
+            "CC-2717"
+          ]
+        },
+        {
+          "claim": "Closed case CC-2400 (confirmed_fraud, account_takeover, $350.99) is relevant: same card, same region.",
+          "source": "graph",
+          "ref": "query:similar_cases",
+          "entity_ids": [
+            "CC-2400"
+          ]
+        },
+        {
+          "claim": "Retrieved closed-case typology TYPO-0007: model scored a an amount transaction at N. Cardholder confirmed the purchase from a new phone. Device added to profile. Alert cleared. Seen in 158 closed cases; 0% led to a suspicious activity report. Example closed cases: CC-5262, CC-5331, CC-5525.",
+          "source": "document",
+          "ref": "graphrag:TYPO-0007",
+          "entity_ids": [
+            "CC-5262",
+            "CC-5331",
+            "CC-5525"
+          ]
+        },
+        {
+          "claim": "Retrieved closed-case typology TYPO-0060: the cardholder reported unrecognized activity on the card. N transaction(s) between a date and a date totaling an amount were confirmed fraudulent. Online purchases from a device not previously seen o Example closed cases: CC-4941, CC-5015, CC-5029.",
+          "source": "document",
+          "ref": "graphrag:TYPO-0060",
+          "entity_ids": [
+            "CC-4941",
+            "CC-5015",
+            "CC-5029"
+          ]
+        },
+        {
+          "claim": "Fraud policy R2: Customer denies the transaction. Recommend `BLOCK_CARD` and `CREATE_CASE`. Add `FILE_REPORT` if exposure exceeds $1,000 or the case connects to a shared device profile or another card's fraud.",
+          "source": "document",
+          "ref": "graphrag:POL-R2",
+          "entity_ids": []
+        },
+        {
+          "claim": "Fraud policy: 0. What the agent starts with Every transaction carries a `risk_score` between 0 and 1 from the bank's detection model. The model is useful and imperfect: many high scores are legitimate, and some fraud scores low. A score is a reason to look, never a verdict.",
+          "source": "document",
+          "ref": "graphrag:POL-S-0-what-the-agent-starts-with-0",
+          "entity_ids": []
+        },
+        {
+          "claim": "Customer response (assumed): Customer confirms the purchase, e.g. on a new phone or while travelling (assumption: the evidence points to legitimate use)",
+          "source": "customer",
+          "ref": "evidence_request:1",
+          "entity_ids": [
+            "3523199"
+          ]
+        }
+      ],
+      "similar_prior_cases": [
+        "CC-2857",
+        "CC-2717",
+        "CC-2400",
+        "CC-5262",
+        "CC-5331"
+      ],
+      "summary": "The alert for transaction 3523199, an online purchase of $100.07, appears legitimate (fraud probability 0.06); however, the bank's risk score of 0.54 is not corroborated by the card's own history. Trigger: risk score. Tool calls: 8; closed cases consulted: CC-2857, CC-2717, CC-2400. A simulated evidence request was generated, and its assumed response is recorded in evidence_requests. Rationale: The final action\u202fCLOSE_NO_FRAUD aligns with the closed\u2011case typology\u202f[TYPO-0007], which describes a scenario where the cardholder confirms the purchase, the device is added to the profile and the alert is cleared. Since the customer did not deny the transaction and exposure is $0.00, the triggers in\u202fPOL\u2011R2\u202ffor blocking the card, creating a case, or filing a report are not satisfied.",
+      "written_to_graph": true,
+      "graph_case_id": "CASE-2016-005"
+    },
+    "evidence_requests": [
+      {
+        "type": "customer_validation",
+        "asked_after_step": 8,
+        "assumed_response": "Customer confirms the purchase, e.g. on a new phone or while travelling (assumption: the evidence points to legitimate use)"
+      }
+    ],
+    "next_best_actions": {
+      "initial": [
+        {
+          "action": "VERIFY_WITH_CUSTOMER",
+          "route": "auto",
+          "reason": "R1 and section 6: not yet at the stop threshold (p < 0.85 or fewer than 2 independent evidence items): verify before any block"
+        }
+      ],
+      "final": [
+        {
+          "action": "CLOSE_NO_FRAUD",
+          "route": "auto",
+          "reason": "R3: customer confirmed the transaction"
+        }
+      ],
+      "what_changed": "After the assumed customer confirmation, the recommendation moved from [VERIFY_WITH_CUSTOMER] to [CLOSE_NO_FRAUD]."
+    },
+    "sar": {
+      "file": false,
+      "reason": "3a: no fraud confirmed or strongly suspected, so no suspicious activity report is required.",
+      "narrative": "",
+      "subjects": [],
+      "total_amount_usd": 0.0,
+      "activity_dates": []
+    },
+    "stop_reason": "The assumed verification reply settled the question; further steps are unlikely to change the decision.",
+    "tool_calls": 8,
+    "tokens": 1872,
+    "latency_s": 57.77
+  },
+  "window": [
+    {
+      "tid": 3523199,
+      "ts": "2016-12-07 21:38:37",
+      "amt": 100.07,
+      "channel": "online",
+      "p": 0.0065212271,
+      "m": 0.06068906447021455,
+      "in_episode": false,
+      "flagged": true
+    }
+  ],
+  "graph": {
+    "nodes": [
+      {
+        "id": "C02923",
+        "label": "C02923",
+        "type": "customer"
+      },
+      {
+        "id": "C02923-K1",
+        "label": "C02923-K1",
+        "type": "card",
+        "focus": true
+      },
+      {
+        "id": "CC-2857",
+        "label": "CC-2857",
+        "type": "closedcase"
+      },
+      {
+        "id": "CC-2717",
+        "label": "CC-2717",
+        "type": "closedcase"
+      },
+      {
+        "id": "CC-2400",
+        "label": "CC-2400",
+        "type": "closedcase"
+      },
+      {
+        "id": "CC-5262",
+        "label": "CC-5262",
+        "type": "closedcase"
+      },
+      {
+        "id": "CC-5331",
+        "label": "CC-5331",
+        "type": "closedcase"
+      }
+    ],
+    "edges": [
+      {
+        "s": "C02923",
+        "t": "C02923-K1",
+        "label": "OWNS"
+      },
+      {
+        "s": "C02923-K1",
+        "t": "CC-2857",
+        "label": "SIMILAR_TO"
+      },
+      {
+        "s": "C02923-K1",
+        "t": "CC-2717",
+        "label": "SIMILAR_TO"
+      },
+      {
+        "s": "C02923-K1",
+        "t": "CC-2400",
+        "label": "SIMILAR_TO"
+      },
+      {
+        "s": "C02923-K1",
+        "t": "CC-5262",
+        "label": "SIMILAR_TO"
+      },
+      {
+        "s": "C02923-K1",
+        "t": "CC-5331",
+        "label": "SIMILAR_TO"
+      }
+    ]
+  },
+  "steps": [
+    {
+      "n": 1,
+      "tool": "get_transaction",
+      "summary": "online $100.07 R at 2016-12-07 21:38:37, bank risk 0.54, model p=0.01",
+      "ms": 523.0
+    },
+    {
+      "n": 2,
+      "tool": "card_profile",
+      "summary": "90 prior txns, median $117.01, online 0.23, home region 330.0",
+      "ms": 268.3
+    },
+    {
+      "n": 3,
+      "tool": "card_window",
+      "summary": "1 txns within +-72h, 0 scored >= 0.35",
+      "ms": 274.0
+    },
+    {
+      "n": 4,
+      "tool": "episode_model",
+      "summary": "context model: anchor membership p=0.06, 0 of 1 window txns look like the same episode",
+      "ms": 28.6
+    },
+    {
+      "n": 5,
+      "tool": "device_neighbors",
+      "summary": "device on 112 cards, 87% New, 0% proxied, 5 closed cases",
+      "ms": 269.3
+    },
+    {
+      "n": 6,
+      "tool": "email_history",
+      "summary": "'icloud.com': 0 prior txns on this card, 7 other domain(s) used before",
+      "ms": 267.4
+    },
+    {
+      "n": 7,
+      "tool": "recurring_check",
+      "summary": "0 earlier identical-amount txns, 0 roughly-monthly gaps, 0.0/30d -> recurring=False",
+      "ms": 782.5
+    },
+    {
+      "n": 8,
+      "tool": "similar_cases",
+      "summary": "5 similar closed cases: CC-2857, CC-2717, CC-2400, CC-5296, CC-5249",
+      "ms": 816.6
+    },
+    {
+      "n": 9,
+      "tool": "graphrag_retrieve",
+      "summary": "4 grounded chunks: TYPO-0007 (0.73), TYPO-0060 (0.72), POL-R2 (0.71), POL-S-0-what-the-agent-starts-with-0 (0.70)",
+      "ms": 35232.1
+    }
+  ],
+  "counterfactuals": {
+    "case_id": "HHG-005",
+    "fraud_probability": 0.061,
+    "uncertainty": {
+      "nearest_threshold": "legitimate",
+      "threshold_value": 0.15,
+      "distance": 0.089
+    },
+    "counterfactuals": []
+  }
+}

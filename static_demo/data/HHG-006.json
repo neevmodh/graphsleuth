@@ -1,0 +1,479 @@
+{
+  "trigger": {
+    "opened_at": "2016-11-22 02:30:00",
+    "trigger_type": "customer_report",
+    "trigger_text": "Customer C07297 message: 'I never made this $482.12 purchase. Please check my card.' Refers to 3476682.",
+    "flagged_txn_id": 3476682,
+    "card_id": "C07297-K1",
+    "customer_id": "C07297",
+    "risk_score": NaN,
+    "case_id": "HHG-006"
+  },
+  "answer": {
+    "case_id": "HHG-006",
+    "case": {
+      "status": "escalated",
+      "verdict": "fraud",
+      "fraud_probability": 0.989,
+      "pattern": "undocumented",
+      "pattern_description": "4 online purchases within an hour on one card, each just under $500 ($456.96 to $488.04, about 8x the card's normal amount). Amounts appear chosen to stay under an authorization or reporting threshold while draining the card; risk scores stay low. Found by scanning the card's recent window for bursts of near-threshold amounts.",
+      "affected_txn_ids": [
+        "3476602",
+        "3476633",
+        "3476665",
+        "3476682"
+      ],
+      "first_suspicious_txn_id": "3476602",
+      "connected_card_ids": [],
+      "connected_device_profiles": [],
+      "exposure_usd": 1906.07,
+      "evidence": [
+        {
+          "claim": "The calibrated transaction-level fraud model scores the flagged transaction 0.08; the bank's own risk score is 0.25 and is treated as an input, not a verdict.",
+          "source": "graph",
+          "ref": "query:score(txn=3476682)",
+          "entity_ids": [
+            "3476682"
+          ]
+        },
+        {
+          "claim": "Judged in context (neighbouring transactions on the card, timing, shared device, region and product) the alert has a fraud probability of 0.88, and 4 transaction(s) look like one episode.",
+          "source": "graph",
+          "ref": "query:episode_model(txn=3476682)",
+          "entity_ids": [
+            "3476602",
+            "3476633",
+            "3476665",
+            "3476682"
+          ]
+        },
+        {
+          "claim": "Amount $482.12 is 7.7x the card's prior median ($62.93).",
+          "source": "graph",
+          "ref": "query:card_profile(card=C07297-K1)",
+          "entity_ids": [
+            "3476682"
+          ]
+        },
+        {
+          "claim": "4 online purchases within an hour, each just under $500, totalling $1,906.07: consistent with structuring under an authorization threshold.",
+          "source": "graph",
+          "ref": "query:card_window(card=C07297-K1)",
+          "entity_ids": [
+            "3476602",
+            "3476633",
+            "3476665",
+            "3476682"
+          ]
+        },
+        {
+          "claim": "Device profile is shared by 543 cards overall (46% New, 12% proxied): common consumer device, weak link.",
+          "source": "graph",
+          "ref": "query:device_neighbors",
+          "entity_ids": []
+        },
+        {
+          "claim": "The cardholder reported this transaction as unauthorized.",
+          "source": "customer",
+          "ref": "trigger:HHG-006",
+          "entity_ids": [
+            "3476682"
+          ]
+        },
+        {
+          "claim": "Closed case CC-5562 (confirmed_fraud, account_takeover, $2961.98) is relevant: same region.",
+          "source": "graph",
+          "ref": "query:similar_cases",
+          "entity_ids": [
+            "CC-5562"
+          ]
+        },
+        {
+          "claim": "Closed case CC-5560 (confirmed_fraud, out_of_region_use, $3727.10) is relevant: same region.",
+          "source": "graph",
+          "ref": "query:similar_cases",
+          "entity_ids": [
+            "CC-5560"
+          ]
+        },
+        {
+          "claim": "Closed case CC-5521 (confirmed_fraud, account_takeover, $730.52) is relevant: same region.",
+          "source": "graph",
+          "ref": "query:similar_cases",
+          "entity_ids": [
+            "CC-5521"
+          ]
+        },
+        {
+          "claim": "Documented fraud pattern 2: Card-not-present fraud The number is used online without the card. Amounts and products that don't fit the cardholder's history, often in a burst of two to four within 48 hours. On its own, one unusual online purchase is ambiguous: verify. Policy R1 to ",
+          "source": "document",
+          "ref": "graphrag:PAT-2",
+          "entity_ids": []
+        },
+        {
+          "claim": "Retrieved closed-case typology TYPO-0065: the cardholder reported four online purchases within forty minutes, each just under an amount none of which they made. Amounts appear chosen to stay under a an amount authorization threshold. Pattern  Example closed cases: CC-3841, CC-4124, CC-3748.",
+          "source": "document",
+          "ref": "graphrag:TYPO-0065",
+          "entity_ids": [
+            "CC-3841",
+            "CC-4124",
+            "CC-3748"
+          ]
+        },
+        {
+          "claim": "Retrieved closed-case typology TYPO-0003: the cardholder reported unrecognized activity on the card. N transaction(s) between a date and a date totaling an amount were confirmed fraudulent. Online purchases inconsistent with the cardholder's  Example closed cases: CC-5519, CC-5529, CC-5535.",
+          "source": "document",
+          "ref": "graphrag:TYPO-0003",
+          "entity_ids": [
+            "CC-5519",
+            "CC-5529",
+            "CC-5535"
+          ]
+        },
+        {
+          "claim": "Fraud policy R2: Customer denies the transaction. Recommend `BLOCK_CARD` and `CREATE_CASE`. Add `FILE_REPORT` if exposure exceeds $1,000 or the case connects to a shared device profile or another card's fraud.",
+          "source": "document",
+          "ref": "graphrag:POL-R2",
+          "entity_ids": []
+        }
+      ],
+      "similar_prior_cases": [
+        "CC-3841",
+        "CC-4124"
+      ],
+      "summary": "4 transaction(s) totalling $1,906.07 on C07297-K1 are assessed as fraud (probability 0.99), matching an undocumented pattern. 4 online purchases within an hour on one card, each just under $500 ($456.96 to $488.04, about 8x the card's normal amount). Amounts appear chosen to stay under an authorization or reporting threshold while draining the card; risk scores stay low. Found by scanning the card's recent window for bursts of near-threshold amounts. Trigger: customer report. Tool calls: 9; closed cases consulted: CC-5562, CC-5560, CC-5521.",
+      "written_to_graph": true,
+      "graph_case_id": "CASE-2016-006"
+    },
+    "evidence_requests": [],
+    "next_best_actions": {
+      "initial": [
+        {
+          "action": "BLOCK_CARD",
+          "route": "L1",
+          "reason": "R2: customer reported the transaction as unauthorized and the evidence supports it"
+        },
+        {
+          "action": "CREATE_CASE",
+          "route": "auto",
+          "reason": "R2: customer reported the transaction as unauthorized and the evidence supports it"
+        },
+        {
+          "action": "ESCALATE_TO_ANALYST",
+          "route": "auto",
+          "reason": "R9: describe the pattern and escalate"
+        },
+        {
+          "action": "FILE_REPORT",
+          "route": "L2",
+          "reason": "R2/R6: exposure, shared origin or coordinated pattern meets the report bar"
+        }
+      ],
+      "final": [
+        {
+          "action": "BLOCK_CARD",
+          "route": "L1",
+          "reason": "R2: customer reported the transaction as unauthorized and the evidence supports it"
+        },
+        {
+          "action": "CREATE_CASE",
+          "route": "auto",
+          "reason": "R2: customer reported the transaction as unauthorized and the evidence supports it"
+        },
+        {
+          "action": "ESCALATE_TO_ANALYST",
+          "route": "auto",
+          "reason": "R9: describe the pattern and escalate"
+        },
+        {
+          "action": "FILE_REPORT",
+          "route": "L2",
+          "reason": "R2/R6: exposure, shared origin or coordinated pattern meets the report bar"
+        }
+      ],
+      "what_changed": "nothing"
+    },
+    "sar": {
+      "file": true,
+      "reason": "R2/R6: exposure, shared origin or coordinated pattern meets the report bar",
+      "narrative": "Who: customer C07297, holder of mastercard debit card C07297-K1, is the subject of this report. What: 4 online transactions totalling $1,906.07 were made on the card on 2016-11-21 between 20:00 and 20:30 in billing region 264, 476 and are not consistent with the cardholder's history; the cardholder reported them as unauthorized. How: 4 online purchases within an hour on one card, each just under $500 ($456.96 to $488.04, about 8x the card's normal amount). Amounts appear chosen to stay under an authorization or reporting threshold while draining the card; risk scores stay low. Found by scanning the card's recent window for bursts of near-threshold amounts. Why suspicious: repeating purchases within minutes while keeping each just under a round authorization threshold is consistent with deliberate structuring to avoid review, and the amounts are several times the card's normal spending. Assessment: fraud probability 0.99 from a calibrated model over the card's history and graph evidence; the bank's own risk score on the flagged transaction was 0.25. The card is to be blocked and reissued; the case is recorded in the investigation graph for future analysts, and this report is filed because the activity meets the reporting threshold.",
+      "subjects": [
+        "C07297",
+        "C07297-K1"
+      ],
+      "total_amount_usd": 1906.07,
+      "activity_dates": [
+        "2016-11-21",
+        "2016-11-21"
+      ]
+    },
+    "stop_reason": "Fraud probability 0.99 with 4 independent evidence items reached the stop threshold (section 6).",
+    "tool_calls": 9,
+    "tokens": 6256,
+    "latency_s": 39.83
+  },
+  "window": [
+    {
+      "tid": 3469605,
+      "ts": "2016-11-19 02:03:18",
+      "amt": 31.01,
+      "channel": "in_person",
+      "p": 0.0001281431,
+      "m": 0.00043423858188670986,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3473012,
+      "ts": "2016-11-20 14:22:12",
+      "amt": 262.04,
+      "channel": "in_person",
+      "p": 0.0001989865,
+      "m": 0.0015759779696101791,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3474057,
+      "ts": "2016-11-20 20:26:28",
+      "amt": 226.02,
+      "channel": "in_person",
+      "p": 0.0039848398,
+      "m": 0.008741139675688351,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3476602,
+      "ts": "2016-11-21 20:00:00",
+      "amt": 478.95,
+      "channel": "online",
+      "p": 0.0661698579,
+      "m": 0.9733562452502639,
+      "in_episode": true,
+      "flagged": false
+    },
+    {
+      "tid": 3476633,
+      "ts": "2016-11-21 20:10:00",
+      "amt": 456.96,
+      "channel": "online",
+      "p": 0.3317708997,
+      "m": 0.7653996544646772,
+      "in_episode": true,
+      "flagged": false
+    },
+    {
+      "tid": 3476665,
+      "ts": "2016-11-21 20:24:00",
+      "amt": 488.04,
+      "channel": "online",
+      "p": 0.3617777243,
+      "m": 0.7910081925356955,
+      "in_episode": true,
+      "flagged": false
+    },
+    {
+      "tid": 3476682,
+      "ts": "2016-11-21 20:30:00",
+      "amt": 482.12,
+      "channel": "online",
+      "p": 0.0455299766,
+      "m": 0.8790146588089174,
+      "in_episode": true,
+      "flagged": true
+    },
+    {
+      "tid": 3477578,
+      "ts": "2016-11-22 02:07:04",
+      "amt": 82.97,
+      "channel": "in_person",
+      "p": 0.000275143,
+      "m": 0.0008014128738742585,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3478191,
+      "ts": "2016-11-22 13:48:22",
+      "amt": 30.96,
+      "channel": "in_person",
+      "p": 0.0005697918,
+      "m": 0.0010034073596063404,
+      "in_episode": false,
+      "flagged": false
+    }
+  ],
+  "graph": {
+    "nodes": [
+      {
+        "id": "C07297",
+        "label": "C07297",
+        "type": "customer"
+      },
+      {
+        "id": "C07297-K1",
+        "label": "C07297-K1",
+        "type": "card",
+        "focus": true
+      },
+      {
+        "id": "T3476602",
+        "label": "76602",
+        "type": "txn",
+        "title": "3476602"
+      },
+      {
+        "id": "T3476633",
+        "label": "76633",
+        "type": "txn",
+        "title": "3476633"
+      },
+      {
+        "id": "T3476665",
+        "label": "76665",
+        "type": "txn",
+        "title": "3476665"
+      },
+      {
+        "id": "T3476682",
+        "label": "76682",
+        "type": "txn",
+        "title": "3476682"
+      },
+      {
+        "id": "CC-3841",
+        "label": "CC-3841",
+        "type": "closedcase"
+      },
+      {
+        "id": "CC-4124",
+        "label": "CC-4124",
+        "type": "closedcase"
+      }
+    ],
+    "edges": [
+      {
+        "s": "C07297",
+        "t": "C07297-K1",
+        "label": "OWNS"
+      },
+      {
+        "s": "C07297-K1",
+        "t": "T3476602",
+        "label": "MADE"
+      },
+      {
+        "s": "C07297-K1",
+        "t": "T3476633",
+        "label": "MADE"
+      },
+      {
+        "s": "C07297-K1",
+        "t": "T3476665",
+        "label": "MADE"
+      },
+      {
+        "s": "C07297-K1",
+        "t": "T3476682",
+        "label": "MADE"
+      },
+      {
+        "s": "C07297-K1",
+        "t": "CC-3841",
+        "label": "SIMILAR_TO"
+      },
+      {
+        "s": "C07297-K1",
+        "t": "CC-4124",
+        "label": "SIMILAR_TO"
+      }
+    ]
+  },
+  "steps": [
+    {
+      "n": 1,
+      "tool": "get_transaction",
+      "summary": "online $482.12 C at 2016-11-21 20:30:00, bank risk 0.25, model p=0.08",
+      "ms": 528.9
+    },
+    {
+      "n": 2,
+      "tool": "card_profile",
+      "summary": "199 prior txns, median $62.93, online 0.03, home region 264.0",
+      "ms": 269.0
+    },
+    {
+      "n": 3,
+      "tool": "card_window",
+      "summary": "9 txns within +-72h, 2 scored >= 0.35",
+      "ms": 275.4
+    },
+    {
+      "n": 4,
+      "tool": "episode_model",
+      "summary": "context model: anchor membership p=0.88, 4 of 9 window txns look like the same episode",
+      "ms": 42.1
+    },
+    {
+      "n": 5,
+      "tool": "sequence_detectors",
+      "summary": " threshold-structuring burst",
+      "ms": 0.0
+    },
+    {
+      "n": 6,
+      "tool": "device_neighbors",
+      "summary": "device on 543 cards, 46% New, 12% proxied, 25 closed cases",
+      "ms": 274.6
+    },
+    {
+      "n": 7,
+      "tool": "email_history",
+      "summary": "'gmail.com': 96 prior txns on this card, 9 other domain(s) used before",
+      "ms": 265.4
+    },
+    {
+      "n": 8,
+      "tool": "recurring_check",
+      "summary": "0 earlier identical-amount txns, 0 roughly-monthly gaps, 0.0/30d -> recurring=False",
+      "ms": 783.7
+    },
+    {
+      "n": 9,
+      "tool": "customer_cards",
+      "summary": "1 card(s) on this customer",
+      "ms": 268.8
+    },
+    {
+      "n": 10,
+      "tool": "similar_cases",
+      "summary": "5 similar closed cases: CC-5562, CC-5560, CC-5521, CC-5477, CC-5476",
+      "ms": 827.9
+    },
+    {
+      "n": 11,
+      "tool": "graphrag_retrieve",
+      "summary": "4 grounded chunks: PAT-2 (0.75), TYPO-0065 (0.75), TYPO-0003 (0.74), POL-R2 (0.73)",
+      "ms": 36291.5
+    }
+  ],
+  "counterfactuals": {
+    "case_id": "HHG-006",
+    "fraud_probability": 0.989,
+    "uncertainty": {
+      "nearest_threshold": "fraud",
+      "threshold_value": 0.85,
+      "distance": 0.139
+    },
+    "counterfactuals": [
+      {
+        "signal": "trigger_is_report",
+        "description": "If the alert had not been a customer report, the fraud probability would be 0.90 instead of 0.99. This does not change the verdict.",
+        "p_before": 0.989,
+        "p_after": 0.9,
+        "crosses": []
+      }
+    ]
+  }
+}

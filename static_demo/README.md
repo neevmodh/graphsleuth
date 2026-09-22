@@ -23,15 +23,20 @@ capturing the step-by-step tool-call log, the evidence graph, the transaction ti
 alongside the already-committed, hand-reviewed `cases/*.json` (which this script only reads — the answer text here
 is always identical to the graded submission, never regenerated). Writes `static_demo/data/*.json`, one file per
 case plus `index.json` (the queue) and `monitor.json` (the autonomous monitor's `cases_extra/*.json`, verbatim).
-`static_demo/data/` is git-ignored, same as every other derived store in this repo — regenerate it, don't commit it.
+`static_demo/data/` IS committed (deliberately, unlike every other derived store in this repo) because Railway's
+GitHub-integration deploy needs the files present in the repo it builds from. Regenerate with the command above,
+`git add static_demo/data/`, and push — Railway redeploys on push to `main`.
 
 ## Deploying
 
-```bash
-vercel deploy static_demo --prod --yes
-```
+Deployed on Railway as its own service (`static_demo/Dockerfile`, a bare `python -m http.server`, root directory
+`static_demo/`), auto-deployed from GitHub on push to `main`. Pure static files, zero configuration, **no
+environment variables set on this service at all** — the live app's TigerGraph/LLM credentials never go anywhere
+near this host, which is the entire reason this demo exists as a separate deployment.
 
-Pure static files, zero configuration, no environment variables to set on Vercel at all.
+Can equally be deployed anywhere that serves static files (Vercel, Netlify, GitHub Pages, S3): `vercel deploy
+static_demo --prod --yes` works unchanged if you'd rather not commit `data/` — just revert the `.gitignore` line
+above and re-add the entry.
 
 ## What's different from the live app
 

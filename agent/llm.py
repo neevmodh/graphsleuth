@@ -36,7 +36,7 @@ class LLMUnavailable(RuntimeError):
 class Provider:
     name: str
     base_url: str
-    api_key: str
+    api_key: str = field(repr=False)   # never let a stray print/log/traceback echo the raw key
     models: dict[str, str]          # role -> model id ("loop", "synth", "embed")
 
 

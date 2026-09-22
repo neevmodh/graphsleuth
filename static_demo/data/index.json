@@ -1,0 +1,162 @@
+[
+  {
+    "case_id": "HHG-001",
+    "trigger_type": "risk_score",
+    "opened_at": "2016-12-05 01:55:28",
+    "verdict": "uncertain",
+    "p": 0.613,
+    "sar": false
+  },
+  {
+    "case_id": "HHG-002",
+    "trigger_type": "risk_score",
+    "opened_at": "2016-11-22 23:27:07",
+    "verdict": "fraud",
+    "p": 0.915,
+    "sar": false
+  },
+  {
+    "case_id": "HHG-003",
+    "trigger_type": "customer_report",
+    "opened_at": "2016-12-10 15:01:21",
+    "verdict": "fraud",
+    "p": 0.99,
+    "sar": false
+  },
+  {
+    "case_id": "HHG-004",
+    "trigger_type": "customer_report",
+    "opened_at": "2016-12-29 07:53:54",
+    "verdict": "uncertain",
+    "p": 0.445,
+    "sar": false
+  },
+  {
+    "case_id": "HHG-005",
+    "trigger_type": "risk_score",
+    "opened_at": "2016-12-08 03:38:37",
+    "verdict": "legitimate",
+    "p": 0.061,
+    "sar": false
+  },
+  {
+    "case_id": "HHG-006",
+    "trigger_type": "customer_report",
+    "opened_at": "2016-11-22 02:30:00",
+    "verdict": "fraud",
+    "p": 0.989,
+    "sar": true
+  },
+  {
+    "case_id": "HHG-007",
+    "trigger_type": "risk_score",
+    "opened_at": "2016-12-05 03:46:14",
+    "verdict": "fraud",
+    "p": 0.968,
+    "sar": false
+  },
+  {
+    "case_id": "HHG-008",
+    "trigger_type": "customer_report",
+    "opened_at": "2016-12-20 03:08:56",
+    "verdict": "fraud",
+    "p": 0.99,
+    "sar": false
+  },
+  {
+    "case_id": "HHG-009",
+    "trigger_type": "customer_report",
+    "opened_at": "2016-12-28 17:10:53",
+    "verdict": "fraud",
+    "p": 0.99,
+    "sar": false
+  },
+  {
+    "case_id": "HHG-010",
+    "trigger_type": "risk_score",
+    "opened_at": "2016-12-02 18:18:27",
+    "verdict": "legitimate",
+    "p": 0.022,
+    "sar": false
+  },
+  {
+    "case_id": "HHG-011",
+    "trigger_type": "customer_report",
+    "opened_at": "2016-12-29 06:27:44",
+    "verdict": "uncertain",
+    "p": 0.23,
+    "sar": false
+  },
+  {
+    "case_id": "HHG-012",
+    "trigger_type": "risk_score",
+    "opened_at": "2016-12-18 05:00:31",
+    "verdict": "legitimate",
+    "p": 0.107,
+    "sar": false
+  },
+  {
+    "case_id": "HHG-013",
+    "trigger_type": "risk_score",
+    "opened_at": "2016-12-09 05:39:29",
+    "verdict": "legitimate",
+    "p": 0.105,
+    "sar": false
+  },
+  {
+    "case_id": "HHG-014",
+    "trigger_type": "analyst_request",
+    "opened_at": "2016-11-22 20:11:00",
+    "verdict": "fraud",
+    "p": 0.92,
+    "sar": true
+  },
+  {
+    "case_id": "HHG-015",
+    "trigger_type": "risk_score",
+    "opened_at": "2016-11-17 19:03:36",
+    "verdict": "legitimate",
+    "p": 0.018,
+    "sar": false
+  },
+  {
+    "case_id": "HHG-016",
+    "trigger_type": "customer_report",
+    "opened_at": "2016-12-12 01:39:08",
+    "verdict": "fraud",
+    "p": 0.99,
+    "sar": false
+  },
+  {
+    "case_id": "HHG-017",
+    "trigger_type": "risk_score",
+    "opened_at": "2016-11-12 00:46:24",
+    "verdict": "legitimate",
+    "p": 0.156,
+    "sar": false
+  },
+  {
+    "case_id": "HHG-018",
+    "trigger_type": "customer_report",
+    "opened_at": "2016-11-27 14:41:26",
+    "verdict": "fraud",
+    "p": 0.976,
+    "sar": false
+  },
+  {
+    "case_id": "HHG-019",
+    "trigger_type": "risk_score",
+    "opened_at": "2016-12-01 22:28:53",
+    "verdict": "fraud",
+    "p": 0.795,
+    "sar": false
+  },
+  {
+    "case_id": "HHG-020",
+    "trigger_type": "risk_score",
+    "opened_at": "2016-12-03 12:04:26",
+    "verdict": "legitimate",
+    "p": 0.092,
+    "sar": false
+  }
+]

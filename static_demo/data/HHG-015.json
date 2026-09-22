@@ -1,0 +1,357 @@
+{
+  "trigger": {
+    "opened_at": "2016-11-17 19:03:36",
+    "trigger_type": "risk_score",
+    "trigger_text": "Real-time model scored transaction 3464869 ($599.94, online) at 0.77. Review and decide.",
+    "flagged_txn_id": 3464869,
+    "card_id": "C03042-K1",
+    "customer_id": "C03042",
+    "risk_score": 0.77,
+    "case_id": "HHG-015"
+  },
+  "answer": {
+    "case_id": "HHG-015",
+    "case": {
+      "status": "closed_legitimate",
+      "verdict": "legitimate",
+      "fraud_probability": 0.018,
+      "pattern": "none",
+      "pattern_description": "",
+      "affected_txn_ids": [],
+      "first_suspicious_txn_id": "",
+      "connected_card_ids": [],
+      "connected_device_profiles": [],
+      "exposure_usd": 0.0,
+      "evidence": [
+        {
+          "claim": "The calibrated transaction-level fraud model scores the flagged transaction 0.00; the bank's own risk score is 0.77 and is treated as an input, not a verdict.",
+          "source": "graph",
+          "ref": "query:score(txn=3464869)",
+          "entity_ids": [
+            "3464869"
+          ]
+        },
+        {
+          "claim": "Amount $599.94 is 6.0x the card's prior median ($99.96).",
+          "source": "graph",
+          "ref": "query:card_profile(card=C03042-K1)",
+          "entity_ids": [
+            "3464869"
+          ]
+        },
+        {
+          "claim": "The device profile has never been seen on this card before.",
+          "source": "graph",
+          "ref": "query:card_window(card=C03042-K1)",
+          "entity_ids": [
+            "3464869"
+          ]
+        },
+        {
+          "claim": "Device profile is shared by 8 cards overall (44% New, 0% proxied): limited sharing.",
+          "source": "graph",
+          "ref": "query:device_neighbors",
+          "entity_ids": []
+        },
+        {
+          "claim": "Closed case CC-1313 (cleared, none, $0.00) is relevant: same card, same pattern.",
+          "source": "graph",
+          "ref": "query:similar_cases",
+          "entity_ids": [
+            "CC-1313"
+          ]
+        },
+        {
+          "claim": "Closed case CC-4816 (cleared, none, $0.00) is relevant: same region, same pattern.",
+          "source": "graph",
+          "ref": "query:similar_cases",
+          "entity_ids": [
+            "CC-4816"
+          ]
+        },
+        {
+          "claim": "Closed case CC-4637 (cleared, none, $0.00) is relevant: same region, same pattern.",
+          "source": "graph",
+          "ref": "query:similar_cases",
+          "entity_ids": [
+            "CC-4637"
+          ]
+        },
+        {
+          "claim": "Retrieved closed-case typology TYPO-0007: model scored a an amount transaction at N. Cardholder confirmed the purchase from a new phone. Device added to profile. Alert cleared. Seen in 158 closed cases; 0% led to a suspicious activity report. Example closed cases: CC-5262, CC-5331, CC-5525.",
+          "source": "document",
+          "ref": "graphrag:TYPO-0007",
+          "entity_ids": [
+            "CC-5262",
+            "CC-5331",
+            "CC-5525"
+          ]
+        },
+        {
+          "claim": "Retrieved closed-case typology TYPO-0345: the cardholder reported unrecognized activity on the card. N transaction(s) between a date and a date totaling an amount were confirmed fraudulent. Online purchases from a device not previously seen o Example closed cases: CC-1556.",
+          "source": "document",
+          "ref": "graphrag:TYPO-0345",
+          "entity_ids": [
+            "CC-1556"
+          ]
+        },
+        {
+          "claim": "Documented fraud pattern 2: Card-not-present fraud The number is used online without the card. Amounts and products that don't fit the cardholder's history, often in a burst of two to four within 48 hours. On its own, one unusual online purchase is ambiguous: verify. Policy R1 to ",
+          "source": "document",
+          "ref": "graphrag:PAT-2",
+          "entity_ids": []
+        },
+        {
+          "claim": "Fraud policy R2: Customer denies the transaction. Recommend `BLOCK_CARD` and `CREATE_CASE`. Add `FILE_REPORT` if exposure exceeds $1,000 or the case connects to a shared device profile or another card's fraud.",
+          "source": "document",
+          "ref": "graphrag:POL-R2",
+          "entity_ids": []
+        },
+        {
+          "claim": "Customer response (assumed): Customer confirms the purchase, e.g. on a new phone or while travelling (assumption: the evidence points to legitimate use)",
+          "source": "customer",
+          "ref": "evidence_request:1",
+          "entity_ids": [
+            "3464869"
+          ]
+        }
+      ],
+      "similar_prior_cases": [
+        "CC-1313",
+        "CC-4816",
+        "CC-4637",
+        "CC-5262",
+        "CC-5331"
+      ],
+      "summary": "Transaction 3464869, an online purchase of $599.94, generated an alert that appears legitimate, with a fraud probability of 0.02; however, the bank\u2019s risk score of 0.77 is not supported by the card\u2019s own history. The trigger for the alert was the risk score. Tool calls: 8; closed cases consulted: CC-1313, CC-4816, CC-4637. An evidence request was simulated, and its assumed response is recorded in evidence_requests. Rationale: The action\u202fCLOSE_NO_FRAUD follows the closed\u2011case typology that clears alerts when the cardholder confirms a purchase from a new device (TYPO-0007). Because the customer did not deny the transaction, the trigger for the blocking and case\u2011creation requirements in the fraud policy (POL\u2011R2) is not met, so the case can be closed with no fraud.",
+      "written_to_graph": true,
+      "graph_case_id": "CASE-2016-015"
+    },
+    "evidence_requests": [
+      {
+        "type": "customer_validation",
+        "asked_after_step": 8,
+        "assumed_response": "Customer confirms the purchase, e.g. on a new phone or while travelling (assumption: the evidence points to legitimate use)"
+      }
+    ],
+    "next_best_actions": {
+      "initial": [
+        {
+          "action": "VERIFY_WITH_CUSTOMER",
+          "route": "auto",
+          "reason": "R1 and section 6: not yet at the stop threshold (p < 0.85 or fewer than 2 independent evidence items): verify before any block"
+        }
+      ],
+      "final": [
+        {
+          "action": "CLOSE_NO_FRAUD",
+          "route": "auto",
+          "reason": "R3: customer confirmed the transaction"
+        }
+      ],
+      "what_changed": "After the assumed customer confirmation, the recommendation moved from [VERIFY_WITH_CUSTOMER] to [CLOSE_NO_FRAUD]."
+    },
+    "sar": {
+      "file": false,
+      "reason": "3a: no fraud confirmed or strongly suspected, so no suspicious activity report is required.",
+      "narrative": "",
+      "subjects": [],
+      "total_amount_usd": 0.0,
+      "activity_dates": []
+    },
+    "stop_reason": "The assumed verification reply settled the question; further steps are unlikely to change the decision.",
+    "tool_calls": 8,
+    "tokens": 1719,
+    "latency_s": 38.78
+  },
+  "window": [
+    {
+      "tid": 3462385,
+      "ts": "2016-11-16 14:57:45",
+      "amt": 440.96,
+      "channel": "in_person",
+      "p": 0.002253818,
+      "m": 0.0005984935315539167,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3462387,
+      "ts": "2016-11-16 14:59:34",
+      "amt": 550.03,
+      "channel": "in_person",
+      "p": 0.0517372009,
+      "m": 0.002950722516249333,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3462404,
+      "ts": "2016-11-16 15:09:17",
+      "amt": 550.01,
+      "channel": "in_person",
+      "p": 0.0601656915,
+      "m": 0.003083035260907689,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3464869,
+      "ts": "2016-11-17 14:03:36",
+      "amt": 599.94,
+      "channel": "online",
+      "p": 0.0016325162,
+      "m": 0.0181266028335439,
+      "in_episode": false,
+      "flagged": true
+    },
+    {
+      "tid": 3468946,
+      "ts": "2016-11-18 22:10:43",
+      "amt": 312.04,
+      "channel": "in_person",
+      "p": 0.0031794305,
+      "m": 0.0006010424957016111,
+      "in_episode": false,
+      "flagged": false
+    }
+  ],
+  "graph": {
+    "nodes": [
+      {
+        "id": "C03042",
+        "label": "C03042",
+        "type": "customer"
+      },
+      {
+        "id": "C03042-K1",
+        "label": "C03042-K1",
+        "type": "card",
+        "focus": true
+      },
+      {
+        "id": "CC-1313",
+        "label": "CC-1313",
+        "type": "closedcase"
+      },
+      {
+        "id": "CC-4816",
+        "label": "CC-4816",
+        "type": "closedcase"
+      },
+      {
+        "id": "CC-4637",
+        "label": "CC-4637",
+        "type": "closedcase"
+      },
+      {
+        "id": "CC-5262",
+        "label": "CC-5262",
+        "type": "closedcase"
+      },
+      {
+        "id": "CC-5331",
+        "label": "CC-5331",
+        "type": "closedcase"
+      }
+    ],
+    "edges": [
+      {
+        "s": "C03042",
+        "t": "C03042-K1",
+        "label": "OWNS"
+      },
+      {
+        "s": "C03042-K1",
+        "t": "CC-1313",
+        "label": "SIMILAR_TO"
+      },
+      {
+        "s": "C03042-K1",
+        "t": "CC-4816",
+        "label": "SIMILAR_TO"
+      },
+      {
+        "s": "C03042-K1",
+        "t": "CC-4637",
+        "label": "SIMILAR_TO"
+      },
+      {
+        "s": "C03042-K1",
+        "t": "CC-5262",
+        "label": "SIMILAR_TO"
+      },
+      {
+        "s": "C03042-K1",
+        "t": "CC-5331",
+        "label": "SIMILAR_TO"
+      }
+    ]
+  },
+  "steps": [
+    {
+      "n": 1,
+      "tool": "get_transaction",
+      "summary": "online $599.94 R at 2016-11-17 14:03:36, bank risk 0.77, model p=0.00",
+      "ms": 457.2
+    },
+    {
+      "n": 2,
+      "tool": "card_profile",
+      "summary": "68 prior txns, median $99.96, online 0.82, home region 325.0",
+      "ms": 228.9
+    },
+    {
+      "n": 3,
+      "tool": "card_window",
+      "summary": "5 txns within +-72h, 0 scored >= 0.35",
+      "ms": 237.9
+    },
+    {
+      "n": 4,
+      "tool": "episode_model",
+      "summary": "context model: anchor membership p=0.02, 0 of 5 window txns look like the same episode",
+      "ms": 31.4
+    },
+    {
+      "n": 5,
+      "tool": "device_neighbors",
+      "summary": "device on 8 cards, 44% New, 0% proxied, 0 closed cases",
+      "ms": 232.3
+    },
+    {
+      "n": 6,
+      "tool": "email_history",
+      "summary": "'anonymous.com': 17 prior txns on this card, 13 other domain(s) used before",
+      "ms": 231.8
+    },
+    {
+      "n": 7,
+      "tool": "recurring_check",
+      "summary": "0 earlier identical-amount txns, 0 roughly-monthly gaps, 0.0/30d -> recurring=False",
+      "ms": 671.4
+    },
+    {
+      "n": 8,
+      "tool": "similar_cases",
+      "summary": "5 similar closed cases: CC-1313, CC-4816, CC-4637, CC-4553, CC-4440",
+      "ms": 705.0
+    },
+    {
+      "n": 9,
+      "tool": "graphrag_retrieve",
+      "summary": "4 grounded chunks: TYPO-0007 (0.74), TYPO-0345 (0.72), PAT-2 (0.71), POL-R2 (0.71)",
+      "ms": 36948.3
+    }
+  ],
+  "counterfactuals": {
+    "case_id": "HHG-015",
+    "fraud_probability": 0.018,
+    "uncertainty": {
+      "nearest_threshold": "legitimate",
+      "threshold_value": 0.15,
+      "distance": 0.132
+    },
+    "counterfactuals": []
+  }
+}

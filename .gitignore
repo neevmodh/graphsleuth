@@ -12,5 +12,5 @@ data/store/
 *.parquet
 .DS_Store
 .venv-mcp/
-# frozen demo data: regenerate with scripts/freeze_static.py (needs live TG + LLM credentials, like everything else)
-static_demo/data/
+# static_demo/data/ IS committed: Railway's GitHub-integration deploy needs it in the repo (unlike the
+# original Vercel-CLI-upload plan, which uploaded local files directly). Regenerate with scripts/freeze_static.py.

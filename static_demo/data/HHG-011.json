@@ -1,0 +1,1520 @@
+{
+  "trigger": {
+    "opened_at": "2016-12-29 06:27:44",
+    "trigger_type": "customer_report",
+    "trigger_text": "Customer C11923 message: 'I never made this $131.30 purchase. Please check my card.' Refers to 3583368.",
+    "flagged_txn_id": 3583368,
+    "card_id": "C11923-K2",
+    "customer_id": "C11923",
+    "risk_score": NaN,
+    "case_id": "HHG-011"
+  },
+  "answer": {
+    "case_id": "HHG-011",
+    "case": {
+      "status": "escalated",
+      "verdict": "uncertain",
+      "fraud_probability": 0.23,
+      "pattern": "none",
+      "pattern_description": "",
+      "affected_txn_ids": [],
+      "first_suspicious_txn_id": "",
+      "connected_card_ids": [],
+      "connected_device_profiles": [],
+      "exposure_usd": 0.0,
+      "evidence": [
+        {
+          "claim": "The calibrated transaction-level fraud model scores the flagged transaction 0.00; the bank's own risk score is 0.39 and is treated as an input, not a verdict.",
+          "source": "graph",
+          "ref": "query:score(txn=3583368)",
+          "entity_ids": [
+            "3583368"
+          ]
+        },
+        {
+          "claim": "Amount $131.30 is 4.6x the card's prior median ($28.575).",
+          "source": "graph",
+          "ref": "query:card_profile(card=C11923-K2)",
+          "entity_ids": [
+            "3583368"
+          ]
+        },
+        {
+          "claim": "The device profile has never been seen on this card before.",
+          "source": "graph",
+          "ref": "query:card_window(card=C11923-K2)",
+          "entity_ids": [
+            "3583368"
+          ]
+        },
+        {
+          "claim": "Device profile is shared by 4 cards overall (50% New, 0% proxied): limited sharing.",
+          "source": "graph",
+          "ref": "query:device_neighbors",
+          "entity_ids": []
+        },
+        {
+          "claim": "The cardholder reported this transaction as unauthorized.",
+          "source": "customer",
+          "ref": "trigger:HHG-011",
+          "entity_ids": [
+            "3583368"
+          ]
+        },
+        {
+          "claim": "Closed case CC-4743 (cleared, none, $0.00) is relevant: same card, same pattern.",
+          "source": "graph",
+          "ref": "query:similar_cases",
+          "entity_ids": [
+            "CC-4743"
+          ]
+        },
+        {
+          "claim": "Closed case CC-4501 (confirmed_fraud, card_testing, $1508.58) is relevant: same card.",
+          "source": "graph",
+          "ref": "query:similar_cases",
+          "entity_ids": [
+            "CC-4501"
+          ]
+        },
+        {
+          "claim": "Closed case CC-3905 (confirmed_fraud, card_not_present_new_device, $1397.53) is relevant: same card.",
+          "source": "graph",
+          "ref": "query:similar_cases",
+          "entity_ids": [
+            "CC-3905"
+          ]
+        },
+        {
+          "claim": "Retrieved closed-case typology TYPO-0351: the cardholder reported unrecognized activity on the card. N transaction(s) between a date and a date totaling an amount were confirmed fraudulent. Online purchases from a device not previously seen o Example closed cases: CC-1415.",
+          "source": "document",
+          "ref": "graphrag:TYPO-0351",
+          "entity_ids": [
+            "CC-1415"
+          ]
+        },
+        {
+          "claim": "Retrieved closed-case typology TYPO-0241: the cardholder reported unrecognized activity on the card. N transaction(s) between a date and a date totaling an amount were confirmed fraudulent. Online purchases from a device not previously seen o Example closed cases: CC-4548.",
+          "source": "document",
+          "ref": "graphrag:TYPO-0241",
+          "entity_ids": [
+            "CC-4548"
+          ]
+        },
+        {
+          "claim": "Customer report conflicts with the graph evidence (model support 0.00): No reply is presumed: the customer's report conflicts with the graph evidence, so the case is escalated for analyst review instead of guessing the outcome",
+          "source": "external",
+          "ref": "evidence_request:1",
+          "entity_ids": [
+            "3583368"
+          ]
+        }
+      ],
+      "similar_prior_cases": [
+        "CC-4743",
+        "CC-4501",
+        "CC-3905",
+        "CC-1415"
+      ],
+      "summary": "Transaction\u202f3583368 ($131.30) has ambiguous evidence, with a fraud probability of\u202f0.23; the alert remains neither confirmed nor cleared. The trigger was a customer report. There have been\u202f8\u202ftool calls, and closed cases\u202fCC-4743,\u202fCC-4501,\u202fand\u202fCC-3905\u202fwere consulted.",
+      "written_to_graph": true,
+      "graph_case_id": "CASE-2016-011"
+    },
+    "evidence_requests": [
+      {
+        "type": "analyst_info",
+        "asked_after_step": 8,
+        "assumed_response": "No reply is presumed: the customer's report conflicts with the graph evidence, so the case is escalated for analyst review instead of guessing the outcome"
+      }
+    ],
+    "next_best_actions": {
+      "initial": [
+        {
+          "action": "VERIFY_WITH_CUSTOMER",
+          "route": "auto",
+          "reason": "R1 and section 6: not yet at the stop threshold (p < 0.85 or fewer than 2 independent evidence items): verify before any block"
+        },
+        {
+          "action": "CREATE_CASE",
+          "route": "auto",
+          "reason": "3a: probability >= 0.30 or the customer disputes the charge"
+        },
+        {
+          "action": "ESCALATE_TO_ANALYST",
+          "route": "auto",
+          "reason": "R8: uncertain and exposed (> $500) or the evidence conflicts"
+        }
+      ],
+      "final": [
+        {
+          "action": "VERIFY_WITH_CUSTOMER",
+          "route": "auto",
+          "reason": "R1 and section 6: not yet at the stop threshold (p < 0.85 or fewer than 2 independent evidence items): verify before any block"
+        },
+        {
+          "action": "CREATE_CASE",
+          "route": "auto",
+          "reason": "3a: probability >= 0.30 or the customer disputes the charge"
+        },
+        {
+          "action": "ESCALATE_TO_ANALYST",
+          "route": "auto",
+          "reason": "R8: uncertain and exposed (> $500) or the evidence conflicts"
+        }
+      ],
+      "what_changed": "nothing"
+    },
+    "sar": {
+      "file": false,
+      "reason": "3a: fraud is not yet confirmed or strongly suspected; escalate for analyst review instead of reporting.",
+      "narrative": "",
+      "subjects": [],
+      "total_amount_usd": 0.0,
+      "activity_dates": []
+    },
+    "stop_reason": "Further steps are unlikely to change the decision.",
+    "tool_calls": 8,
+    "tokens": 1554,
+    "latency_s": 38.04
+  },
+  "window": [
+    {
+      "tid": 3575821,
+      "ts": "2016-12-26 03:28:04",
+      "amt": 25.29,
+      "channel": "online",
+      "p": 8.21493e-05,
+      "m": 3.1750145956657946e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3575822,
+      "ts": "2016-12-26 03:28:10",
+      "amt": 8.67,
+      "channel": "online",
+      "p": 4.30748e-05,
+      "m": 1.685693371247307e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3575852,
+      "ts": "2016-12-26 03:54:59",
+      "amt": 56.48,
+      "channel": "online",
+      "p": 5.58526e-05,
+      "m": 2.4727287894506092e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3575853,
+      "ts": "2016-12-26 03:56:18",
+      "amt": 14.05,
+      "channel": "online",
+      "p": 9.0718e-06,
+      "m": 1.6251418610330563e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3575856,
+      "ts": "2016-12-26 04:01:17",
+      "amt": 36.89,
+      "channel": "online",
+      "p": 4.3004e-05,
+      "m": 2.4332105538146832e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3575875,
+      "ts": "2016-12-26 04:22:15",
+      "amt": 11.8,
+      "channel": "online",
+      "p": 2.50847e-05,
+      "m": 3.2795948290375275e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3575879,
+      "ts": "2016-12-26 04:25:57",
+      "amt": 28.33,
+      "channel": "online",
+      "p": 7.0256e-06,
+      "m": 1.4184218367047311e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3575881,
+      "ts": "2016-12-26 04:31:12",
+      "amt": 18.25,
+      "channel": "online",
+      "p": 1.30432e-05,
+      "m": 2.505753960932839e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3575883,
+      "ts": "2016-12-26 04:34:47",
+      "amt": 28.32,
+      "channel": "online",
+      "p": 0.0001086814,
+      "m": 2.973642492075792e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3575884,
+      "ts": "2016-12-26 04:37:00",
+      "amt": 56.61,
+      "channel": "online",
+      "p": 1.99541e-05,
+      "m": 1.8251503480569938e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3575889,
+      "ts": "2016-12-26 04:42:10",
+      "amt": 56.48,
+      "channel": "online",
+      "p": 0.000301336,
+      "m": 5.8258916413619255e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3575890,
+      "ts": "2016-12-26 04:42:29",
+      "amt": 13.39,
+      "channel": "online",
+      "p": 3.72871e-05,
+      "m": 3.205131072478791e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3575926,
+      "ts": "2016-12-26 05:47:28",
+      "amt": 35.48,
+      "channel": "online",
+      "p": 1.26182e-05,
+      "m": 2.1824957985277236e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3576198,
+      "ts": "2016-12-26 13:27:43",
+      "amt": 65.08,
+      "channel": "online",
+      "p": 2.4765e-05,
+      "m": 6.279655685000266e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3576228,
+      "ts": "2016-12-26 13:40:58",
+      "amt": 11.22,
+      "channel": "online",
+      "p": 4.67211e-05,
+      "m": 4.8981296685840294e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3576269,
+      "ts": "2016-12-26 13:59:58",
+      "amt": 21.98,
+      "channel": "online",
+      "p": 5.26528e-05,
+      "m": 4.12677816240343e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3576329,
+      "ts": "2016-12-26 14:33:45",
+      "amt": 32.56,
+      "channel": "online",
+      "p": 1.41321e-05,
+      "m": 3.0988849233064454e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3576340,
+      "ts": "2016-12-26 14:38:40",
+      "amt": 33.86,
+      "channel": "online",
+      "p": 1.47594e-05,
+      "m": 2.5827685144710926e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3576468,
+      "ts": "2016-12-26 15:33:31",
+      "amt": 22.3,
+      "channel": "online",
+      "p": 3.45003e-05,
+      "m": 5.46973077258424e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3576738,
+      "ts": "2016-12-26 17:19:35",
+      "amt": 27.99,
+      "channel": "online",
+      "p": 7.31322e-05,
+      "m": 3.3941970938081426e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3576771,
+      "ts": "2016-12-26 17:30:54",
+      "amt": 28.03,
+      "channel": "online",
+      "p": 6.93902e-05,
+      "m": 3.8298686167698214e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3576872,
+      "ts": "2016-12-26 18:00:55",
+      "amt": 22.21,
+      "channel": "online",
+      "p": 3.49035e-05,
+      "m": 4.090510572645007e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3577200,
+      "ts": "2016-12-26 19:47:34",
+      "amt": 83.4,
+      "channel": "online",
+      "p": 1.00769e-05,
+      "m": 3.340922743309181e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3577245,
+      "ts": "2016-12-26 20:09:40",
+      "amt": 33.79,
+      "channel": "online",
+      "p": 1.16626e-05,
+      "m": 2.846290517704921e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3577287,
+      "ts": "2016-12-26 20:24:43",
+      "amt": 20.51,
+      "channel": "online",
+      "p": 1.65405e-05,
+      "m": 2.9930101925529082e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3577440,
+      "ts": "2016-12-26 21:08:53",
+      "amt": 31.3,
+      "channel": "online",
+      "p": 2.23761e-05,
+      "m": 3.598928667605233e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3577595,
+      "ts": "2016-12-26 21:50:00",
+      "amt": 17.18,
+      "channel": "online",
+      "p": 4.70206e-05,
+      "m": 5.610152332599068e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3577647,
+      "ts": "2016-12-26 22:03:50",
+      "amt": 35.74,
+      "channel": "online",
+      "p": 1.30163e-05,
+      "m": 3.384634176024097e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3577715,
+      "ts": "2016-12-26 22:26:35",
+      "amt": 71.51,
+      "channel": "online",
+      "p": 8.6029e-06,
+      "m": 2.5990432119539986e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3578050,
+      "ts": "2016-12-27 00:39:30",
+      "amt": 101.64,
+      "channel": "online",
+      "p": 0.0004389464,
+      "m": 0.00010945084403048942,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3578107,
+      "ts": "2016-12-27 01:06:20",
+      "amt": 42.06,
+      "channel": "online",
+      "p": 1.30127e-05,
+      "m": 3.856325335593315e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3578148,
+      "ts": "2016-12-27 01:23:46",
+      "amt": 33.89,
+      "channel": "online",
+      "p": 0.0005506497,
+      "m": 0.00011591747198093125,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3578277,
+      "ts": "2016-12-27 02:27:41",
+      "amt": 2.15,
+      "channel": "online",
+      "p": 0.0002470954,
+      "m": 4.8915941506949554e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3578340,
+      "ts": "2016-12-27 02:51:43",
+      "amt": 40.09,
+      "channel": "online",
+      "p": 0.0002677147,
+      "m": 0.00011436356343900173,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3578347,
+      "ts": "2016-12-27 02:54:12",
+      "amt": 40.13,
+      "channel": "online",
+      "p": 8.82758e-05,
+      "m": 0.00010265695523353238,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3578394,
+      "ts": "2016-12-27 03:27:09",
+      "amt": 61.71,
+      "channel": "online",
+      "p": 1.16225e-05,
+      "m": 6.239930956186714e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3578405,
+      "ts": "2016-12-27 03:33:30",
+      "amt": 61.67,
+      "channel": "online",
+      "p": 2.27559e-05,
+      "m": 9.814208904435187e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3578451,
+      "ts": "2016-12-27 04:31:11",
+      "amt": 9.94,
+      "channel": "online",
+      "p": 3.35245e-05,
+      "m": 5.542532700447158e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3578471,
+      "ts": "2016-12-27 04:50:11",
+      "amt": 92.77,
+      "channel": "online",
+      "p": 0.0001930752,
+      "m": 9.387054888538484e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3578475,
+      "ts": "2016-12-27 04:54:00",
+      "amt": 92.87,
+      "channel": "online",
+      "p": 0.000171584,
+      "m": 0.00010134659608107033,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3578483,
+      "ts": "2016-12-27 05:07:11",
+      "amt": 92.91,
+      "channel": "online",
+      "p": 0.0002133715,
+      "m": 9.57821687163725e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3578486,
+      "ts": "2016-12-27 05:09:31",
+      "amt": 92.81,
+      "channel": "online",
+      "p": 0.0001366232,
+      "m": 8.358227041255057e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3578491,
+      "ts": "2016-12-27 05:19:26",
+      "amt": 5.13,
+      "channel": "online",
+      "p": 0.0009998787,
+      "m": 0.00018809313058373758,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3578496,
+      "ts": "2016-12-27 05:30:40",
+      "amt": 4.96,
+      "channel": "online",
+      "p": 0.0016685166,
+      "m": 0.00025729005495534,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3578506,
+      "ts": "2016-12-27 06:10:43",
+      "amt": 92.87,
+      "channel": "online",
+      "p": 0.000129972,
+      "m": 9.399998570179428e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3578817,
+      "ts": "2016-12-27 13:49:50",
+      "amt": 25.73,
+      "channel": "online",
+      "p": 9.7693e-06,
+      "m": 4.761863470357961e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3578995,
+      "ts": "2016-12-27 15:06:53",
+      "amt": 65.24,
+      "channel": "online",
+      "p": 1.79124e-05,
+      "m": 4.142535744456669e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3578997,
+      "ts": "2016-12-27 15:06:59",
+      "amt": 4.88,
+      "channel": "online",
+      "p": 2.99739e-05,
+      "m": 8.385398487860455e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3579400,
+      "ts": "2016-12-27 17:46:48",
+      "amt": 92.07,
+      "channel": "online",
+      "p": 3.42774e-05,
+      "m": 8.057709779127672e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3579407,
+      "ts": "2016-12-27 17:48:19",
+      "amt": 92.17,
+      "channel": "online",
+      "p": 0.00016867,
+      "m": 9.832499773794942e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3579576,
+      "ts": "2016-12-27 18:45:45",
+      "amt": 16.16,
+      "channel": "online",
+      "p": 1.24401e-05,
+      "m": 6.429571802031753e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3579597,
+      "ts": "2016-12-27 18:54:32",
+      "amt": 26.19,
+      "channel": "online",
+      "p": 1.4669e-05,
+      "m": 4.85604822800674e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3580137,
+      "ts": "2016-12-27 21:57:18",
+      "amt": 67.15,
+      "channel": "online",
+      "p": 4.16496e-05,
+      "m": 5.102799300392282e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3580202,
+      "ts": "2016-12-27 22:18:19",
+      "amt": 67.18,
+      "channel": "online",
+      "p": 8.21913e-05,
+      "m": 8.027292808293608e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3580219,
+      "ts": "2016-12-27 22:24:42",
+      "amt": 68.55,
+      "channel": "online",
+      "p": 4.46151e-05,
+      "m": 4.785976587815828e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3580232,
+      "ts": "2016-12-27 22:27:19",
+      "amt": 68.54,
+      "channel": "online",
+      "p": 8.98446e-05,
+      "m": 0.00015338431673260594,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3580348,
+      "ts": "2016-12-27 23:07:25",
+      "amt": 41.34,
+      "channel": "online",
+      "p": 4.12372e-05,
+      "m": 5.4854334254427556e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3580380,
+      "ts": "2016-12-27 23:19:57",
+      "amt": 25.67,
+      "channel": "online",
+      "p": 0.0007751224,
+      "m": 0.00010135693727576786,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3580403,
+      "ts": "2016-12-27 23:29:12",
+      "amt": 25.76,
+      "channel": "online",
+      "p": 0.002056257,
+      "m": 0.0004603190530002194,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3580417,
+      "ts": "2016-12-27 23:33:11",
+      "amt": 25.68,
+      "channel": "online",
+      "p": 0.0003612647,
+      "m": 9.126812787009947e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3580427,
+      "ts": "2016-12-27 23:36:26",
+      "amt": 96.66,
+      "channel": "online",
+      "p": 1.77312e-05,
+      "m": 5.295451245045445e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3580478,
+      "ts": "2016-12-28 00:00:27",
+      "amt": 23.52,
+      "channel": "online",
+      "p": 3.72358e-05,
+      "m": 7.843999193153776e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3580544,
+      "ts": "2016-12-28 00:24:53",
+      "amt": 22.07,
+      "channel": "online",
+      "p": 9.75352e-05,
+      "m": 0.0001099901876397209,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3580712,
+      "ts": "2016-12-28 01:26:33",
+      "amt": 44.08,
+      "channel": "online",
+      "p": 2.74715e-05,
+      "m": 7.482151963332988e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3580765,
+      "ts": "2016-12-28 01:53:09",
+      "amt": 40.12,
+      "channel": "online",
+      "p": 0.0002630757,
+      "m": 0.0001561885590862725,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3580776,
+      "ts": "2016-12-28 02:00:28",
+      "amt": 25.08,
+      "channel": "online",
+      "p": 6.59426e-05,
+      "m": 9.758664670906627e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3580815,
+      "ts": "2016-12-28 02:28:16",
+      "amt": 15.21,
+      "channel": "online",
+      "p": 0.0008673662,
+      "m": 0.0002725533888037835,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3580821,
+      "ts": "2016-12-28 02:32:19",
+      "amt": 15.17,
+      "channel": "online",
+      "p": 1.44278e-05,
+      "m": 4.198113302922068e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3580907,
+      "ts": "2016-12-28 03:33:38",
+      "amt": 16.17,
+      "channel": "online",
+      "p": 1.19481e-05,
+      "m": 6.132778391619906e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3580933,
+      "ts": "2016-12-28 03:57:10",
+      "amt": 23.78,
+      "channel": "online",
+      "p": 2.75666e-05,
+      "m": 6.0185570764944274e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3580951,
+      "ts": "2016-12-28 04:21:00",
+      "amt": 52.17,
+      "channel": "online",
+      "p": 9.5454e-06,
+      "m": 5.790915900487758e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3580992,
+      "ts": "2016-12-28 05:30:26",
+      "amt": 39.78,
+      "channel": "online",
+      "p": 4.66701e-05,
+      "m": 6.0415791480416875e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3581048,
+      "ts": "2016-12-28 09:02:04",
+      "amt": 37.08,
+      "channel": "online",
+      "p": 0.0012279731,
+      "m": 0.00021842398559562218,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3581345,
+      "ts": "2016-12-28 14:21:12",
+      "amt": 9.39,
+      "channel": "online",
+      "p": 0.0001261417,
+      "m": 8.115529375147846e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3582082,
+      "ts": "2016-12-28 18:54:14",
+      "amt": 62.11,
+      "channel": "online",
+      "p": 1.15787e-05,
+      "m": 7.210843645740274e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3582107,
+      "ts": "2016-12-28 19:03:07",
+      "amt": 62.06,
+      "channel": "online",
+      "p": 5.28074e-05,
+      "m": 0.00010474566997084119,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3582142,
+      "ts": "2016-12-28 19:13:13",
+      "amt": 4.15,
+      "channel": "online",
+      "p": 0.0001631067,
+      "m": 7.341106156416293e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3582175,
+      "ts": "2016-12-28 19:22:39",
+      "amt": 4.01,
+      "channel": "online",
+      "p": 0.0014215923,
+      "m": 0.0002732404155781779,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3582178,
+      "ts": "2016-12-28 19:23:22",
+      "amt": 49.91,
+      "channel": "online",
+      "p": 2.39783e-05,
+      "m": 6.520973691316338e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3582327,
+      "ts": "2016-12-28 20:26:44",
+      "amt": 15.71,
+      "channel": "online",
+      "p": 0.0002415026,
+      "m": 0.00011353201573791332,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3582338,
+      "ts": "2016-12-28 20:30:19",
+      "amt": 36.67,
+      "channel": "online",
+      "p": 1.6608e-05,
+      "m": 5.949573400352561e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3582375,
+      "ts": "2016-12-28 20:40:44",
+      "amt": 32.65,
+      "channel": "online",
+      "p": 1.63223e-05,
+      "m": 5.029170345602686e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3582413,
+      "ts": "2016-12-28 20:54:06",
+      "amt": 16.63,
+      "channel": "online",
+      "p": 9.48003e-05,
+      "m": 0.00015317004031767942,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3582602,
+      "ts": "2016-12-28 21:56:53",
+      "amt": 19.87,
+      "channel": "online",
+      "p": 2.58223e-05,
+      "m": 7.318846371977881e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3582624,
+      "ts": "2016-12-28 22:03:09",
+      "amt": 0.93,
+      "channel": "online",
+      "p": 0.0024472571,
+      "m": 0.00045645871412734306,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3582671,
+      "ts": "2016-12-28 22:21:56",
+      "amt": 98.7,
+      "channel": "online",
+      "p": 0.0001445034,
+      "m": 0.00011647157951364228,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3582738,
+      "ts": "2016-12-28 22:45:49",
+      "amt": 56.59,
+      "channel": "online",
+      "p": 1.52633e-05,
+      "m": 5.561260461807981e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3582868,
+      "ts": "2016-12-28 23:30:58",
+      "amt": 57.27,
+      "channel": "online",
+      "p": 5.69398e-05,
+      "m": 9.365071222759437e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3582897,
+      "ts": "2016-12-28 23:38:48",
+      "amt": 57.29,
+      "channel": "online",
+      "p": 1.54959e-05,
+      "m": 7.048085356446667e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3583101,
+      "ts": "2016-12-29 00:53:52",
+      "amt": 40.56,
+      "channel": "online",
+      "p": 4.0769e-05,
+      "m": 5.642243874420341e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3583140,
+      "ts": "2016-12-29 01:11:19",
+      "amt": 23.56,
+      "channel": "online",
+      "p": 5.38332e-05,
+      "m": 8.805299004773125e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3583199,
+      "ts": "2016-12-29 01:37:42",
+      "amt": 47.02,
+      "channel": "online",
+      "p": 1.89235e-05,
+      "m": 7.1144374076586e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3583229,
+      "ts": "2016-12-29 01:54:34",
+      "amt": 16.78,
+      "channel": "online",
+      "p": 1.33593e-05,
+      "m": 0.00010139814365105135,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3583348,
+      "ts": "2016-12-29 03:12:50",
+      "amt": 34.57,
+      "channel": "online",
+      "p": 2.22187e-05,
+      "m": 0.0003995032731003686,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3583368,
+      "ts": "2016-12-29 03:27:44",
+      "amt": 131.3,
+      "channel": "online",
+      "p": 0.0009750171,
+      "m": 0.02398553716769712,
+      "in_episode": false,
+      "flagged": true
+    },
+    {
+      "tid": 3583406,
+      "ts": "2016-12-29 04:10:46",
+      "amt": 19.55,
+      "channel": "online",
+      "p": 3.76464e-05,
+      "m": 8.844357880498656e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3583411,
+      "ts": "2016-12-29 04:13:36",
+      "amt": 6.33,
+      "channel": "online",
+      "p": 0.001052588,
+      "m": 0.00033541567090893153,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3583415,
+      "ts": "2016-12-29 04:16:10",
+      "amt": 6.39,
+      "channel": "online",
+      "p": 0.0008802941,
+      "m": 0.0002530486659619362,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3583417,
+      "ts": "2016-12-29 04:22:35",
+      "amt": 6.35,
+      "channel": "online",
+      "p": 0.0007105931,
+      "m": 0.00020312518391199963,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3583435,
+      "ts": "2016-12-29 05:04:18",
+      "amt": 22.93,
+      "channel": "online",
+      "p": 5.69404e-05,
+      "m": 0.00010402816484511667,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3583494,
+      "ts": "2016-12-29 08:28:23",
+      "amt": 26.57,
+      "channel": "online",
+      "p": 1.49092e-05,
+      "m": 5.705654859434969e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3583644,
+      "ts": "2016-12-29 13:08:50",
+      "amt": 53.58,
+      "channel": "online",
+      "p": 1.41044e-05,
+      "m": 4.971078770529264e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3583670,
+      "ts": "2016-12-29 13:23:32",
+      "amt": 227.32,
+      "channel": "online",
+      "p": 6.4917e-05,
+      "m": 0.00012124109841027105,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3583866,
+      "ts": "2016-12-29 14:57:33",
+      "amt": 2.51,
+      "channel": "online",
+      "p": 4.58433e-05,
+      "m": 6.881744923518112e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3583914,
+      "ts": "2016-12-29 15:18:30",
+      "amt": 8.47,
+      "channel": "online",
+      "p": 9.59222e-05,
+      "m": 7.89688346587656e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3583968,
+      "ts": "2016-12-29 15:42:09",
+      "amt": 8.44,
+      "channel": "online",
+      "p": 7.46966e-05,
+      "m": 6.797908511703723e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3584003,
+      "ts": "2016-12-29 15:55:29",
+      "amt": 26.75,
+      "channel": "online",
+      "p": 5.04684e-05,
+      "m": 7.523194436632873e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3584153,
+      "ts": "2016-12-29 16:47:35",
+      "amt": 17.96,
+      "channel": "online",
+      "p": 5.1636e-06,
+      "m": 6.111251102852154e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3584155,
+      "ts": "2016-12-29 16:48:18",
+      "amt": 96.91,
+      "channel": "online",
+      "p": 1.2331e-05,
+      "m": 7.040760221762189e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3584401,
+      "ts": "2016-12-29 18:15:53",
+      "amt": 264.18,
+      "channel": "online",
+      "p": 5.5079e-05,
+      "m": 0.00010961943443877893,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3584460,
+      "ts": "2016-12-29 18:35:56",
+      "amt": 264.03,
+      "channel": "online",
+      "p": 8.02371e-05,
+      "m": 0.0002709329511971731,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3584516,
+      "ts": "2016-12-29 18:52:45",
+      "amt": 174.13,
+      "channel": "online",
+      "p": 4.235e-05,
+      "m": 8.427523713487657e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3584693,
+      "ts": "2016-12-29 19:53:16",
+      "amt": 36.95,
+      "channel": "online",
+      "p": 2.92485e-05,
+      "m": 4.954371594252597e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3584706,
+      "ts": "2016-12-29 20:01:05",
+      "amt": 10.1,
+      "channel": "online",
+      "p": 5.563e-06,
+      "m": 4.546190851388893e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3584859,
+      "ts": "2016-12-29 21:02:53",
+      "amt": 10.89,
+      "channel": "online",
+      "p": 2.78512e-05,
+      "m": 5.780985121996711e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3584962,
+      "ts": "2016-12-29 21:34:45",
+      "amt": 2.76,
+      "channel": "online",
+      "p": 3.67659e-05,
+      "m": 4.59517749986418e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3584985,
+      "ts": "2016-12-29 21:41:45",
+      "amt": 23.67,
+      "channel": "online",
+      "p": 6.70495e-05,
+      "m": 6.570203419264438e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3585055,
+      "ts": "2016-12-29 22:07:24",
+      "amt": 16.18,
+      "channel": "online",
+      "p": 9.0364e-06,
+      "m": 5.2998241862361495e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3585064,
+      "ts": "2016-12-29 22:12:18",
+      "amt": 23.69,
+      "channel": "online",
+      "p": 2.9962e-05,
+      "m": 5.5210789290309463e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3585345,
+      "ts": "2016-12-29 23:49:47",
+      "amt": 41.3,
+      "channel": "online",
+      "p": 2.29073e-05,
+      "m": 5.655506088223568e-05,
+      "in_episode": false,
+      "flagged": false
+    }
+  ],
+  "graph": {
+    "nodes": [
+      {
+        "id": "C11923",
+        "label": "C11923",
+        "type": "customer"
+      },
+      {
+        "id": "C11923-K2",
+        "label": "C11923-K2",
+        "type": "card",
+        "focus": true
+      },
+      {
+        "id": "CC-4743",
+        "label": "CC-4743",
+        "type": "closedcase"
+      },
+      {
+        "id": "CC-4501",
+        "label": "CC-4501",
+        "type": "closedcase"
+      },
+      {
+        "id": "CC-3905",
+        "label": "CC-3905",
+        "type": "closedcase"
+      },
+      {
+        "id": "CC-1415",
+        "label": "CC-1415",
+        "type": "closedcase"
+      }
+    ],
+    "edges": [
+      {
+        "s": "C11923",
+        "t": "C11923-K2",
+        "label": "OWNS"
+      },
+      {
+        "s": "C11923-K2",
+        "t": "CC-4743",
+        "label": "SIMILAR_TO"
+      },
+      {
+        "s": "C11923-K2",
+        "t": "CC-4501",
+        "label": "SIMILAR_TO"
+      },
+      {
+        "s": "C11923-K2",
+        "t": "CC-3905",
+        "label": "SIMILAR_TO"
+      },
+      {
+        "s": "C11923-K2",
+        "t": "CC-1415",
+        "label": "SIMILAR_TO"
+      }
+    ]
+  },
+  "steps": [
+    {
+      "n": 1,
+      "tool": "get_transaction",
+      "summary": "online $131.30 C at 2016-12-29 03:27:44, bank risk 0.39, model p=0.00",
+      "ms": 448.4
+    },
+    {
+      "n": 2,
+      "tool": "card_profile",
+      "summary": "10306 prior txns, median $28.575, online 1.0, home region 284.0",
+      "ms": 918.2
+    },
+    {
+      "n": 3,
+      "tool": "card_window",
+      "summary": "120 txns within +-72h, 0 scored >= 0.35",
+      "ms": 249.0
+    },
+    {
+      "n": 4,
+      "tool": "episode_model",
+      "summary": "context model: anchor membership p=0.02, 0 of 120 window txns look like the same episode",
+      "ms": 28.9
+    },
+    {
+      "n": 5,
+      "tool": "device_neighbors",
+      "summary": "device on 4 cards, 50% New, 0% proxied, 0 closed cases",
+      "ms": 229.7
+    },
+    {
+      "n": 6,
+      "tool": "email_history",
+      "summary": "'gmail.com': 3968 prior txns on this card, 21 other domain(s) used before",
+      "ms": 244.6
+    },
+    {
+      "n": 7,
+      "tool": "recurring_check",
+      "summary": "0 earlier identical-amount txns, 0 roughly-monthly gaps, 0.0/30d -> recurring=False",
+      "ms": 684.9
+    },
+    {
+      "n": 8,
+      "tool": "similar_cases",
+      "summary": "5 similar closed cases: CC-4743, CC-4501, CC-3905, CC-3206, CC-3039",
+      "ms": 464.4
+    },
+    {
+      "n": 9,
+      "tool": "graphrag_retrieve",
+      "summary": "2 grounded chunks: TYPO-0351 (0.76), TYPO-0241 (0.76)",
+      "ms": 36374.5
+    }
+  ],
+  "counterfactuals": {
+    "case_id": "HHG-011",
+    "fraud_probability": 0.23,
+    "uncertainty": {
+      "nearest_threshold": "case-opens",
+      "threshold_value": 0.3,
+      "distance": 0.07
+    },
+    "counterfactuals": [
+      {
+        "signal": "trigger_is_report",
+        "description": "If the alert had not been a customer report, the fraud probability would be 0.02 instead of 0.23. This crosses the legitimate (<=0.15) threshold.",
+        "p_before": 0.23,
+        "p_after": 0.024,
+        "crosses": [
+          "legitimate (<=0.15)"
+        ]
+      }
+    ]
+  }
+}

@@ -105,7 +105,7 @@ def main() -> None:
     backend, memory, name = make_backend()
     llm = LLMRouter.from_env()
     rag = make_rag(backend, llm)
-    print(f"backend: {name}, llm: {llm.providers if llm else None}, rag: {rag is not None}")
+    print(f"backend: {name}, llm: {', '.join(llm.providers) if llm else None}, rag: {rag is not None}")
     orch = Orchestrator(backend, None, llm=llm, rag=rag)
 
     data_dir = os.getenv("DATA_DIR", "../dataset/HHGOA_IEEE")

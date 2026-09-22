@@ -1,0 +1,847 @@
+{
+  "trigger": {
+    "opened_at": "2016-12-09 05:39:29",
+    "trigger_type": "risk_score",
+    "trigger_text": "Real-time model scored transaction 3526826 ($35.66, online) at 0.76. Review and decide.",
+    "flagged_txn_id": 3526826,
+    "card_id": "C07671-K2",
+    "customer_id": "C07671",
+    "risk_score": 0.76,
+    "case_id": "HHG-013"
+  },
+  "answer": {
+    "case_id": "HHG-013",
+    "case": {
+      "status": "closed_legitimate",
+      "verdict": "legitimate",
+      "fraud_probability": 0.105,
+      "pattern": "none",
+      "pattern_description": "",
+      "affected_txn_ids": [],
+      "first_suspicious_txn_id": "",
+      "connected_card_ids": [],
+      "connected_device_profiles": [],
+      "exposure_usd": 0.0,
+      "evidence": [
+        {
+          "claim": "The calibrated transaction-level fraud model scores the flagged transaction 0.05; the bank's own risk score is 0.76 and is treated as an input, not a verdict.",
+          "source": "graph",
+          "ref": "query:score(txn=3526826)",
+          "entity_ids": [
+            "3526826"
+          ]
+        },
+        {
+          "claim": "Judged in context (neighbouring transactions on the card, timing, shared device, region and product) the alert has a fraud probability of 0.11, and 0 transaction(s) look like one episode.",
+          "source": "graph",
+          "ref": "query:episode_model(txn=3526826)",
+          "entity_ids": [
+            "3526826"
+          ]
+        },
+        {
+          "claim": "The device profile has never been seen on this card before.",
+          "source": "graph",
+          "ref": "query:card_window(card=C07671-K2)",
+          "entity_ids": [
+            "3526826"
+          ]
+        },
+        {
+          "claim": "Device profile is shared by 266 cards overall (40% New, 0% proxied): common consumer device, weak link.",
+          "source": "graph",
+          "ref": "query:device_neighbors",
+          "entity_ids": []
+        },
+        {
+          "claim": "Closed case CC-3761 (cleared, none, $0.00) is relevant: same card, same pattern.",
+          "source": "graph",
+          "ref": "query:similar_cases",
+          "entity_ids": [
+            "CC-3761"
+          ]
+        },
+        {
+          "claim": "Closed case CC-4294 (confirmed_fraud, account_takeover, $506.01) is relevant: same card.",
+          "source": "graph",
+          "ref": "query:similar_cases",
+          "entity_ids": [
+            "CC-4294"
+          ]
+        },
+        {
+          "claim": "Closed case CC-3216 (confirmed_fraud, card_not_present_new_device, $449.97) is relevant: same card.",
+          "source": "graph",
+          "ref": "query:similar_cases",
+          "entity_ids": [
+            "CC-3216"
+          ]
+        },
+        {
+          "claim": "Retrieved closed-case typology TYPO-0007: model scored a an amount transaction at N. Cardholder confirmed the purchase from a new phone. Device added to profile. Alert cleared. Seen in 158 closed cases; 0% led to a suspicious activity report. Example closed cases: CC-5262, CC-5331, CC-5525.",
+          "source": "document",
+          "ref": "graphrag:TYPO-0007",
+          "entity_ids": [
+            "CC-5262",
+            "CC-5331",
+            "CC-5525"
+          ]
+        },
+        {
+          "claim": "Retrieved closed-case typology TYPO-0035: the cardholder reported unrecognized activity on the card. N transaction(s) between a date and a date totaling an amount were confirmed fraudulent. Online purchases from a device not previously seen o Example closed cases: CC-3624, CC-2882, CC-3707.",
+          "source": "document",
+          "ref": "graphrag:TYPO-0035",
+          "entity_ids": [
+            "CC-3624",
+            "CC-2882",
+            "CC-3707"
+          ]
+        },
+        {
+          "claim": "Customer response (assumed): Customer confirms the purchase, e.g. on a new phone or while travelling (assumption: the evidence points to legitimate use)",
+          "source": "customer",
+          "ref": "evidence_request:1",
+          "entity_ids": [
+            "3526826"
+          ]
+        }
+      ],
+      "similar_prior_cases": [
+        "CC-3761",
+        "CC-4294",
+        "CC-3216",
+        "CC-5262",
+        "CC-5331"
+      ],
+      "summary": "The alert for transaction 3526826, an online purchase of $35.66, appears legitimate with a fraud probability of 0.11; however, the bank\u2019s risk score of 0.76 is not supported by the card\u2019s own history. The trigger was the risk score. There were 8 tool calls, and the review consulted the closed cases CC-3761, CC-4294, and CC-3216. An evidence request was simulated, and its assumed response is recorded in evidence_requests. Rationale: The recommended action CLOSE_NO_FRAUD follows the policy because the case matches the closed\u2011case typology with pattern none where the cardholder confirmed the purchase, as outlined in [TYPO-0007]. Under rule R3, a customer\u2011confirmed transaction mandates clearing the alert and closing the case without fraud, which aligns with the legitimate verdict and low fraud probability.",
+      "written_to_graph": true,
+      "graph_case_id": "CASE-2016-013"
+    },
+    "evidence_requests": [
+      {
+        "type": "customer_validation",
+        "asked_after_step": 8,
+        "assumed_response": "Customer confirms the purchase, e.g. on a new phone or while travelling (assumption: the evidence points to legitimate use)"
+      }
+    ],
+    "next_best_actions": {
+      "initial": [
+        {
+          "action": "VERIFY_WITH_CUSTOMER",
+          "route": "auto",
+          "reason": "R1 and section 6: not yet at the stop threshold (p < 0.85 or fewer than 2 independent evidence items): verify before any block"
+        }
+      ],
+      "final": [
+        {
+          "action": "CLOSE_NO_FRAUD",
+          "route": "auto",
+          "reason": "R3: customer confirmed the transaction"
+        }
+      ],
+      "what_changed": "After the assumed customer confirmation, the recommendation moved from [VERIFY_WITH_CUSTOMER] to [CLOSE_NO_FRAUD]."
+    },
+    "sar": {
+      "file": false,
+      "reason": "3a: no fraud confirmed or strongly suspected, so no suspicious activity report is required.",
+      "narrative": "",
+      "subjects": [],
+      "total_amount_usd": 0.0,
+      "activity_dates": []
+    },
+    "stop_reason": "The assumed verification reply settled the question; further steps are unlikely to change the decision.",
+    "tool_calls": 8,
+    "tokens": 1694,
+    "latency_s": 38.21
+  },
+  "window": [
+    {
+      "tid": 3518402,
+      "ts": "2016-12-06 04:52:41",
+      "amt": 58.87,
+      "channel": "in_person",
+      "p": 0.0016314625,
+      "m": 0.0001273641528028853,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3518429,
+      "ts": "2016-12-06 05:35:38",
+      "amt": 49.02,
+      "channel": "in_person",
+      "p": 0.0009121231,
+      "m": 0.00010531811799197373,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3518566,
+      "ts": "2016-12-06 11:43:17",
+      "amt": 82.88,
+      "channel": "in_person",
+      "p": 0.0002035437,
+      "m": 7.983566391410879e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3519227,
+      "ts": "2016-12-06 16:25:27",
+      "amt": 24.08,
+      "channel": "in_person",
+      "p": 0.000289594,
+      "m": 7.121696674194227e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3519239,
+      "ts": "2016-12-06 16:28:51",
+      "amt": 57.99,
+      "channel": "in_person",
+      "p": 0.0004964451,
+      "m": 8.880950665259136e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3519837,
+      "ts": "2016-12-06 19:23:56",
+      "amt": 36.94,
+      "channel": "in_person",
+      "p": 0.0002833101,
+      "m": 6.923647506318001e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3520198,
+      "ts": "2016-12-06 20:53:34",
+      "amt": 29.03,
+      "channel": "in_person",
+      "p": 0.0003673168,
+      "m": 7.628645195006091e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3520979,
+      "ts": "2016-12-07 00:49:38",
+      "amt": 59.08,
+      "channel": "in_person",
+      "p": 0.0004709027,
+      "m": 0.0001212709025009406,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3521003,
+      "ts": "2016-12-07 00:56:30",
+      "amt": 58.99,
+      "channel": "in_person",
+      "p": 0.0007009655,
+      "m": 0.00010046106572527112,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3521713,
+      "ts": "2016-12-07 12:59:07",
+      "amt": 72.97,
+      "channel": "in_person",
+      "p": 0.0012877418,
+      "m": 0.00030355182121466647,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3521799,
+      "ts": "2016-12-07 13:40:34",
+      "amt": 107.86,
+      "channel": "in_person",
+      "p": 8.70226e-05,
+      "m": 9.064757817636159e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3521839,
+      "ts": "2016-12-07 13:55:26",
+      "amt": 87.09,
+      "channel": "in_person",
+      "p": 0.0008164165,
+      "m": 0.00021957195392270082,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3521874,
+      "ts": "2016-12-07 14:09:19",
+      "amt": 47.86,
+      "channel": "in_person",
+      "p": 0.0004958748,
+      "m": 0.0001824471575740602,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3522133,
+      "ts": "2016-12-07 15:57:01",
+      "amt": 663.96,
+      "channel": "in_person",
+      "p": 0.0006969244,
+      "m": 0.000292160944071718,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3523372,
+      "ts": "2016-12-07 22:30:19",
+      "amt": 107.86,
+      "channel": "in_person",
+      "p": 0.0026396353,
+      "m": 0.000711944566378378,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3523953,
+      "ts": "2016-12-08 01:44:52",
+      "amt": 25.9,
+      "channel": "in_person",
+      "p": 0.0001241879,
+      "m": 0.00011691878578594072,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3524194,
+      "ts": "2016-12-08 03:43:20",
+      "amt": 108.91,
+      "channel": "in_person",
+      "p": 0.0010694877,
+      "m": 0.00024106016634279842,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3524237,
+      "ts": "2016-12-08 04:20:33",
+      "amt": 57.94,
+      "channel": "in_person",
+      "p": 0.0001870353,
+      "m": 0.00011118592979304593,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3524600,
+      "ts": "2016-12-08 13:38:44",
+      "amt": 49.07,
+      "channel": "in_person",
+      "p": 0.0024174316,
+      "m": 0.0006072612282785672,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3524626,
+      "ts": "2016-12-08 13:54:42",
+      "amt": 59.08,
+      "channel": "in_person",
+      "p": 0.0007167457,
+      "m": 0.00019515596883287344,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3524788,
+      "ts": "2016-12-08 15:03:25",
+      "amt": 108.92,
+      "channel": "in_person",
+      "p": 0.0010584851,
+      "m": 0.00024266399391518657,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3525205,
+      "ts": "2016-12-08 17:28:39",
+      "amt": 29.01,
+      "channel": "in_person",
+      "p": 0.0017850901,
+      "m": 0.0003997978842201799,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3525559,
+      "ts": "2016-12-08 19:26:45",
+      "amt": 108.93,
+      "channel": "in_person",
+      "p": 0.0017588611,
+      "m": 0.00036124569278023357,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3525584,
+      "ts": "2016-12-08 19:38:15",
+      "amt": 334.91,
+      "channel": "in_person",
+      "p": 0.0003368037,
+      "m": 0.00013761045591389887,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3525753,
+      "ts": "2016-12-08 20:33:23",
+      "amt": 57.95,
+      "channel": "in_person",
+      "p": 0.0011862838,
+      "m": 0.0002788348208307066,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3525762,
+      "ts": "2016-12-08 20:35:21",
+      "amt": 108.02,
+      "channel": "in_person",
+      "p": 3.92202e-05,
+      "m": 9.005753268206349e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3525902,
+      "ts": "2016-12-08 21:21:52",
+      "amt": 30.96,
+      "channel": "in_person",
+      "p": 8.79193e-05,
+      "m": 0.00014317876856984198,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3526234,
+      "ts": "2016-12-08 22:59:27",
+      "amt": 59.02,
+      "channel": "in_person",
+      "p": 0.0011109147,
+      "m": 0.00024584019417543766,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3526249,
+      "ts": "2016-12-08 23:04:32",
+      "amt": 86.91,
+      "channel": "in_person",
+      "p": 0.0016079853,
+      "m": 0.0003142541104979278,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3526265,
+      "ts": "2016-12-08 23:08:45",
+      "amt": 58.92,
+      "channel": "in_person",
+      "p": 0.000691648,
+      "m": 0.0001716495841152247,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3526538,
+      "ts": "2016-12-09 00:38:09",
+      "amt": 58.99,
+      "channel": "in_person",
+      "p": 0.0014591797,
+      "m": 0.00036712438686451013,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3526677,
+      "ts": "2016-12-09 01:26:56",
+      "amt": 58.87,
+      "channel": "in_person",
+      "p": 0.0001336117,
+      "m": 0.00016001116978084685,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3526747,
+      "ts": "2016-12-09 02:04:41",
+      "amt": 43.86,
+      "channel": "in_person",
+      "p": 0.000258205,
+      "m": 0.0003278212957763843,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3526826,
+      "ts": "2016-12-09 02:39:29",
+      "amt": 35.66,
+      "channel": "online",
+      "p": 0.028027325,
+      "m": 0.10529248223019136,
+      "in_episode": false,
+      "flagged": true
+    },
+    {
+      "tid": 3526999,
+      "ts": "2016-12-09 04:41:53",
+      "amt": 58.87,
+      "channel": "in_person",
+      "p": 0.0004597594,
+      "m": 0.00018503605312967099,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3527288,
+      "ts": "2016-12-09 13:20:36",
+      "amt": 29.07,
+      "channel": "in_person",
+      "p": 0.0032268593,
+      "m": 0.0009973657570387822,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3527851,
+      "ts": "2016-12-09 16:49:38",
+      "amt": 57.92,
+      "channel": "in_person",
+      "p": 0.0019298612,
+      "m": 0.00039218538255288203,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3528696,
+      "ts": "2016-12-09 21:17:17",
+      "amt": 57.86,
+      "channel": "in_person",
+      "p": 0.0006441926,
+      "m": 0.00017711082742711702,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3529131,
+      "ts": "2016-12-09 23:29:07",
+      "amt": 38.91,
+      "channel": "in_person",
+      "p": 0.0011758089,
+      "m": 0.00028982099914449374,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3529473,
+      "ts": "2016-12-10 01:27:07",
+      "amt": 117.09,
+      "channel": "in_person",
+      "p": 0.0010772632,
+      "m": 0.0002413249182009888,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3529623,
+      "ts": "2016-12-10 02:28:03",
+      "amt": 45.06,
+      "channel": "in_person",
+      "p": 0.0001851303,
+      "m": 0.00012299900246993175,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3531359,
+      "ts": "2016-12-10 19:57:06",
+      "amt": 57.96,
+      "channel": "in_person",
+      "p": 0.0006240947,
+      "m": 0.00017075281903126065,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3532154,
+      "ts": "2016-12-11 00:07:20",
+      "amt": 25.92,
+      "channel": "in_person",
+      "p": 0.0001462211,
+      "m": 0.00012202907614009603,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3532603,
+      "ts": "2016-12-11 03:03:09",
+      "amt": 58.94,
+      "channel": "in_person",
+      "p": 9.6709e-05,
+      "m": 0.0001645972666710422,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3532712,
+      "ts": "2016-12-11 04:25:40",
+      "amt": 108.91,
+      "channel": "in_person",
+      "p": 0.0003108979,
+      "m": 9.47360798166317e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3532838,
+      "ts": "2016-12-11 09:33:25",
+      "amt": 57.88,
+      "channel": "in_person",
+      "p": 0.0002196032,
+      "m": 9.234167505020436e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3533538,
+      "ts": "2016-12-11 16:07:47",
+      "amt": 159.93,
+      "channel": "in_person",
+      "p": 0.0006031404,
+      "m": 0.0001120164441507974,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3533583,
+      "ts": "2016-12-11 16:26:21",
+      "amt": 26.03,
+      "channel": "in_person",
+      "p": 0.0004479223,
+      "m": 0.0001112761724952722,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3533817,
+      "ts": "2016-12-11 17:41:14",
+      "amt": 107.94,
+      "channel": "in_person",
+      "p": 0.0005155083,
+      "m": 0.0001141049486154755,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3534469,
+      "ts": "2016-12-11 20:48:39",
+      "amt": 312.93,
+      "channel": "in_person",
+      "p": 0.0001277929,
+      "m": 6.449088625452908e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3534520,
+      "ts": "2016-12-11 21:02:24",
+      "amt": 512.99,
+      "channel": "in_person",
+      "p": 0.0002497966,
+      "m": 8.03957468081684e-05,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3534577,
+      "ts": "2016-12-11 21:20:06",
+      "amt": 312.92,
+      "channel": "in_person",
+      "p": 0.0015655501,
+      "m": 0.00015340012278240915,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3534603,
+      "ts": "2016-12-11 21:28:19",
+      "amt": 38.91,
+      "channel": "in_person",
+      "p": 0.0200360542,
+      "m": 0.0003113399696283357,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3534644,
+      "ts": "2016-12-11 21:41:02",
+      "amt": 48.95,
+      "channel": "in_person",
+      "p": 0.0011643219,
+      "m": 0.00012280935638421758,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3535204,
+      "ts": "2016-12-12 00:42:56",
+      "amt": 30.94,
+      "channel": "in_person",
+      "p": 0.0002945484,
+      "m": 6.297593149568232e-05,
+      "in_episode": false,
+      "flagged": false
+    }
+  ],
+  "graph": {
+    "nodes": [
+      {
+        "id": "C07671",
+        "label": "C07671",
+        "type": "customer"
+      },
+      {
+        "id": "C07671-K2",
+        "label": "C07671-K2",
+        "type": "card",
+        "focus": true
+      },
+      {
+        "id": "CC-3761",
+        "label": "CC-3761",
+        "type": "closedcase"
+      },
+      {
+        "id": "CC-4294",
+        "label": "CC-4294",
+        "type": "closedcase"
+      },
+      {
+        "id": "CC-3216",
+        "label": "CC-3216",
+        "type": "closedcase"
+      },
+      {
+        "id": "CC-5262",
+        "label": "CC-5262",
+        "type": "closedcase"
+      },
+      {
+        "id": "CC-5331",
+        "label": "CC-5331",
+        "type": "closedcase"
+      }
+    ],
+    "edges": [
+      {
+        "s": "C07671",
+        "t": "C07671-K2",
+        "label": "OWNS"
+      },
+      {
+        "s": "C07671-K2",
+        "t": "CC-3761",
+        "label": "SIMILAR_TO"
+      },
+      {
+        "s": "C07671-K2",
+        "t": "CC-4294",
+        "label": "SIMILAR_TO"
+      },
+      {
+        "s": "C07671-K2",
+        "t": "CC-3216",
+        "label": "SIMILAR_TO"
+      },
+      {
+        "s": "C07671-K2",
+        "t": "CC-5262",
+        "label": "SIMILAR_TO"
+      },
+      {
+        "s": "C07671-K2",
+        "t": "CC-5331",
+        "label": "SIMILAR_TO"
+      }
+    ]
+  },
+  "steps": [
+    {
+      "n": 1,
+      "tool": "get_transaction",
+      "summary": "online $35.66 C at 2016-12-09 02:39:29, bank risk 0.76, model p=0.05",
+      "ms": 450.5
+    },
+    {
+      "n": 2,
+      "tool": "card_profile",
+      "summary": "1431 prior txns, median $59.08, online 0.01, home region 264.0",
+      "ms": 236.3
+    },
+    {
+      "n": 3,
+      "tool": "card_window",
+      "summary": "55 txns within +-72h, 0 scored >= 0.35",
+      "ms": 266.4
+    },
+    {
+      "n": 4,
+      "tool": "episode_model",
+      "summary": "context model: anchor membership p=0.11, 0 of 55 window txns look like the same episode",
+      "ms": 43.8
+    },
+    {
+      "n": 5,
+      "tool": "device_neighbors",
+      "summary": "device on 266 cards, 40% New, 0% proxied, 0 closed cases",
+      "ms": 239.9
+    },
+    {
+      "n": 6,
+      "tool": "email_history",
+      "summary": "'gmail.com': 674 prior txns on this card, 20 other domain(s) used before",
+      "ms": 236.7
+    },
+    {
+      "n": 7,
+      "tool": "recurring_check",
+      "summary": "0 earlier identical-amount txns, 0 roughly-monthly gaps, 0.0/30d -> recurring=False",
+      "ms": 673.6
+    },
+    {
+      "n": 8,
+      "tool": "similar_cases",
+      "summary": "4 similar closed cases: CC-3761, CC-4294, CC-3216, CC-1475",
+      "ms": 462.6
+    },
+    {
+      "n": 9,
+      "tool": "graphrag_retrieve",
+      "summary": "2 grounded chunks: TYPO-0007 (0.73), TYPO-0035 (0.72)",
+      "ms": 35466.7
+    }
+  ],
+  "counterfactuals": {
+    "case_id": "HHG-013",
+    "fraud_probability": 0.105,
+    "uncertainty": {
+      "nearest_threshold": "legitimate",
+      "threshold_value": 0.15,
+      "distance": 0.045
+    },
+    "counterfactuals": []
+  }
+}

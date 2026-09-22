@@ -1,0 +1,515 @@
+{
+  "trigger": {
+    "opened_at": "2016-12-05 01:55:28",
+    "trigger_type": "risk_score",
+    "trigger_text": "Real-time model scored transaction 3514030 ($77.07, in billing region 444.0) at 0.61. Review and decide.",
+    "flagged_txn_id": 3514030,
+    "card_id": "C12382-K1",
+    "customer_id": "C12382",
+    "risk_score": 0.61,
+    "case_id": "HHG-001"
+  },
+  "answer": {
+    "case_id": "HHG-001",
+    "case": {
+      "status": "open",
+      "verdict": "uncertain",
+      "fraud_probability": 0.613,
+      "pattern": "out_of_region_use",
+      "pattern_description": "",
+      "affected_txn_ids": [
+        "3514030"
+      ],
+      "first_suspicious_txn_id": "3514030",
+      "connected_card_ids": [],
+      "connected_device_profiles": [],
+      "exposure_usd": 77.07,
+      "evidence": [
+        {
+          "claim": "The calibrated transaction-level fraud model scores the flagged transaction 0.25; the bank's own risk score is 0.61 and is treated as an input, not a verdict.",
+          "source": "graph",
+          "ref": "query:score(txn=3514030)",
+          "entity_ids": [
+            "3514030"
+          ]
+        },
+        {
+          "claim": "Judged in context (neighbouring transactions on the card, timing, shared device, region and product) the alert has a fraud probability of 0.61, and 1 transaction(s) look like one episode.",
+          "source": "graph",
+          "ref": "query:episode_model(txn=3514030)",
+          "entity_ids": [
+            "3514030"
+          ]
+        },
+        {
+          "claim": "Billing region 444: 10 prior transactions on this card; within +-5 days 1 in-region transactions on 1 day(s) and 26 elsewhere (see pattern assessment).",
+          "source": "graph",
+          "ref": "query:region_history(card=C12382-K1,addr1=444)",
+          "entity_ids": [
+            "3514030"
+          ]
+        },
+        {
+          "claim": "Closed case CC-3587 (confirmed_fraud, out_of_region_use, $49.09) is relevant: same card, same pattern.",
+          "source": "graph",
+          "ref": "query:similar_cases",
+          "entity_ids": [
+            "CC-3587"
+          ]
+        },
+        {
+          "claim": "Closed case CC-2964 (confirmed_fraud, out_of_region_use, $171.08) is relevant: same card, same pattern.",
+          "source": "graph",
+          "ref": "query:similar_cases",
+          "entity_ids": [
+            "CC-2964"
+          ]
+        },
+        {
+          "claim": "Closed case CC-1066 (confirmed_fraud, out_of_region_use, $170.98) is relevant: same card, same pattern.",
+          "source": "graph",
+          "ref": "query:similar_cases",
+          "entity_ids": [
+            "CC-1066"
+          ]
+        },
+        {
+          "claim": "Documented fraud pattern 4: Out-of-region use Card-present purchases in a billing region the cardholder has no history in, while their normal activity continues at home. Several days of purchases in one new region is a trip, not a clone. Policy R2, R3.",
+          "source": "document",
+          "ref": "graphrag:PAT-4",
+          "entity_ids": []
+        },
+        {
+          "claim": "Retrieved closed-case typology TYPO-0002: model scored a an amount transaction at N. Cardholder confirmed travel to the billing region in question. Alert cleared. Seen in 716 closed cases; 0% led to a suspicious activity report. Example closed cases: CC-5537, CC-5468, CC-5504.",
+          "source": "document",
+          "ref": "graphrag:TYPO-0002",
+          "entity_ids": [
+            "CC-5537",
+            "CC-5468",
+            "CC-5504"
+          ]
+        },
+        {
+          "claim": "Retrieved closed-case typology TYPO-0001: the cardholder reported unrecognized activity on the card. N transaction(s) between a date and a date totaling an amount were confirmed fraudulent. Card-present use in a billing region the cardholder  Example closed cases: CC-5534, CC-5516, CC-5510.",
+          "source": "document",
+          "ref": "graphrag:TYPO-0001",
+          "entity_ids": [
+            "CC-5534",
+            "CC-5516",
+            "CC-5510"
+          ]
+        },
+        {
+          "claim": "Fraud policy R2: Customer denies the transaction. Recommend `BLOCK_CARD` and `CREATE_CASE`. Add `FILE_REPORT` if exposure exceeds $1,000 or the case connects to a shared device profile or another card's fraud.",
+          "source": "document",
+          "ref": "graphrag:POL-R2",
+          "entity_ids": []
+        },
+        {
+          "claim": "No customer response (assumed): No reply within 24 hours (assumption: the evidence is too ambiguous to presume the customer's answer)",
+          "source": "customer",
+          "ref": "evidence_request:1",
+          "entity_ids": [
+            "3514030"
+          ]
+        }
+      ],
+      "similar_prior_cases": [
+        "CC-3587",
+        "CC-2964",
+        "CC-1066"
+      ],
+      "summary": "Regarding transaction 3514030 ($77.07), the evidence remains ambiguous with a fraud probability of 0.61, leaving the alert neither confirmed nor cleared. The alert was triggered by a risk score. Investigation details include 9 tool calls, consulting closed cases CC-3587, CC-2964, and CC-1066. Furthermore, an evidence request was simulated, and its assumed response is recorded in evidence_requests.",
+      "written_to_graph": true,
+      "graph_case_id": "CASE-2016-001"
+    },
+    "evidence_requests": [
+      {
+        "type": "customer_validation",
+        "asked_after_step": 9,
+        "assumed_response": "No reply within 24 hours (assumption: the evidence is too ambiguous to presume the customer's answer)"
+      }
+    ],
+    "next_best_actions": {
+      "initial": [
+        {
+          "action": "VERIFY_WITH_CUSTOMER",
+          "route": "auto",
+          "reason": "R1 and section 6: not yet at the stop threshold (p < 0.85 or fewer than 2 independent evidence items): verify before any block"
+        },
+        {
+          "action": "CREATE_CASE",
+          "route": "auto",
+          "reason": "3a: probability >= 0.30 or the customer disputes the charge"
+        }
+      ],
+      "final": [
+        {
+          "action": "DECLINE_TRANSACTION",
+          "route": "L1",
+          "reason": "R4: decline pending authorizations"
+        },
+        {
+          "action": "CREATE_CASE",
+          "route": "auto",
+          "reason": "3a: evidence was requested"
+        },
+        {
+          "action": "MONITOR_CARD",
+          "route": "auto",
+          "reason": "R4: no reply within 24h"
+        }
+      ],
+      "what_changed": "After the assumed absence of a reply within 24 hours, the recommendation moved from [VERIFY_WITH_CUSTOMER, CREATE_CASE] to [DECLINE_TRANSACTION, CREATE_CASE, MONITOR_CARD]."
+    },
+    "sar": {
+      "file": false,
+      "reason": "3a: fraud is not yet confirmed or strongly suspected; escalate for analyst review instead of reporting.",
+      "narrative": "",
+      "subjects": [],
+      "total_amount_usd": 0.0,
+      "activity_dates": []
+    },
+    "stop_reason": "Evidence remains ambiguous after the graph and history checks and no reply is assumed; the recommendation is monitoring and escalation rather than a forced verdict.",
+    "tool_calls": 9,
+    "tokens": 1333,
+    "latency_s": 36.37
+  },
+  "window": [
+    {
+      "tid": 3510115,
+      "ts": "2016-12-03 15:53:45",
+      "amt": 23.99,
+      "channel": "in_person",
+      "p": 0.0008127566,
+      "m": 0.000973539692703574,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3510225,
+      "ts": "2016-12-03 16:32:25",
+      "amt": 35.92,
+      "channel": "in_person",
+      "p": 7.07535e-05,
+      "m": 0.0007280946061882951,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3510464,
+      "ts": "2016-12-03 17:47:05",
+      "amt": 107.96,
+      "channel": "in_person",
+      "p": 0.0018071713,
+      "m": 0.004608244615692773,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3510612,
+      "ts": "2016-12-03 18:24:53",
+      "amt": 34.52,
+      "channel": "in_person",
+      "p": 0.0006268224,
+      "m": 0.0012189807854747331,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3511596,
+      "ts": "2016-12-03 23:03:54",
+      "amt": 59.06,
+      "channel": "in_person",
+      "p": 0.0009448469,
+      "m": 0.0017608121020631085,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3512936,
+      "ts": "2016-12-04 14:28:34",
+      "amt": 160.0,
+      "channel": "in_person",
+      "p": 0.0004101109,
+      "m": 0.0014457052376371526,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3513814,
+      "ts": "2016-12-04 18:51:28",
+      "amt": 116.97,
+      "channel": "in_person",
+      "p": 0.0016371239,
+      "m": 0.009405066556576068,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3514030,
+      "ts": "2016-12-04 19:55:28",
+      "amt": 77.07,
+      "channel": "in_person",
+      "p": 0.1760258905,
+      "m": 0.6125531778093414,
+      "in_episode": true,
+      "flagged": true
+    },
+    {
+      "tid": 3514461,
+      "ts": "2016-12-04 22:08:43",
+      "amt": 38.92,
+      "channel": "in_person",
+      "p": 0.0005730566,
+      "m": 0.001178763277438231,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3515241,
+      "ts": "2016-12-05 02:45:13",
+      "amt": 29.07,
+      "channel": "in_person",
+      "p": 0.000560921,
+      "m": 0.000781751916254868,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3517969,
+      "ts": "2016-12-06 01:13:55",
+      "amt": 226.08,
+      "channel": "in_person",
+      "p": 0.000405787,
+      "m": 0.0008349020803945599,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3519088,
+      "ts": "2016-12-06 15:39:17",
+      "amt": 38.99,
+      "channel": "in_person",
+      "p": 0.0018768978,
+      "m": 0.003147085441511757,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3519140,
+      "ts": "2016-12-06 15:56:33",
+      "amt": 34.49,
+      "channel": "in_person",
+      "p": 0.0007183956,
+      "m": 0.001335161095554399,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3519301,
+      "ts": "2016-12-06 16:48:13",
+      "amt": 76.99,
+      "channel": "in_person",
+      "p": 0.0006630259,
+      "m": 0.0023624027855709356,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3519548,
+      "ts": "2016-12-06 18:01:08",
+      "amt": 107.93,
+      "channel": "in_person",
+      "p": 0.0004552533,
+      "m": 0.0012069420687077252,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3520357,
+      "ts": "2016-12-06 21:41:03",
+      "amt": 117.02,
+      "channel": "in_person",
+      "p": 0.001563475,
+      "m": 0.0016872837889999543,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3520612,
+      "ts": "2016-12-06 22:56:16",
+      "amt": 116.95,
+      "channel": "in_person",
+      "p": 0.0005946334,
+      "m": 0.0010291516351575655,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3520625,
+      "ts": "2016-12-06 23:00:53",
+      "amt": 34.03,
+      "channel": "in_person",
+      "p": 0.0004352127,
+      "m": 0.0006387863607380501,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3521427,
+      "ts": "2016-12-07 04:32:48",
+      "amt": 149.94,
+      "channel": "in_person",
+      "p": 0.000277752,
+      "m": 0.000527363110412815,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3522046,
+      "ts": "2016-12-07 15:13:34",
+      "amt": 159.89,
+      "channel": "in_person",
+      "p": 0.0013829751,
+      "m": 0.0010947667369633717,
+      "in_episode": false,
+      "flagged": false
+    }
+  ],
+  "graph": {
+    "nodes": [
+      {
+        "id": "C12382",
+        "label": "C12382",
+        "type": "customer"
+      },
+      {
+        "id": "C12382-K1",
+        "label": "C12382-K1",
+        "type": "card",
+        "focus": true
+      },
+      {
+        "id": "T3514030",
+        "label": "14030",
+        "type": "txn",
+        "title": "3514030"
+      },
+      {
+        "id": "CC-3587",
+        "label": "CC-3587",
+        "type": "closedcase"
+      },
+      {
+        "id": "CC-2964",
+        "label": "CC-2964",
+        "type": "closedcase"
+      },
+      {
+        "id": "CC-1066",
+        "label": "CC-1066",
+        "type": "closedcase"
+      }
+    ],
+    "edges": [
+      {
+        "s": "C12382",
+        "t": "C12382-K1",
+        "label": "OWNS"
+      },
+      {
+        "s": "C12382-K1",
+        "t": "T3514030",
+        "label": "MADE"
+      },
+      {
+        "s": "C12382-K1",
+        "t": "CC-3587",
+        "label": "SIMILAR_TO"
+      },
+      {
+        "s": "C12382-K1",
+        "t": "CC-2964",
+        "label": "SIMILAR_TO"
+      },
+      {
+        "s": "C12382-K1",
+        "t": "CC-1066",
+        "label": "SIMILAR_TO"
+      }
+    ]
+  },
+  "steps": [
+    {
+      "n": 1,
+      "tool": "get_transaction",
+      "summary": "in_person $77.07 W at 2016-12-04 19:55:28, bank risk 0.61, model p=0.25",
+      "ms": 556.6
+    },
+    {
+      "n": 2,
+      "tool": "card_profile",
+      "summary": "358 prior txns, median $83.945, online 0.01, home region 204.0",
+      "ms": 285.7
+    },
+    {
+      "n": 3,
+      "tool": "card_window",
+      "summary": "20 txns within +-72h, 0 scored >= 0.35",
+      "ms": 293.7
+    },
+    {
+      "n": 4,
+      "tool": "episode_model",
+      "summary": "context model: anchor membership p=0.61, 1 of 20 window txns look like the same episode",
+      "ms": 63.9
+    },
+    {
+      "n": 5,
+      "tool": "region_history",
+      "summary": "region 444: 10 prior txns; +-5d: 1 in region on 1 day(s), 26 elsewhere",
+      "ms": 280.0
+    },
+    {
+      "n": 6,
+      "tool": "region_cluster",
+      "summary": "region 444: 71 cards, 0 likely-fraud txns in +-7d",
+      "ms": 287.4
+    },
+    {
+      "n": 7,
+      "tool": "recurring_check",
+      "summary": "2 earlier identical-amount txns, 0 roughly-monthly gaps, 0.58/30d -> recurring=False",
+      "ms": 823.2
+    },
+    {
+      "n": 8,
+      "tool": "customer_cards",
+      "summary": "1 card(s) on this customer",
+      "ms": 280.1
+    },
+    {
+      "n": 9,
+      "tool": "similar_cases",
+      "summary": "5 similar closed cases: CC-3587, CC-2964, CC-1066, CC-4431, CC-1673",
+      "ms": 558.3
+    },
+    {
+      "n": 10,
+      "tool": "graphrag_retrieve",
+      "summary": "4 grounded chunks: PAT-4 (0.73), TYPO-0002 (0.71), TYPO-0001 (0.69), POL-R2 (0.68)",
+      "ms": 41852.5
+    }
+  ],
+  "counterfactuals": {
+    "case_id": "HHG-001",
+    "fraud_probability": 0.613,
+    "uncertainty": {
+      "nearest_threshold": "fraud",
+      "threshold_value": 0.85,
+      "distance": 0.237
+    },
+    "counterfactuals": []
+  }
+}

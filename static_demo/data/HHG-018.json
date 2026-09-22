@@ -1,0 +1,2769 @@
+{
+  "trigger": {
+    "opened_at": "2016-11-27 14:41:26",
+    "trigger_type": "customer_report",
+    "trigger_text": "Customer C02354 message: 'I never made this $39.08 purchase. Please check my card.' Refers to 3491361.",
+    "flagged_txn_id": 3491361,
+    "card_id": "C02354-K2",
+    "customer_id": "C02354",
+    "risk_score": NaN,
+    "case_id": "HHG-018"
+  },
+  "answer": {
+    "case_id": "HHG-018",
+    "case": {
+      "status": "closed_fraud",
+      "verdict": "fraud",
+      "fraud_probability": 0.976,
+      "pattern": "account_takeover",
+      "pattern_description": "",
+      "affected_txn_ids": [
+        "3485990",
+        "3491361"
+      ],
+      "first_suspicious_txn_id": "3485990",
+      "connected_card_ids": [],
+      "connected_device_profiles": [],
+      "exposure_usd": 80.04,
+      "evidence": [
+        {
+          "claim": "The calibrated transaction-level fraud model scores the flagged transaction 0.12; the bank's own risk score is 0.48 and is treated as an input, not a verdict.",
+          "source": "graph",
+          "ref": "query:score(txn=3491361)",
+          "entity_ids": [
+            "3491361"
+          ]
+        },
+        {
+          "claim": "Judged in context (neighbouring transactions on the card, timing, shared device, region and product) the alert has a fraud probability of 0.77, and 2 transaction(s) look like one episode.",
+          "source": "graph",
+          "ref": "query:episode_model(txn=3491361)",
+          "entity_ids": [
+            "3485990",
+            "3491361"
+          ]
+        },
+        {
+          "claim": "Billing region 126: 565 prior transactions on this card; within +-5 days 41 in-region transactions on 8 day(s) and 358 elsewhere (see pattern assessment).",
+          "source": "graph",
+          "ref": "query:region_history(card=C02354-K2,addr1=126)",
+          "entity_ids": [
+            "3491361"
+          ]
+        },
+        {
+          "claim": "The cardholder reported this transaction as unauthorized.",
+          "source": "customer",
+          "ref": "trigger:HHG-018",
+          "entity_ids": [
+            "3491361"
+          ]
+        },
+        {
+          "claim": "Closed case CC-1450 (confirmed_fraud, account_takeover, $2351.25) is relevant: same card, same region, same pattern.",
+          "source": "graph",
+          "ref": "query:similar_cases",
+          "entity_ids": [
+            "CC-1450"
+          ]
+        },
+        {
+          "claim": "Closed case CC-4070 (confirmed_fraud, account_takeover, $2064.03) is relevant: same card, same pattern.",
+          "source": "graph",
+          "ref": "query:similar_cases",
+          "entity_ids": [
+            "CC-4070"
+          ]
+        },
+        {
+          "claim": "Closed case CC-3899 (confirmed_fraud, account_takeover, $567.93) is relevant: same card, same pattern.",
+          "source": "graph",
+          "ref": "query:similar_cases",
+          "entity_ids": [
+            "CC-3899"
+          ]
+        },
+        {
+          "claim": "Retrieved closed-case typology TYPO-0001: the cardholder reported unrecognized activity on the card. N transaction(s) between a date and a date totaling an amount were confirmed fraudulent. Card-present use in a billing region the cardholder  Example closed cases: CC-5534, CC-5510, CC-5516.",
+          "source": "document",
+          "ref": "graphrag:TYPO-0001",
+          "entity_ids": [
+            "CC-5534",
+            "CC-5510",
+            "CC-5516"
+          ]
+        },
+        {
+          "claim": "Retrieved closed-case typology TYPO-0015: the cardholder reported unrecognized activity on the card. N transaction(s) between a date and a date totaling an amount were confirmed fraudulent. Mixed-channel activity inconsistent with the cardhol Example closed cases: CC-5223, CC-5505, CC-5363.",
+          "source": "document",
+          "ref": "graphrag:TYPO-0015",
+          "entity_ids": [
+            "CC-5223",
+            "CC-5505",
+            "CC-5363"
+          ]
+        },
+        {
+          "claim": "Fraud policy R2: Customer denies the transaction. Recommend `BLOCK_CARD` and `CREATE_CASE`. Add `FILE_REPORT` if exposure exceeds $1,000 or the case connects to a shared device profile or another card's fraud.",
+          "source": "document",
+          "ref": "graphrag:POL-R2",
+          "entity_ids": []
+        }
+      ],
+      "similar_prior_cases": [
+        "CC-1450",
+        "CC-4070",
+        "CC-3899",
+        "CC-5534",
+        "CC-5510"
+      ],
+      "summary": "Two transaction(s) totalling $80.04 on C02354-K2 are assessed as fraud with a probability 0.98, matching an account\u2011takeover pattern: mixed\u2011channel activity inconsistent with the cardholder, indicating compromised credentials. Trigger: customer report. Tool calls: 9; closed cases consulted: CC-1450, CC-4070, CC-3899.",
+      "written_to_graph": true,
+      "graph_case_id": "CASE-2016-018"
+    },
+    "evidence_requests": [],
+    "next_best_actions": {
+      "initial": [
+        {
+          "action": "BLOCK_CARD",
+          "route": "L1",
+          "reason": "R2: customer reported the transaction as unauthorized and the evidence supports it"
+        },
+        {
+          "action": "CREATE_CASE",
+          "route": "auto",
+          "reason": "R2: customer reported the transaction as unauthorized and the evidence supports it"
+        }
+      ],
+      "final": [
+        {
+          "action": "BLOCK_CARD",
+          "route": "L1",
+          "reason": "R2: customer reported the transaction as unauthorized and the evidence supports it"
+        },
+        {
+          "action": "CREATE_CASE",
+          "route": "auto",
+          "reason": "R2: customer reported the transaction as unauthorized and the evidence supports it"
+        }
+      ],
+      "what_changed": "nothing"
+    },
+    "sar": {
+      "file": false,
+      "reason": "3a: fraud is likely but exposure ($80.04) is at or below $1,000, there is no shared device, region or other-customer link, and the pattern is documented: case only, no report.",
+      "narrative": "",
+      "subjects": [],
+      "total_amount_usd": 0.0,
+      "activity_dates": []
+    },
+    "stop_reason": "Fraud probability 0.98 with 3 independent evidence items reached the stop threshold (section 6).",
+    "tool_calls": 9,
+    "tokens": 2722,
+    "latency_s": 101.36
+  },
+  "window": [
+    {
+      "tid": 3483355,
+      "ts": "2016-11-24 13:54:39",
+      "amt": 226.06,
+      "channel": "in_person",
+      "p": 0.0002510374,
+      "m": 0.0001363973772384129,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3483390,
+      "ts": "2016-11-24 14:12:47",
+      "amt": 107.98,
+      "channel": "in_person",
+      "p": 0.004530708,
+      "m": 0.0023556197577657427,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3483447,
+      "ts": "2016-11-24 14:36:19",
+      "amt": 712.06,
+      "channel": "in_person",
+      "p": 0.0061092862,
+      "m": 0.0019260838944057175,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3483592,
+      "ts": "2016-11-24 15:40:43",
+      "amt": 33.92,
+      "channel": "in_person",
+      "p": 0.0011443061,
+      "m": 0.00036930387808740116,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3483742,
+      "ts": "2016-11-24 16:34:15",
+      "amt": 312.93,
+      "channel": "in_person",
+      "p": 0.0003051969,
+      "m": 0.00014140314642120935,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3483772,
+      "ts": "2016-11-24 16:45:36",
+      "amt": 44.02,
+      "channel": "in_person",
+      "p": 0.0002511919,
+      "m": 0.0005035451413649699,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3483774,
+      "ts": "2016-11-24 16:45:48",
+      "amt": 87.86,
+      "channel": "in_person",
+      "p": 0.0042805827,
+      "m": 0.0018009559368280964,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3483869,
+      "ts": "2016-11-24 17:13:51",
+      "amt": 47.87,
+      "channel": "in_person",
+      "p": 0.0011450187,
+      "m": 0.0005031529671251948,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3483877,
+      "ts": "2016-11-24 17:16:01",
+      "amt": 77.09,
+      "channel": "in_person",
+      "p": 0.016216655,
+      "m": 0.01057031278741455,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3483892,
+      "ts": "2016-11-24 17:19:57",
+      "amt": 76.99,
+      "channel": "in_person",
+      "p": 0.0009135743,
+      "m": 0.00037051812472136585,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3483903,
+      "ts": "2016-11-24 17:22:18",
+      "amt": 116.95,
+      "channel": "in_person",
+      "p": 0.0011203466,
+      "m": 0.00036826788751744325,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3483921,
+      "ts": "2016-11-24 17:28:38",
+      "amt": 40.96,
+      "channel": "in_person",
+      "p": 0.0005180577,
+      "m": 0.0002485902564786421,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3483969,
+      "ts": "2016-11-24 17:45:36",
+      "amt": 116.99,
+      "channel": "in_person",
+      "p": 0.0007576646,
+      "m": 0.0002036012675471004,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3484013,
+      "ts": "2016-11-24 17:58:46",
+      "amt": 19.91,
+      "channel": "online",
+      "p": 0.0001619826,
+      "m": 0.0002179541545668921,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3484023,
+      "ts": "2016-11-24 18:01:44",
+      "amt": 76.91,
+      "channel": "in_person",
+      "p": 0.0008980624,
+      "m": 0.0003083911325112201,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3484024,
+      "ts": "2016-11-24 18:01:46",
+      "amt": 19.95,
+      "channel": "online",
+      "p": 0.0005081347,
+      "m": 0.00017548009181740534,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3484045,
+      "ts": "2016-11-24 18:06:49",
+      "amt": 20.05,
+      "channel": "online",
+      "p": 0.0006863275,
+      "m": 0.00019169481806753105,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3484065,
+      "ts": "2016-11-24 18:12:23",
+      "amt": 107.94,
+      "channel": "in_person",
+      "p": 0.0010575909,
+      "m": 0.0002915387970302591,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3484128,
+      "ts": "2016-11-24 18:32:31",
+      "amt": 68.48,
+      "channel": "in_person",
+      "p": 0.0071158794,
+      "m": 0.0038346935453968255,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3484197,
+      "ts": "2016-11-24 18:50:59",
+      "amt": 117.08,
+      "channel": "in_person",
+      "p": 0.0023168001,
+      "m": 0.0007916546924825664,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3484203,
+      "ts": "2016-11-24 18:52:34",
+      "amt": 58.97,
+      "channel": "in_person",
+      "p": 0.0003376674,
+      "m": 0.00021206713946100207,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3484249,
+      "ts": "2016-11-24 19:05:38",
+      "amt": 25.0,
+      "channel": "in_person",
+      "p": 0.003560163,
+      "m": 0.001956822521598604,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3484251,
+      "ts": "2016-11-24 19:06:12",
+      "amt": 170.94,
+      "channel": "in_person",
+      "p": 0.0095519422,
+      "m": 0.0019362439741270065,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3484403,
+      "ts": "2016-11-24 19:58:13",
+      "amt": 44.04,
+      "channel": "in_person",
+      "p": 0.0052876664,
+      "m": 0.0032617802090114446,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3484469,
+      "ts": "2016-11-24 20:24:32",
+      "amt": 62.9,
+      "channel": "in_person",
+      "p": 0.0007976087,
+      "m": 0.0002953054899942507,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3484506,
+      "ts": "2016-11-24 20:37:05",
+      "amt": 48.98,
+      "channel": "in_person",
+      "p": 0.0007310554,
+      "m": 0.0002823937524670662,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3484572,
+      "ts": "2016-11-24 20:57:47",
+      "amt": 117.03,
+      "channel": "in_person",
+      "p": 0.0016204357,
+      "m": 0.000732421072502045,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3484634,
+      "ts": "2016-11-24 21:16:37",
+      "amt": 140.97,
+      "channel": "in_person",
+      "p": 0.0022039482,
+      "m": 0.0008913823277073506,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3484649,
+      "ts": "2016-11-24 21:21:13",
+      "amt": 58.01,
+      "channel": "in_person",
+      "p": 0.0003604852,
+      "m": 0.0002844189236379712,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3484689,
+      "ts": "2016-11-24 21:34:20",
+      "amt": 83.45,
+      "channel": "in_person",
+      "p": 0.0016609823,
+      "m": 0.001076931633739591,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3484830,
+      "ts": "2016-11-24 22:20:36",
+      "amt": 48.95,
+      "channel": "in_person",
+      "p": 0.0002708998,
+      "m": 0.00022508726246874924,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3484834,
+      "ts": "2016-11-24 22:21:35",
+      "amt": 209.91,
+      "channel": "in_person",
+      "p": 0.0042973268,
+      "m": 0.0013667999172072532,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3484949,
+      "ts": "2016-11-24 22:58:26",
+      "amt": 32.08,
+      "channel": "in_person",
+      "p": 0.010161038,
+      "m": 0.007609227298485704,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3485025,
+      "ts": "2016-11-24 23:24:00",
+      "amt": 295.08,
+      "channel": "in_person",
+      "p": 0.0004913416,
+      "m": 0.00017005952335958063,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3485108,
+      "ts": "2016-11-24 23:53:15",
+      "amt": 14.99,
+      "channel": "in_person",
+      "p": 0.0001378212,
+      "m": 0.00016823170466147663,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3485143,
+      "ts": "2016-11-25 00:07:05",
+      "amt": 48.93,
+      "channel": "in_person",
+      "p": 0.0015891789,
+      "m": 0.001268769844337632,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3485560,
+      "ts": "2016-11-25 02:56:34",
+      "amt": 23.5,
+      "channel": "in_person",
+      "p": 0.0020193005,
+      "m": 0.0010292268070265515,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3485603,
+      "ts": "2016-11-25 03:24:37",
+      "amt": 107.99,
+      "channel": "in_person",
+      "p": 0.0001167006,
+      "m": 0.00013876981293726236,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3485803,
+      "ts": "2016-11-25 10:58:33",
+      "amt": 25.91,
+      "channel": "in_person",
+      "p": 0.0005043645,
+      "m": 0.0003070718742536833,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3485810,
+      "ts": "2016-11-25 11:04:02",
+      "amt": 116.95,
+      "channel": "in_person",
+      "p": 0.5043106758,
+      "m": 0.03787593183394023,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3485848,
+      "ts": "2016-11-25 11:49:42",
+      "amt": 212.93,
+      "channel": "in_person",
+      "p": 0.0032152297,
+      "m": 0.0009492042820350075,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3485877,
+      "ts": "2016-11-25 12:17:47",
+      "amt": 92.0,
+      "channel": "in_person",
+      "p": 0.0023927752,
+      "m": 0.0012025318546967747,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3485933,
+      "ts": "2016-11-25 12:50:31",
+      "amt": 28.99,
+      "channel": "in_person",
+      "p": 0.0011995503,
+      "m": 0.000755014388995637,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3485990,
+      "ts": "2016-11-25 13:26:35",
+      "amt": 40.96,
+      "channel": "in_person",
+      "p": 0.8663636497,
+      "m": 0.6966483177011288,
+      "in_episode": true,
+      "flagged": false
+    },
+    {
+      "tid": 3485997,
+      "ts": "2016-11-25 13:31:12",
+      "amt": 24.98,
+      "channel": "in_person",
+      "p": 0.0049434323,
+      "m": 0.0046996609361316935,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3485998,
+      "ts": "2016-11-25 13:32:40",
+      "amt": 57.92,
+      "channel": "in_person",
+      "p": 0.0024040744,
+      "m": 0.0022710288777275465,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3486046,
+      "ts": "2016-11-25 13:54:21",
+      "amt": 249.98,
+      "channel": "in_person",
+      "p": 0.0007368411,
+      "m": 0.00016997823687094508,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3486080,
+      "ts": "2016-11-25 14:10:19",
+      "amt": 226.07,
+      "channel": "in_person",
+      "p": 0.0027398118,
+      "m": 0.0018317158339077484,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3486178,
+      "ts": "2016-11-25 14:50:22",
+      "amt": 234.96,
+      "channel": "in_person",
+      "p": 0.0009523363,
+      "m": 0.000204254480888911,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3486190,
+      "ts": "2016-11-25 14:55:02",
+      "amt": 59.04,
+      "channel": "in_person",
+      "p": 0.0014439918,
+      "m": 0.0011678740823987319,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3486192,
+      "ts": "2016-11-25 14:55:19",
+      "amt": 129.92,
+      "channel": "in_person",
+      "p": 0.0005875911,
+      "m": 0.00019929888025809194,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3486266,
+      "ts": "2016-11-25 15:29:21",
+      "amt": 117.02,
+      "channel": "in_person",
+      "p": 0.0060312473,
+      "m": 0.0032256538767583623,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3486341,
+      "ts": "2016-11-25 15:59:31",
+      "amt": 92.08,
+      "channel": "in_person",
+      "p": 0.010228181,
+      "m": 0.005589669747775707,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3486462,
+      "ts": "2016-11-25 16:40:50",
+      "amt": 59.09,
+      "channel": "in_person",
+      "p": 0.0042377584,
+      "m": 0.0038466635832224896,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3486507,
+      "ts": "2016-11-25 16:55:57",
+      "amt": 24.52,
+      "channel": "in_person",
+      "p": 0.0014773647,
+      "m": 0.001005250576357403,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3486559,
+      "ts": "2016-11-25 17:13:42",
+      "amt": 131.02,
+      "channel": "in_person",
+      "p": 0.0009342271,
+      "m": 0.00027823123860476435,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3486744,
+      "ts": "2016-11-25 18:12:12",
+      "amt": 117.0,
+      "channel": "in_person",
+      "p": 0.0062310365,
+      "m": 0.004336862870815728,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3486755,
+      "ts": "2016-11-25 18:19:32",
+      "amt": 57.99,
+      "channel": "in_person",
+      "p": 0.0007435343,
+      "m": 0.00028598767603644457,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3486949,
+      "ts": "2016-11-25 19:21:08",
+      "amt": 116.92,
+      "channel": "in_person",
+      "p": 0.0123974937,
+      "m": 0.006531926267430763,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3486963,
+      "ts": "2016-11-25 19:24:43",
+      "amt": 49.07,
+      "channel": "in_person",
+      "p": 0.0002724742,
+      "m": 0.0002609051534929596,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3486966,
+      "ts": "2016-11-25 19:26:12",
+      "amt": 117.08,
+      "channel": "in_person",
+      "p": 0.0005516899,
+      "m": 0.00017105162201583673,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3487032,
+      "ts": "2016-11-25 19:49:10",
+      "amt": 205.94,
+      "channel": "in_person",
+      "p": 0.00041612,
+      "m": 0.0001791865484863509,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3487364,
+      "ts": "2016-11-25 21:28:08",
+      "amt": 87.09,
+      "channel": "in_person",
+      "p": 0.0509466113,
+      "m": 0.032961525076894364,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3487401,
+      "ts": "2016-11-25 21:42:40",
+      "amt": 86.95,
+      "channel": "in_person",
+      "p": 0.0611481303,
+      "m": 0.03178737511099433,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3487425,
+      "ts": "2016-11-25 21:51:25",
+      "amt": 140.96,
+      "channel": "in_person",
+      "p": 0.001564861,
+      "m": 0.0009102697534933225,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3487444,
+      "ts": "2016-11-25 21:57:38",
+      "amt": 160.53,
+      "channel": "in_person",
+      "p": 0.0004910637,
+      "m": 0.00013625915096568135,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3487493,
+      "ts": "2016-11-25 22:12:00",
+      "amt": 140.99,
+      "channel": "in_person",
+      "p": 0.1639085767,
+      "m": 0.08376019316331802,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3487509,
+      "ts": "2016-11-25 22:16:11",
+      "amt": 88.92,
+      "channel": "in_person",
+      "p": 0.0429206621,
+      "m": 0.04756916471033268,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3487549,
+      "ts": "2016-11-25 22:28:55",
+      "amt": 31.03,
+      "channel": "in_person",
+      "p": 0.000156048,
+      "m": 0.00029438175483071136,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3487557,
+      "ts": "2016-11-25 22:31:47",
+      "amt": 96.92,
+      "channel": "in_person",
+      "p": 0.0491249796,
+      "m": 0.047148282484505574,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3487573,
+      "ts": "2016-11-25 22:35:06",
+      "amt": 2156.86,
+      "channel": "in_person",
+      "p": 0.0008554599,
+      "m": 0.0003399829204341937,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3487604,
+      "ts": "2016-11-25 22:44:05",
+      "amt": 335.03,
+      "channel": "in_person",
+      "p": 0.0008120386,
+      "m": 0.00014386334110468512,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3487632,
+      "ts": "2016-11-25 22:52:58",
+      "amt": 31.01,
+      "channel": "in_person",
+      "p": 0.0003579304,
+      "m": 0.0002613654349321598,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3487659,
+      "ts": "2016-11-25 22:57:14",
+      "amt": 99.97,
+      "channel": "online",
+      "p": 0.0003104232,
+      "m": 0.00012420681140959085,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3487685,
+      "ts": "2016-11-25 23:06:46",
+      "amt": 30.91,
+      "channel": "in_person",
+      "p": 0.0003621656,
+      "m": 0.0002541421899099213,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3487694,
+      "ts": "2016-11-25 23:11:04",
+      "amt": 28.95,
+      "channel": "in_person",
+      "p": 0.0026076125,
+      "m": 0.0015283337121671564,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3487810,
+      "ts": "2016-11-25 23:55:58",
+      "amt": 29.01,
+      "channel": "in_person",
+      "p": 0.0024386068,
+      "m": 0.0019110336724948876,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3487905,
+      "ts": "2016-11-26 00:29:18",
+      "amt": 225.93,
+      "channel": "in_person",
+      "p": 0.0018278652,
+      "m": 0.0007752456626594075,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3487973,
+      "ts": "2016-11-26 00:49:39",
+      "amt": 226.07,
+      "channel": "in_person",
+      "p": 0.0002254342,
+      "m": 0.00017828786354730228,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3487985,
+      "ts": "2016-11-26 00:52:25",
+      "amt": 86.92,
+      "channel": "in_person",
+      "p": 0.0099099672,
+      "m": 0.006802159532623366,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3487994,
+      "ts": "2016-11-26 00:54:57",
+      "amt": 58.94,
+      "channel": "in_person",
+      "p": 0.0756221653,
+      "m": 0.11618678712865191,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3488000,
+      "ts": "2016-11-26 00:56:41",
+      "amt": 86.97,
+      "channel": "in_person",
+      "p": 0.0596852715,
+      "m": 0.056169405102210655,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3488006,
+      "ts": "2016-11-26 01:01:04",
+      "amt": 146.01,
+      "channel": "in_person",
+      "p": 0.0015505357,
+      "m": 0.0007308611881325101,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3488015,
+      "ts": "2016-11-26 01:03:54",
+      "amt": 86.91,
+      "channel": "in_person",
+      "p": 0.0047406298,
+      "m": 0.002762405331995635,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3488023,
+      "ts": "2016-11-26 01:06:06",
+      "amt": 58.96,
+      "channel": "in_person",
+      "p": 0.0040089007,
+      "m": 0.0030628472496324857,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3488044,
+      "ts": "2016-11-26 01:12:28",
+      "amt": 87.01,
+      "channel": "in_person",
+      "p": 0.0328665424,
+      "m": 0.022871521352448933,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3488056,
+      "ts": "2016-11-26 01:19:51",
+      "amt": 117.04,
+      "channel": "in_person",
+      "p": 0.0023704035,
+      "m": 0.0007519986256115137,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3488061,
+      "ts": "2016-11-26 01:22:25",
+      "amt": 58.99,
+      "channel": "in_person",
+      "p": 0.0093334024,
+      "m": 0.007238867773898674,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3488103,
+      "ts": "2016-11-26 01:39:12",
+      "amt": 146.02,
+      "channel": "in_person",
+      "p": 0.0016624966,
+      "m": 0.0003948528022244825,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3488116,
+      "ts": "2016-11-26 01:45:51",
+      "amt": 146.0,
+      "channel": "in_person",
+      "p": 0.0016125312,
+      "m": 0.0003475231460570018,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3488325,
+      "ts": "2016-11-26 04:06:10",
+      "amt": 138.02,
+      "channel": "in_person",
+      "p": 0.0025574523,
+      "m": 0.0011848590714228465,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3488371,
+      "ts": "2016-11-26 04:58:33",
+      "amt": 107.92,
+      "channel": "in_person",
+      "p": 0.0001008931,
+      "m": 0.00013924523592486002,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3488433,
+      "ts": "2016-11-26 08:26:05",
+      "amt": 171.01,
+      "channel": "in_person",
+      "p": 0.0005969286,
+      "m": 0.00019728701201817203,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3488476,
+      "ts": "2016-11-26 10:36:15",
+      "amt": 29.07,
+      "channel": "in_person",
+      "p": 0.0014968165,
+      "m": 0.0015024377706409412,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3488490,
+      "ts": "2016-11-26 11:02:33",
+      "amt": 113.0,
+      "channel": "in_person",
+      "p": 0.0008054952,
+      "m": 0.000273584339256709,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3488502,
+      "ts": "2016-11-26 11:16:07",
+      "amt": 43.97,
+      "channel": "in_person",
+      "p": 0.0010199912,
+      "m": 0.000528504884990838,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3488570,
+      "ts": "2016-11-26 12:32:25",
+      "amt": 49.98,
+      "channel": "online",
+      "p": 0.0021166908,
+      "m": 0.001377651511790871,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3488601,
+      "ts": "2016-11-26 12:50:05",
+      "amt": 226.07,
+      "channel": "in_person",
+      "p": 0.0016618354,
+      "m": 0.000857790868599955,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3488661,
+      "ts": "2016-11-26 13:26:58",
+      "amt": 117.09,
+      "channel": "in_person",
+      "p": 0.001136232,
+      "m": 0.00044226465259230267,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3488749,
+      "ts": "2016-11-26 14:06:00",
+      "amt": 77.07,
+      "channel": "in_person",
+      "p": 0.0004607365,
+      "m": 0.0003138524978180891,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3488755,
+      "ts": "2016-11-26 14:08:26",
+      "amt": 49.02,
+      "channel": "in_person",
+      "p": 0.0006994142,
+      "m": 0.00045683802856762634,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3488852,
+      "ts": "2016-11-26 14:55:15",
+      "amt": 226.01,
+      "channel": "in_person",
+      "p": 0.0003242448,
+      "m": 0.00017801274414971804,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3488866,
+      "ts": "2016-11-26 15:06:30",
+      "amt": 216.04,
+      "channel": "in_person",
+      "p": 0.0006086254,
+      "m": 0.00018783595813443398,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3488893,
+      "ts": "2016-11-26 15:17:04",
+      "amt": 225.02,
+      "channel": "in_person",
+      "p": 0.0004433641,
+      "m": 0.00017299058568201266,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3488922,
+      "ts": "2016-11-26 15:26:50",
+      "amt": 225.93,
+      "channel": "in_person",
+      "p": 0.0014813329,
+      "m": 0.0005423726953560645,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3488954,
+      "ts": "2016-11-26 15:38:55",
+      "amt": 59.0,
+      "channel": "in_person",
+      "p": 0.0032746654,
+      "m": 0.002931782468321256,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3488967,
+      "ts": "2016-11-26 15:45:03",
+      "amt": 116.98,
+      "channel": "in_person",
+      "p": 0.0006525285,
+      "m": 0.00021897769586947438,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3488986,
+      "ts": "2016-11-26 15:51:08",
+      "amt": 38.92,
+      "channel": "in_person",
+      "p": 0.0005534346,
+      "m": 0.00040456520905325736,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3489157,
+      "ts": "2016-11-26 16:43:06",
+      "amt": 97.08,
+      "channel": "in_person",
+      "p": 0.0008648466,
+      "m": 0.0002872546124953877,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3489290,
+      "ts": "2016-11-26 17:30:49",
+      "amt": 214.07,
+      "channel": "in_person",
+      "p": 0.000920755,
+      "m": 0.0002687896860367776,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3489383,
+      "ts": "2016-11-26 17:59:44",
+      "amt": 116.95,
+      "channel": "in_person",
+      "p": 0.0004153273,
+      "m": 0.00021453240641486284,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3489428,
+      "ts": "2016-11-26 18:16:53",
+      "amt": 50.09,
+      "channel": "online",
+      "p": 0.0005516021,
+      "m": 0.00023588349852000885,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3489497,
+      "ts": "2016-11-26 18:43:10",
+      "amt": 96.97,
+      "channel": "in_person",
+      "p": 0.0038420831,
+      "m": 0.0026315321226021596,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3489509,
+      "ts": "2016-11-26 18:49:02",
+      "amt": 97.04,
+      "channel": "in_person",
+      "p": 0.29341459,
+      "m": 0.27803805824997185,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3489515,
+      "ts": "2016-11-26 18:49:34",
+      "amt": 97.02,
+      "channel": "in_person",
+      "p": 0.1596219825,
+      "m": 0.14340913687199733,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3489676,
+      "ts": "2016-11-26 19:39:15",
+      "amt": 294.95,
+      "channel": "in_person",
+      "p": 0.0317219058,
+      "m": 0.010427234131349744,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3489691,
+      "ts": "2016-11-26 19:46:02",
+      "amt": 34.08,
+      "channel": "in_person",
+      "p": 0.0043507987,
+      "m": 0.005022518189279195,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3489703,
+      "ts": "2016-11-26 19:49:58",
+      "amt": 129.95,
+      "channel": "in_person",
+      "p": 0.0012962808,
+      "m": 0.0007195465982689636,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3489721,
+      "ts": "2016-11-26 19:55:41",
+      "amt": 77.09,
+      "channel": "in_person",
+      "p": 0.0037129181,
+      "m": 0.0020932056959625427,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3489767,
+      "ts": "2016-11-26 20:08:50",
+      "amt": 210.03,
+      "channel": "in_person",
+      "p": 0.0001536093,
+      "m": 0.00012899331600870089,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3489772,
+      "ts": "2016-11-26 20:10:09",
+      "amt": 88.01,
+      "channel": "in_person",
+      "p": 0.0013605914,
+      "m": 0.0008514760659342313,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3489813,
+      "ts": "2016-11-26 20:23:36",
+      "amt": 145.98,
+      "channel": "in_person",
+      "p": 0.0004397322,
+      "m": 0.0001527196277132814,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3489904,
+      "ts": "2016-11-26 20:54:45",
+      "amt": 25.0,
+      "channel": "online",
+      "p": 0.0004305214,
+      "m": 0.0001817806149010077,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3490019,
+      "ts": "2016-11-26 21:31:43",
+      "amt": 295.05,
+      "channel": "in_person",
+      "p": 0.0062989694,
+      "m": 0.0036228118216828408,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3490069,
+      "ts": "2016-11-26 21:46:20",
+      "amt": 145.95,
+      "channel": "in_person",
+      "p": 0.0013066354,
+      "m": 0.0005736932607120703,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3490114,
+      "ts": "2016-11-26 22:02:08",
+      "amt": 116.99,
+      "channel": "in_person",
+      "p": 0.0112727338,
+      "m": 0.005363367264471023,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3490180,
+      "ts": "2016-11-26 22:22:54",
+      "amt": 117.07,
+      "channel": "in_person",
+      "p": 0.8521604323,
+      "m": 0.2778021391045786,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3490239,
+      "ts": "2016-11-26 22:40:19",
+      "amt": 161.02,
+      "channel": "in_person",
+      "p": 0.0015507924,
+      "m": 0.0009505344079395596,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3490305,
+      "ts": "2016-11-26 23:04:28",
+      "amt": 59.07,
+      "channel": "in_person",
+      "p": 0.0002492112,
+      "m": 0.00032040209733983217,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3490411,
+      "ts": "2016-11-26 23:36:17",
+      "amt": 116.98,
+      "channel": "in_person",
+      "p": 0.0004792027,
+      "m": 0.00023494208068281113,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3490444,
+      "ts": "2016-11-26 23:45:04",
+      "amt": 554.04,
+      "channel": "in_person",
+      "p": 0.0044362042,
+      "m": 0.005222459716011333,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3490511,
+      "ts": "2016-11-27 00:05:06",
+      "amt": 553.98,
+      "channel": "in_person",
+      "p": 0.0076314014,
+      "m": 0.005289213396803476,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3490585,
+      "ts": "2016-11-27 00:28:37",
+      "amt": 58.94,
+      "channel": "in_person",
+      "p": 0.0010623758,
+      "m": 0.0009216898918440844,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3490630,
+      "ts": "2016-11-27 00:48:38",
+      "amt": 116.95,
+      "channel": "in_person",
+      "p": 0.0006067786,
+      "m": 0.00023494208068281113,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3490655,
+      "ts": "2016-11-27 00:55:26",
+      "amt": 102.99,
+      "channel": "in_person",
+      "p": 0.001531923,
+      "m": 0.0011720055511765736,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3490727,
+      "ts": "2016-11-27 01:32:15",
+      "amt": 86.97,
+      "channel": "in_person",
+      "p": 0.0046518662,
+      "m": 0.0033257972542234757,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3490961,
+      "ts": "2016-11-27 03:39:32",
+      "amt": 58.98,
+      "channel": "in_person",
+      "p": 0.0007820882,
+      "m": 0.00031042161375138453,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3490982,
+      "ts": "2016-11-27 04:07:45",
+      "amt": 48.99,
+      "channel": "in_person",
+      "p": 0.0653630954,
+      "m": 0.042734578845170776,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3491104,
+      "ts": "2016-11-27 09:25:03",
+      "amt": 311.88,
+      "channel": "in_person",
+      "p": 0.0031032353,
+      "m": 0.0014842967406724472,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3491265,
+      "ts": "2016-11-27 12:40:20",
+      "amt": 51.08,
+      "channel": "in_person",
+      "p": 0.0004293906,
+      "m": 0.00028620491020052105,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3491361,
+      "ts": "2016-11-27 13:41:26",
+      "amt": 39.08,
+      "channel": "in_person",
+      "p": 0.077145273,
+      "m": 0.7703280119999835,
+      "in_episode": true,
+      "flagged": true
+    },
+    {
+      "tid": 3491379,
+      "ts": "2016-11-27 13:49:17",
+      "amt": 553.92,
+      "channel": "in_person",
+      "p": 0.0014861697,
+      "m": 0.001844278853933986,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3491469,
+      "ts": "2016-11-27 14:22:01",
+      "amt": 170.95,
+      "channel": "in_person",
+      "p": 0.000888845,
+      "m": 0.0003018707673965826,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3491537,
+      "ts": "2016-11-27 14:43:58",
+      "amt": 38.95,
+      "channel": "in_person",
+      "p": 0.0006917313,
+      "m": 0.00048294583146024704,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3491586,
+      "ts": "2016-11-27 15:02:18",
+      "amt": 168.97,
+      "channel": "in_person",
+      "p": 0.0017494721,
+      "m": 0.0017694840833549844,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3491624,
+      "ts": "2016-11-27 15:24:30",
+      "amt": 39.08,
+      "channel": "in_person",
+      "p": 0.0016043255,
+      "m": 0.004578907398269069,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3491753,
+      "ts": "2016-11-27 16:07:27",
+      "amt": 58.94,
+      "channel": "in_person",
+      "p": 0.0019934914,
+      "m": 0.0014880604696482268,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3491759,
+      "ts": "2016-11-27 16:09:40",
+      "amt": 553.95,
+      "channel": "in_person",
+      "p": 0.0302624374,
+      "m": 0.007073525535788518,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3491774,
+      "ts": "2016-11-27 16:13:32",
+      "amt": 58.96,
+      "channel": "in_person",
+      "p": 0.0048771381,
+      "m": 0.00404372280436923,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3491794,
+      "ts": "2016-11-27 16:18:04",
+      "amt": 50.0,
+      "channel": "online",
+      "p": 0.0017046884,
+      "m": 0.0011002822179032915,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3491856,
+      "ts": "2016-11-27 16:36:48",
+      "amt": 49.07,
+      "channel": "in_person",
+      "p": 0.0001877959,
+      "m": 0.00017767379289785031,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3491872,
+      "ts": "2016-11-27 16:43:26",
+      "amt": 49.94,
+      "channel": "online",
+      "p": 0.0004118072,
+      "m": 0.00021249411113913614,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3492018,
+      "ts": "2016-11-27 17:34:22",
+      "amt": 58.98,
+      "channel": "in_person",
+      "p": 0.0014778622,
+      "m": 0.001015974337767539,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3492105,
+      "ts": "2016-11-27 17:59:40",
+      "amt": 74.95,
+      "channel": "online",
+      "p": 0.0042670989,
+      "m": 0.0025956214062834737,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3492168,
+      "ts": "2016-11-27 18:19:01",
+      "amt": 30.0,
+      "channel": "online",
+      "p": 0.0007178736,
+      "m": 0.0002455221385427153,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3492221,
+      "ts": "2016-11-27 18:35:05",
+      "amt": 49.09,
+      "channel": "in_person",
+      "p": 0.0009150952,
+      "m": 0.0004010341740169185,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3492278,
+      "ts": "2016-11-27 18:53:25",
+      "amt": 57.87,
+      "channel": "in_person",
+      "p": 0.0001993001,
+      "m": 0.00033214784031745817,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3492300,
+      "ts": "2016-11-27 18:57:04",
+      "amt": 225.93,
+      "channel": "in_person",
+      "p": 0.0040345121,
+      "m": 0.0022902634106196384,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3492405,
+      "ts": "2016-11-27 19:33:02",
+      "amt": 29.09,
+      "channel": "in_person",
+      "p": 0.0003608292,
+      "m": 0.00021562467698927807,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3492558,
+      "ts": "2016-11-27 20:22:04",
+      "amt": 459.91,
+      "channel": "in_person",
+      "p": 0.0006565792,
+      "m": 0.0002071478729624015,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3492783,
+      "ts": "2016-11-27 21:30:25",
+      "amt": 117.04,
+      "channel": "in_person",
+      "p": 0.0031788098,
+      "m": 0.0020012236384863054,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3492968,
+      "ts": "2016-11-27 22:28:36",
+      "amt": 116.94,
+      "channel": "in_person",
+      "p": 0.0006819382,
+      "m": 0.00021915921213211414,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3492992,
+      "ts": "2016-11-27 22:39:01",
+      "amt": 30.08,
+      "channel": "in_person",
+      "p": 0.0014892811,
+      "m": 0.0014424107478764575,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3493114,
+      "ts": "2016-11-27 23:19:48",
+      "amt": 30.08,
+      "channel": "in_person",
+      "p": 0.0052714141,
+      "m": 0.004542982699851647,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3493118,
+      "ts": "2016-11-27 23:21:54",
+      "amt": 311.99,
+      "channel": "in_person",
+      "p": 0.0007402913,
+      "m": 0.0001403674212599171,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3493254,
+      "ts": "2016-11-28 00:06:48",
+      "amt": 116.99,
+      "channel": "in_person",
+      "p": 0.0037139951,
+      "m": 0.0013898152905845527,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3493258,
+      "ts": "2016-11-28 00:07:47",
+      "amt": 209.92,
+      "channel": "in_person",
+      "p": 0.0001946931,
+      "m": 0.0001481611482329576,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3493295,
+      "ts": "2016-11-28 00:19:16",
+      "amt": 34.08,
+      "channel": "in_person",
+      "p": 0.0017181795,
+      "m": 0.0015829927917493697,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3493301,
+      "ts": "2016-11-28 00:21:59",
+      "amt": 29.01,
+      "channel": "in_person",
+      "p": 0.000457372,
+      "m": 0.00025307785488513674,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3493420,
+      "ts": "2016-11-28 00:58:37",
+      "amt": 28.91,
+      "channel": "in_person",
+      "p": 0.0016976801,
+      "m": 0.0014494489961405298,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3493673,
+      "ts": "2016-11-28 02:45:21",
+      "amt": 202.93,
+      "channel": "in_person",
+      "p": 0.001032611,
+      "m": 0.0003066738208078724,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3493830,
+      "ts": "2016-11-28 04:45:04",
+      "amt": 100.08,
+      "channel": "online",
+      "p": 0.0004440102,
+      "m": 0.0001230998718123134,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3493835,
+      "ts": "2016-11-28 04:58:05",
+      "amt": 38.94,
+      "channel": "in_person",
+      "p": 0.0004200692,
+      "m": 0.0003338900178219214,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3493982,
+      "ts": "2016-11-28 11:29:36",
+      "amt": 99.87,
+      "channel": "in_person",
+      "p": 0.0004290995,
+      "m": 0.00021689570951957527,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3494040,
+      "ts": "2016-11-28 12:18:20",
+      "amt": 107.98,
+      "channel": "in_person",
+      "p": 0.0007765145,
+      "m": 0.00021322475964663127,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3494297,
+      "ts": "2016-11-28 14:04:34",
+      "amt": 107.94,
+      "channel": "in_person",
+      "p": 0.0006046063,
+      "m": 0.0002302427332468636,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3494313,
+      "ts": "2016-11-28 14:11:19",
+      "amt": 50.03,
+      "channel": "online",
+      "p": 0.0024386083,
+      "m": 0.001362913098672962,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3494500,
+      "ts": "2016-11-28 15:18:55",
+      "amt": 205.94,
+      "channel": "in_person",
+      "p": 0.0199156493,
+      "m": 0.009344562920808066,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3494569,
+      "ts": "2016-11-28 15:45:42",
+      "amt": 226.05,
+      "channel": "in_person",
+      "p": 0.0015633226,
+      "m": 0.00078399696729056,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3494681,
+      "ts": "2016-11-28 16:19:30",
+      "amt": 77.92,
+      "channel": "in_person",
+      "p": 0.0015125776,
+      "m": 0.0012878494787252376,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3495111,
+      "ts": "2016-11-28 18:33:49",
+      "amt": 116.96,
+      "channel": "in_person",
+      "p": 0.0029092731,
+      "m": 0.0012348281764707483,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3495116,
+      "ts": "2016-11-28 18:34:31",
+      "amt": 58.98,
+      "channel": "in_person",
+      "p": 0.0006720844,
+      "m": 0.0002485235598123474,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3495181,
+      "ts": "2016-11-28 18:58:36",
+      "amt": 117.03,
+      "channel": "in_person",
+      "p": 0.0002429296,
+      "m": 0.00013265443313160652,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3495232,
+      "ts": "2016-11-28 19:18:04",
+      "amt": 34.47,
+      "channel": "in_person",
+      "p": 0.0008490175,
+      "m": 0.00027326942835158736,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3495325,
+      "ts": "2016-11-28 19:47:04",
+      "amt": 58.92,
+      "channel": "in_person",
+      "p": 0.0159258128,
+      "m": 0.014370496208718199,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3495379,
+      "ts": "2016-11-28 20:01:04",
+      "amt": 49.98,
+      "channel": "online",
+      "p": 0.0005986468,
+      "m": 0.00022616407561498725,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3495392,
+      "ts": "2016-11-28 20:04:17",
+      "amt": 59.01,
+      "channel": "in_person",
+      "p": 0.0023133411,
+      "m": 0.0014340173038205875,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3495400,
+      "ts": "2016-11-28 20:05:54",
+      "amt": 35.95,
+      "channel": "in_person",
+      "p": 0.0001249417,
+      "m": 0.00017350991923679974,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3495684,
+      "ts": "2016-11-28 21:32:47",
+      "amt": 57.86,
+      "channel": "in_person",
+      "p": 0.0003729128,
+      "m": 0.0001921217450494404,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3495731,
+      "ts": "2016-11-28 21:49:24",
+      "amt": 38.92,
+      "channel": "in_person",
+      "p": 0.0001879761,
+      "m": 0.00041021086483120176,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3495754,
+      "ts": "2016-11-28 21:55:25",
+      "amt": 59.09,
+      "channel": "in_person",
+      "p": 0.0033013042,
+      "m": 0.001965461116464336,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3495821,
+      "ts": "2016-11-28 22:17:42",
+      "amt": 99.91,
+      "channel": "online",
+      "p": 0.000534983,
+      "m": 0.0001912974810849176,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3495904,
+      "ts": "2016-11-28 22:40:33",
+      "amt": 29.09,
+      "channel": "in_person",
+      "p": 0.0026149981,
+      "m": 0.002195432728350739,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3495908,
+      "ts": "2016-11-28 22:41:24",
+      "amt": 108.02,
+      "channel": "in_person",
+      "p": 0.0003552018,
+      "m": 0.00018668745386335307,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3495952,
+      "ts": "2016-11-28 22:55:07",
+      "amt": 107.91,
+      "channel": "in_person",
+      "p": 0.000357639,
+      "m": 0.00020851933712846075,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3495996,
+      "ts": "2016-11-28 23:13:02",
+      "amt": 211.03,
+      "channel": "in_person",
+      "p": 0.0010480936,
+      "m": 0.00028979863091322007,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3495998,
+      "ts": "2016-11-28 23:14:26",
+      "amt": 59.01,
+      "channel": "in_person",
+      "p": 0.0005326887,
+      "m": 0.00025331952774960135,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3496129,
+      "ts": "2016-11-29 00:00:48",
+      "amt": 116.95,
+      "channel": "in_person",
+      "p": 0.0008007495,
+      "m": 0.00022053782032814087,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3496239,
+      "ts": "2016-11-29 00:34:05",
+      "amt": 57.94,
+      "channel": "in_person",
+      "p": 0.0011628106,
+      "m": 0.0007240440190379529,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3496257,
+      "ts": "2016-11-29 00:40:04",
+      "amt": 25.02,
+      "channel": "in_person",
+      "p": 0.0005342214,
+      "m": 0.0001875793226481282,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3496291,
+      "ts": "2016-11-29 00:54:22",
+      "amt": 29.03,
+      "channel": "in_person",
+      "p": 0.0029991266,
+      "m": 0.004260224035712498,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3496335,
+      "ts": "2016-11-29 01:07:24",
+      "amt": 57.94,
+      "channel": "in_person",
+      "p": 0.0005856848,
+      "m": 0.00024599402813886095,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3496796,
+      "ts": "2016-11-29 10:40:12",
+      "amt": 35.9,
+      "channel": "in_person",
+      "p": 0.0002127784,
+      "m": 0.00020524393506571984,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3496867,
+      "ts": "2016-11-29 11:58:46",
+      "amt": 35.0,
+      "channel": "in_person",
+      "p": 0.0012928216,
+      "m": 0.0006557196681060927,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3497092,
+      "ts": "2016-11-29 14:15:57",
+      "amt": 58.0,
+      "channel": "in_person",
+      "p": 0.0005768199,
+      "m": 0.00035130124238065346,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3497135,
+      "ts": "2016-11-29 14:26:15",
+      "amt": 58.98,
+      "channel": "in_person",
+      "p": 0.0015663202,
+      "m": 0.001241505512342766,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3497188,
+      "ts": "2016-11-29 14:46:28",
+      "amt": 226.09,
+      "channel": "in_person",
+      "p": 0.0001508441,
+      "m": 0.00012820312357766426,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3497338,
+      "ts": "2016-11-29 15:39:59",
+      "amt": 107.86,
+      "channel": "in_person",
+      "p": 0.0001003605,
+      "m": 0.0001471456809637327,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3497417,
+      "ts": "2016-11-29 16:04:53",
+      "amt": 32.9,
+      "channel": "in_person",
+      "p": 0.0005225269,
+      "m": 0.00020645472524671445,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3497751,
+      "ts": "2016-11-29 17:49:57",
+      "amt": 59.09,
+      "channel": "in_person",
+      "p": 0.0015063236,
+      "m": 0.001046163533865009,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3497754,
+      "ts": "2016-11-29 17:50:21",
+      "amt": 108.02,
+      "channel": "in_person",
+      "p": 0.0002557425,
+      "m": 0.00016495793621362057,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3497813,
+      "ts": "2016-11-29 18:05:13",
+      "amt": 31.04,
+      "channel": "in_person",
+      "p": 0.0010061119,
+      "m": 0.00030515299685772624,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3497820,
+      "ts": "2016-11-29 18:07:29",
+      "amt": 200.07,
+      "channel": "online",
+      "p": 0.0004851604,
+      "m": 0.0001170414137786868,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3497911,
+      "ts": "2016-11-29 18:37:17",
+      "amt": 171.05,
+      "channel": "in_person",
+      "p": 0.0067785159,
+      "m": 0.002740411430057721,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3498111,
+      "ts": "2016-11-29 19:45:35",
+      "amt": 943.92,
+      "channel": "in_person",
+      "p": 0.0049882649,
+      "m": 0.0014325249154795387,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3498255,
+      "ts": "2016-11-29 20:26:40",
+      "amt": 117.01,
+      "channel": "in_person",
+      "p": 0.0008159853,
+      "m": 0.00018354461878096188,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3498293,
+      "ts": "2016-11-29 20:36:24",
+      "amt": 170.98,
+      "channel": "in_person",
+      "p": 0.0044079878,
+      "m": 0.0013791513760479472,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3498413,
+      "ts": "2016-11-29 21:06:13",
+      "amt": 35.86,
+      "channel": "in_person",
+      "p": 0.0004571098,
+      "m": 0.00018874280771162807,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3498531,
+      "ts": "2016-11-29 21:37:36",
+      "amt": 59.01,
+      "channel": "in_person",
+      "p": 0.0012172285,
+      "m": 0.00044189725312022645,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3498605,
+      "ts": "2016-11-29 21:59:40",
+      "amt": 49.91,
+      "channel": "in_person",
+      "p": 0.0001868423,
+      "m": 0.00015863482826162638,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3498659,
+      "ts": "2016-11-29 22:18:45",
+      "amt": 461.92,
+      "channel": "in_person",
+      "p": 0.0002947572,
+      "m": 0.00015750371417613956,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3498702,
+      "ts": "2016-11-29 22:36:36",
+      "amt": 97.06,
+      "channel": "in_person",
+      "p": 0.0024903736,
+      "m": 0.001320661591013314,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3498728,
+      "ts": "2016-11-29 22:47:10",
+      "amt": 2344.9,
+      "channel": "in_person",
+      "p": 0.0029139923,
+      "m": 0.0042182266798342465,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3498958,
+      "ts": "2016-11-30 00:11:52",
+      "amt": 87.87,
+      "channel": "in_person",
+      "p": 0.0013971024,
+      "m": 0.0005074580793808958,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3498988,
+      "ts": "2016-11-30 00:25:10",
+      "amt": 209.88,
+      "channel": "in_person",
+      "p": 0.0004700723,
+      "m": 0.00013358958356544538,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3499031,
+      "ts": "2016-11-30 00:37:10",
+      "amt": 26.04,
+      "channel": "in_person",
+      "p": 0.0008404175,
+      "m": 0.00020468407779416627,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3499170,
+      "ts": "2016-11-30 01:25:53",
+      "amt": 57.01,
+      "channel": "in_person",
+      "p": 0.0018362004,
+      "m": 0.0008452588008273331,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3499241,
+      "ts": "2016-11-30 01:56:47",
+      "amt": 29.06,
+      "channel": "in_person",
+      "p": 0.0014044314,
+      "m": 0.0005041838806304692,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3499288,
+      "ts": "2016-11-30 02:18:38",
+      "amt": 77.06,
+      "channel": "in_person",
+      "p": 0.0001864192,
+      "m": 0.00011612696058449363,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3499296,
+      "ts": "2016-11-30 02:23:30",
+      "amt": 29.02,
+      "channel": "in_person",
+      "p": 0.0016516912,
+      "m": 0.0007179090972982059,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3499370,
+      "ts": "2016-11-30 03:16:08",
+      "amt": 213.07,
+      "channel": "in_person",
+      "p": 0.0118417206,
+      "m": 0.0036895262272764583,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3499405,
+      "ts": "2016-11-30 03:42:10",
+      "amt": 225.99,
+      "channel": "in_person",
+      "p": 0.0006140945,
+      "m": 0.00013589483802352773,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3499610,
+      "ts": "2016-11-30 07:26:29",
+      "amt": 150.0,
+      "channel": "online",
+      "p": 0.0408389778,
+      "m": 0.006351870531106874,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3499615,
+      "ts": "2016-11-30 07:42:52",
+      "amt": 102.86,
+      "channel": "in_person",
+      "p": 0.0005617991,
+      "m": 0.00018078622299667204,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3499633,
+      "ts": "2016-11-30 08:41:07",
+      "amt": 107.96,
+      "channel": "in_person",
+      "p": 0.0002690869,
+      "m": 0.0001239328470739211,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3499662,
+      "ts": "2016-11-30 10:11:22",
+      "amt": 47.92,
+      "channel": "in_person",
+      "p": 0.0004248519,
+      "m": 0.00016640623608274498,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3499751,
+      "ts": "2016-11-30 11:52:31",
+      "amt": 58.92,
+      "channel": "in_person",
+      "p": 0.0030801974,
+      "m": 0.0007209847225788434,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3499842,
+      "ts": "2016-11-30 12:34:39",
+      "amt": 335.05,
+      "channel": "in_person",
+      "p": 0.007556344,
+      "m": 0.0015025632965900567,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3499867,
+      "ts": "2016-11-30 12:44:05",
+      "amt": 334.98,
+      "channel": "in_person",
+      "p": 0.0019691223,
+      "m": 0.0002972297771453475,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3499895,
+      "ts": "2016-11-30 12:58:03",
+      "amt": 424.91,
+      "channel": "in_person",
+      "p": 0.0035458969,
+      "m": 0.0005118659997339748,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3499976,
+      "ts": "2016-11-30 13:32:04",
+      "amt": 54.55,
+      "channel": "in_person",
+      "p": 0.0019108291,
+      "m": 0.0005855361648073016,
+      "in_episode": false,
+      "flagged": false
+    },
+    {
+      "tid": 3499982,
+      "ts": "2016-11-30 13:33:34",
+      "amt": 54.58,
+      "channel": "in_person",
+      "p": 0.002716054,
+      "m": 0.0009286080676441345,
+      "in_episode": false,
+      "flagged": false
+    }
+  ],
+  "graph": {
+    "nodes": [
+      {
+        "id": "C02354",
+        "label": "C02354",
+        "type": "customer"
+      },
+      {
+        "id": "C02354-K2",
+        "label": "C02354-K2",
+        "type": "card",
+        "focus": true
+      },
+      {
+        "id": "T3485990",
+        "label": "85990",
+        "type": "txn",
+        "title": "3485990"
+      },
+      {
+        "id": "T3491361",
+        "label": "91361",
+        "type": "txn",
+        "title": "3491361"
+      },
+      {
+        "id": "CC-1450",
+        "label": "CC-1450",
+        "type": "closedcase"
+      },
+      {
+        "id": "CC-4070",
+        "label": "CC-4070",
+        "type": "closedcase"
+      },
+      {
+        "id": "CC-3899",
+        "label": "CC-3899",
+        "type": "closedcase"
+      },
+      {
+        "id": "CC-5534",
+        "label": "CC-5534",
+        "type": "closedcase"
+      },
+      {
+        "id": "CC-5510",
+        "label": "CC-5510",
+        "type": "closedcase"
+      }
+    ],
+    "edges": [
+      {
+        "s": "C02354",
+        "t": "C02354-K2",
+        "label": "OWNS"
+      },
+      {
+        "s": "C02354-K2",
+        "t": "T3485990",
+        "label": "MADE"
+      },
+      {
+        "s": "C02354-K2",
+        "t": "T3491361",
+        "label": "MADE"
+      },
+      {
+        "s": "C02354-K2",
+        "t": "CC-1450",
+        "label": "SIMILAR_TO"
+      },
+      {
+        "s": "C02354-K2",
+        "t": "CC-4070",
+        "label": "SIMILAR_TO"
+      },
+      {
+        "s": "C02354-K2",
+        "t": "CC-3899",
+        "label": "SIMILAR_TO"
+      },
+      {
+        "s": "C02354-K2",
+        "t": "CC-5534",
+        "label": "SIMILAR_TO"
+      },
+      {
+        "s": "C02354-K2",
+        "t": "CC-5510",
+        "label": "SIMILAR_TO"
+      }
+    ]
+  },
+  "steps": [
+    {
+      "n": 1,
+      "tool": "get_transaction",
+      "summary": "in_person $39.08 W at 2016-11-27 13:41:26, bank risk 0.48, model p=0.12",
+      "ms": 457.5
+    },
+    {
+      "n": 2,
+      "tool": "card_profile",
+      "summary": "5860 prior txns, median $86.91499999999999, online 0.08, home region 325.0",
+      "ms": 255.0
+    },
+    {
+      "n": 3,
+      "tool": "card_window",
+      "summary": "242 txns within +-72h, 4 scored >= 0.35",
+      "ms": 262.3
+    },
+    {
+      "n": 4,
+      "tool": "episode_model",
+      "summary": "context model: anchor membership p=0.77, 2 of 242 window txns look like the same episode",
+      "ms": 50.8
+    },
+    {
+      "n": 5,
+      "tool": "region_history",
+      "summary": "region 126: 565 prior txns; +-5d: 41 in region on 8 day(s), 358 elsewhere",
+      "ms": 228.4
+    },
+    {
+      "n": 6,
+      "tool": "region_cluster",
+      "summary": "region 126: 217 cards, 1 likely-fraud txns in +-7d",
+      "ms": 235.0
+    },
+    {
+      "n": 7,
+      "tool": "recurring_check",
+      "summary": "22 earlier identical-amount txns, 0 roughly-monthly gaps, 4.59/30d -> recurring=False",
+      "ms": 682.4
+    },
+    {
+      "n": 8,
+      "tool": "customer_cards",
+      "summary": "2 card(s) on this customer",
+      "ms": 228.3
+    },
+    {
+      "n": 9,
+      "tool": "similar_cases",
+      "summary": "other card C02354-K1: 0 closed case(s)",
+      "ms": 228.6
+    },
+    {
+      "n": 10,
+      "tool": "similar_cases",
+      "summary": "5 similar closed cases: CC-1450, CC-4070, CC-3899, CC-3634, CC-3085",
+      "ms": 474.7
+    },
+    {
+      "n": 11,
+      "tool": "graphrag_retrieve",
+      "summary": "3 grounded chunks: TYPO-0001 (0.75), TYPO-0015 (0.75), POL-R2 (0.74)",
+      "ms": 35478.6
+    }
+  ],
+  "counterfactuals": {
+    "case_id": "HHG-018",
+    "fraud_probability": 0.976,
+    "uncertainty": {
+      "nearest_threshold": "fraud",
+      "threshold_value": 0.85,
+      "distance": 0.126
+    },
+    "counterfactuals": [
+      {
+        "signal": "trigger_is_report",
+        "description": "If the alert had not been a customer report, the fraud probability would be 0.77 instead of 0.98. This crosses the fraud confirmed (>=0.85) threshold.",
+        "p_before": 0.976,
+        "p_after": 0.77,
+        "crosses": [
+          "fraud confirmed (>=0.85)"
+        ]
+      }
+    ]
+  }
+}
