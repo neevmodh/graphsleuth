@@ -32,11 +32,15 @@ def simulate_evidence(inv: Investigation, initial, verdict: str) -> Simulated:
     The assumed reply follows the agent's own belief; inside the ambiguity band no reply is assumed (R4)."""
     acts = {a.action for a in initial}
     if inv.assessment is not None and inv.assessment.evidence_conflict:
+        # the customer's own report conflicts with the graph evidence: no reply is presumed from the customer (who is
+        # party to the conflict), so this goes to a human analyst instead -- the PDF's third evidence-gathering
+        # channel ("requesting additional information from an analyst or approved party"), not a repeat ask of the
+        # customer (#6's first channel) or step-up auth (#6's second).
         text = ("No reply is presumed: the customer's report conflicts with the graph evidence, so the case is escalated "
                 "for analyst review instead of guessing the outcome")
-        return Simulated(EvidenceRequest(type="customer_validation", asked_after_step=len(inv.steps), assumed_response=text), None,
+        return Simulated(EvidenceRequest(type="analyst_info", asked_after_step=len(inv.steps), assumed_response=text), None,
                          Evidence(claim=f"Customer report conflicts with the graph evidence (model support {inv.signals.get('p_stage1', 0):.2f}): {text}",
-                                  source="customer", ref="evidence_request:1", entity_ids=[str(inv.trigger['flagged_txn_id'])]))
+                                  source="external", ref="evidence_request:1", entity_ids=[str(inv.trigger['flagged_txn_id'])]))
     kind = "customer_validation" if "VERIFY_WITH_CUSTOMER" in acts else "step_up_auth" if "STEP_UP_AUTH" in acts else None
     if kind is None:
         return Simulated(None, None, None)

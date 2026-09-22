@@ -92,7 +92,7 @@
       },
       {
         "claim": "Customer report conflicts with the graph evidence (model support 0.00): No reply is presumed: the customer's report conflicts with the graph evidence, so the case is escalated for analyst review instead of guessing the outcome",
-        "source": "customer",
+        "source": "external",
         "ref": "evidence_request:1",
         "entity_ids": [
           "3583368"
@@ -111,7 +111,7 @@
   },
   "evidence_requests": [
     {
-      "type": "customer_validation",
+      "type": "analyst_info",
       "asked_after_step": 8,
       "assumed_response": "No reply is presumed: the customer's report conflicts with the graph evidence, so the case is escalated for analyst review instead of guessing the outcome"
     }
@@ -164,5 +164,5 @@
   "stop_reason": "Further steps are unlikely to change the decision.",
   "tool_calls": 8,
   "tokens": 1554,
-  "latency_s": 40.24
+  "latency_s": 38.04
 }
