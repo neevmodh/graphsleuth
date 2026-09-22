@@ -56,6 +56,9 @@ button.mini.yes{border-color:var(--ok);color:var(--ok)} button.mini.no{border-co
 .gauge i{position:absolute;top:-4px;width:4px;height:22px;background:var(--ink);border-radius:2px;transform:translateX(-2px)}
 .gauge u{position:absolute;top:0;bottom:0;width:1px;background:var(--muted);opacity:.5}
 .ev{display:flex;gap:8px;margin:6px 0}.src{font-size:10px;font-weight:700;text-transform:uppercase;padding:1px 6px;border-radius:4px;background:var(--chip);color:var(--muted);height:fit-content;margin-top:2px;min-width:62px;text-align:center}
+.cf{list-style:none;margin:6px 0 0;padding:0;font-size:12px}
+.cf li{padding:5px 8px;border-radius:6px;color:var(--muted);margin-bottom:4px}
+.cf li.flips{background:var(--unc-bg);color:var(--ink);border:1px solid var(--unc)}
 .src.graph{color:var(--accent)} .src.customer{color:var(--warn)}
 .act{display:flex;gap:8px;align-items:flex-start;margin:8px 0}.act .nm{font-weight:600;font-family:ui-monospace,Menlo,monospace;font-size:12.5px}
 .act .why{color:var(--muted);font-size:12.5px}
@@ -133,7 +136,8 @@ function render(trig, ans, windowData, graph, approvals, steps){
       h('div',{class:'kv'}, h('span',{},'Status'), h('b',{style:'font-size:15px'}, c.status.replaceAll('_',' ')))),
     h('div',{class:'small muted',style:'margin-top:12px'}, 'Fraud probability '+p.toFixed(2)+' (uncertain band 0.35–0.65)'),
     h('div',{class:'gauge'}, h('u',{style:'left:35%'}), h('u',{style:'left:65%'}), h('i',{style:'left:'+(p*100)+'%'})),
-    h('p',{style:'margin:10px 0 0'}, c.summary)));
+    h('p',{style:'margin:10px 0 0'}, c.summary),
+    h('div',{id:'cf'})));
 
   // actions
   const actCol = (title, list, isFinal) => h('div',{}, h('h2',{},title), list.map(a => {
@@ -162,6 +166,17 @@ function render(trig, ans, windowData, graph, approvals, steps){
   v.append(h('div',{class:'card small muted'}, 'Stop reason: '+ans.stop_reason+' · '+ans.tool_calls+' tool calls · '+ans.latency_s+' s · written to TigerGraph: '+(c.written_to_graph?'yes ('+c.graph_case_id+')':'no (local case memory only)')));
   if (windowData) drawTimeline(windowData);
   if (graph) drawGraph(graph);
+}
+
+function renderCounterfactuals(d){
+  const box = $('#cf'); if (!box || !d) return;
+  box.replaceChildren();
+  const u = d.uncertainty;
+  box.append(h('div',{class:'small muted',style:'margin-top:12px'},
+    'Uncertainty: '+u.distance.toFixed(2)+' from the '+u.nearest_threshold+' threshold ('+u.threshold_value+')'+
+    (d.counterfactuals.length?' — what would flip the decision:':' — no single evidence signal alone would flip it.')));
+  if (d.counterfactuals.length) box.append(h('ul',{class:'cf'}, d.counterfactuals.map(c =>
+    h('li',{class:c.crosses.length?'flips':''}, c.description))));
 }
 
 function drawTimeline(w){
@@ -214,7 +229,8 @@ function run(id){
     const t = (await (await fetch('/api/cases/'+id)).json());
     const items = [...list.children].map(li=>li.cloneNode(true));
     render(t.trigger, d.answer, d.window, d.graph, t.approvals, {running:false});
-    const nl = $('#steps'); items.forEach(li=>nl.append(li)); $('#stephint').textContent=''; loadQueue(); });
+    const nl = $('#steps'); items.forEach(li=>nl.append(li)); $('#stephint').textContent=''; loadQueue();
+    fetch('/api/cases/'+id+'/counterfactuals').then(r=>r.ok?r.json():null).then(renderCounterfactuals).catch(()=>{}); });
   es.addEventListener('error', e => { if (e.data){ const d = JSON.parse(e.data); $('#stephint').textContent = 'Error: '+d.message; } es && es.close(); es=null; btn.disabled=false; btn.textContent='Investigate'; });
 }
 

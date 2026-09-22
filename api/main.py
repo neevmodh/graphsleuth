@@ -16,11 +16,16 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
 
+from dataclasses import asdict
+
+from agent import counterfactual
 from agent.backend import LocalBackend, _clean
-from agent.backend_factory import make_backend
+from agent.backend_factory import make_backend, make_rag
+from agent.investigator import Investigation
 from agent.memory import LocalCaseMemory
 from agent.llm import LLMRouter
 from agent.orchestrator import Orchestrator
+from agent.policy import CASE_GATE_P, STOP_HIGH_P, STOP_LOW_P
 
 ROOT = Path(__file__).resolve().parents[1]
 CASES = ROOT / "cases"
@@ -34,7 +39,9 @@ _TG = os.getenv("GRAPHSLEUTH_BACKEND", "local").lower() == "tigergraph"
 _shared = make_backend() if _TG else None          # TigerGraph connections are shared; DuckDB ones are per request (thread safety)
 _memory = _shared[1] if _TG else LocalCaseMemory()
 _llm = LLMRouter.from_env()
+_rag = make_rag(_shared[0], _llm) if _TG else None    # GraphRAG needs the TigerGraph backend; opened once, reused per request
 _pack: dict[str, dict] = {}
+_investigations: dict[str, Investigation] = {}      # last run's Investigation per case, for counterfactuals/uncertainty (in-memory only)
 
 
 def pack() -> dict[str, dict]:
@@ -138,7 +145,7 @@ async def run_case(cid: str, pace: float = 0.0):
 
     def work() -> None:
         try:
-            orch = Orchestrator(_shared[0] if _TG else LocalBackend("final"), _memory, llm=_llm)
+            orch = Orchestrator(_shared[0] if _TG else LocalBackend("final"), _memory, llm=_llm, rag=_rag)
 
             def on_step(s) -> None:
                 push("step", {"n": s.n, "tool": s.tool, "summary": s.summary, "ms": round(s.ms, 1)})
@@ -147,6 +154,7 @@ async def run_case(cid: str, pace: float = 0.0):
 
             with _lock:                       # one writer to the local memory store at a time
                 ans = orch.run_case(trig, on_step=on_step)
+            _investigations[cid] = orch.last   # kept in memory for /counterfactuals; never persisted
             data = ans.model_dump()
             CASES.mkdir(exist_ok=True)
             (CASES / f"{cid}.json").write_text(json.dumps(data, indent=2) + "\n")
@@ -172,6 +180,24 @@ def case_graph(cid: str):
     if not a:
         raise HTTPException(404, "run the case first")
     return graph_payload(cid, a, None)
+
+
+@app.get("/api/cases/{cid}/counterfactuals")
+def case_counterfactuals(cid: str):
+    """#27: which evidence signal, if it had come out differently, would have flipped the verdict -- and how close
+    the case sits to the nearest policy threshold (the UI's uncertainty read-out). Computed from the live
+    Investigation kept from the last /run, so investigate the case first."""
+    inv = _investigations.get(cid)
+    if inv is None:
+        raise HTTPException(404, "run the case first: counterfactuals are computed from the live investigation, not the saved answer")
+    thresholds = [("legitimate", STOP_LOW_P), ("case-opens", CASE_GATE_P), ("fraud", STOP_HIGH_P)]
+    nearest = min(thresholds, key=lambda kv: abs(inv.p_case - kv[1]))
+    return {
+        "case_id": cid, "fraud_probability": round(inv.p_case, 3),
+        "uncertainty": {"nearest_threshold": nearest[0], "threshold_value": nearest[1],
+                        "distance": round(abs(inv.p_case - nearest[1]), 3)},
+        "counterfactuals": [asdict(c) for c in counterfactual.explain(inv)],
+    }
 
 
 class Decision(BaseModel):
