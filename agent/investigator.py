@@ -285,7 +285,6 @@ class Investigator:
 
     # ---- episode ------------------------------------------------------------------------------------------------
     def _assemble_episode(self, inv: Investigation, win: pd.DataFrame, tid: int, testing: dict, struct: dict, ring: dict, em=None) -> None:
-        cfg = self.cfg
         ep: list[int] = []
         mine = None
         if ring["hit"]:
@@ -441,7 +440,7 @@ class Investigator:
         for c in inv.similar[:3]:
             add(f"Closed case {c['case_id']} ({c['outcome']}, {c['pattern']}, ${c['exposure']:.2f}) is relevant: "
                 + ", ".join(k.replace('same_', 'same ') for k in ("same_device", "same_card", "same_region", "same_pattern") if c.get(k)) + ".",
-                "graph", f"query:similar_cases", [c["case_id"]])
+                "graph", "query:similar_cases", [c["case_id"]])
         if inv.rag is not None:                                        # grounded context retrieved from TigerGraph (GraphRAG)
             for h in inv.rag.hits:
                 if h.score < 0.5:

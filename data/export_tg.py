@@ -5,7 +5,6 @@ Run after `python data/load_local.py`, `python -m agent.features`, `python -m ag
 """
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 
 import duckdb

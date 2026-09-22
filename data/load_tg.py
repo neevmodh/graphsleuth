@@ -43,7 +43,7 @@ def retry(fn, tries: int = 4):
     for k in range(tries):
         try:
             return fn()
-        except Exception as e:                        # noqa: BLE001
+        except Exception:                        # noqa: BLE001
             if k == tries - 1:
                 raise
             time.sleep(2 ** k)

@@ -62,7 +62,7 @@ class LocalBackend:
             SELECT addr1, count(*) c FROM feat WHERE card_id = {_q(card_id)} AND ts < {_q(before_ts)} AND addr1 IS NOT NULL
             GROUP BY 1 ORDER BY c DESC LIMIT 3""").fetchall()
         keys = ["n_prior", "first_ts", "online_frac", "median_amt", "mean_amt", "max_amt", "regions", "devices", "products"]
-        d = dict(zip(keys, r))
+        d = dict(zip(keys, r, strict=True))
         d["top_regions"] = [{"addr1": a, "n": c} for a, c in top]
         d["home_region"] = top[0][0] if top else None
         return _clean(d)
@@ -153,7 +153,7 @@ class LocalBackend:
             ORDER BY f.ts""").fetchall()
         times = [r[0] for r in rows]
         n_prior = max(len(times) - 1, 0)
-        gaps = [(b - a).total_seconds() / 86400 for a, b in zip(times, times[1:])]
+        gaps = [(b - a).total_seconds() / 86400 for a, b in zip(times, times[1:], strict=False)]
         mid = [g for g in gaps if 26 <= g <= 34]
         span = (times[-1] - times[0]).total_seconds() / 86400 if len(times) > 1 else 0.0
         rate30 = n_prior / (max(span, 30.0) / 30.0)

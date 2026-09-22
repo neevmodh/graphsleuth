@@ -55,7 +55,7 @@ def embed_paced(router: LLMRouter, texts: list[str], batch: int = 30, per_min: i
     min_gap = 60.0 * batch / per_min
     for i in range(0, len(texts), batch):
         t0 = time.time()
-        for attempt in range(8):
+        for _attempt in range(8):
             try:
                 out += router.embed(texts[i:i + batch], batch=batch)
                 break
@@ -87,7 +87,7 @@ def build_index(limit: int | None = None) -> dict:
     mcp = MCPConnection()
     try:
         for i in range(0, len(chunks), 25):
-            batch = [{"vertex_id": c.id, "vector": v} for c, v in zip(chunks[i:i + 25], vecs[i:i + 25])]
+            batch = [{"vertex_id": c.id, "vector": v} for c, v in zip(chunks[i:i + 25], vecs[i:i + 25], strict=True)]
             mcp.call("upsert_vectors", vertex_type="DocChunk", vector_attribute="emb", vectors=batch)
         n = mcp.call("get_vertex_count", vertex_type="DocChunk")
     finally:

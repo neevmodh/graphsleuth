@@ -55,7 +55,6 @@ def train(train_end: str, path: Path, holdout_from: str | None = None) -> dict:
     df = _load(con, f"t.ts < '{train_end}'").merge(lab, on="tid", how="inner")
     X, cats = _prep(df)
     y = df["pattern"].map({c: i for i, c in enumerate(CLASSES)}).values
-    mask = np.ones(len(df), bool)
     out = {}
     cat_mask = [c in CAT for c in X.columns]
     mk = lambda: HistGradientBoostingClassifier(max_iter=250, learning_rate=0.08, max_leaf_nodes=31, min_samples_leaf=20,

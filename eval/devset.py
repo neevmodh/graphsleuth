@@ -10,9 +10,7 @@ import argparse
 import json
 import random
 import sys
-from collections import defaultdict
 
-import numpy as np
 import pandas as pd
 from sklearn.metrics import brier_score_loss, roc_auc_score
 
@@ -26,7 +24,7 @@ def sample_cases(b: LocalBackend, per_group: int, seed: int, start: str = "2016-
     rng = random.Random(seed)
     cc = b.query(f"SELECT * FROM closed_cases WHERE opened_at >= '{start}' AND txn_ids <> ''")
     out = []
-    for grp, g in cc.groupby(cc["outcome"].where(cc["outcome"] == "cleared", cc["pattern"])):
+    for _grp, g in cc.groupby(cc["outcome"].where(cc["outcome"] == "cleared", cc["pattern"])):
         rows = g.to_dict("records")
         rng.shuffle(rows)
         out += rows[:per_group]

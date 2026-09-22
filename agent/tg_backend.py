@@ -7,7 +7,6 @@ unit-tested against a fake connection only. Run tests/test_tg_live.py once with 
 """
 from __future__ import annotations
 
-import math
 import os
 import time
 from datetime import timedelta
@@ -181,7 +180,7 @@ class TigerGraphBackend:
         r = self._run("recurring_txns", card=(card_id, "Card"), prod=tx["prod"], amt=float(tx["amt"]), upto=str(tx["ts"]))
         times = sorted(pd.Timestamp(t) for t in (r.get("ts") or []))
         n_prior = max(len(times) - 1, 0)
-        gaps = [(b - a).total_seconds() / 86400 for a, b in zip(times, times[1:])]
+        gaps = [(b - a).total_seconds() / 86400 for a, b in zip(times, times[1:], strict=False)]
         mid = [g for g in gaps if 26 <= g <= 34]
         span = (times[-1] - times[0]).total_seconds() / 86400 if len(times) > 1 else 0.0
         rate30 = n_prior / (max(span, 30.0) / 30.0)

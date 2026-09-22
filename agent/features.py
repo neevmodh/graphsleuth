@@ -83,7 +83,6 @@ def build(con: duckdb.DuckDBPyConnection) -> int:
 
 
 if __name__ == "__main__":
-    import sys
     from pathlib import Path
     db = Path(__file__).resolve().parents[1] / "data" / "store" / "graphsleuth.duckdb"
     con = duckdb.connect(str(db))
