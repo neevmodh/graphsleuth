@@ -95,12 +95,31 @@ inference (e.g. turning "risk scores stay low" into "chosen to keep risk scores 
 template-only answers. Keys: `GROQ_API_KEY` / `GEMINI_API_KEY` in `.env`, comma-separated to rotate several.
 
 ## Quick start
+Verified end to end from a fresh clone (2026-09-22): `data/store/` (the DuckDB file and every trained model) is
+git-ignored, so a fresh clone has none of it -- it all has to be rebuilt once, in this order (each step reads the
+previous one's output; `--final` trains on every labelled month, the plain/`--dev` form holds out from 2016-10-01 for
+the honest offline eval in `docs/eval_results.md`). Budget **~25-35 minutes**, almost all of it the two scorer runs.
 ```bash
 python3.11 -m venv .venv && .venv/bin/pip install -r requirements.txt
-cp .env.example .env            # add Gemini/Groq keys and Savanna details
-.venv/bin/python data/load_local.py   # builds data/store/graphsleuth.duckdb from ../dataset/HHGOA_IEEE
-.venv/bin/python -m pytest tests -q
+cp .env.example .env                    # add Gemini/Groq keys and Savanna details (only needed for the LLM/TigerGraph paths)
+DATA_DIR=../dataset/HHGOA_IEEE .venv/bin/python data/load_local.py   # tx/ident/closed_cases/case_pack/cards -> data/store/graphsleuth.duckdb
+.venv/bin/python -m agent.features                            # behavioural features -> the `feat` table (~1 min)
+.venv/bin/python -m agent.scorer --final                       # calibrated fraud scorer, all months (~4 min)
+.venv/bin/python -m agent.scorer --dev                         # same, held out from Oct 2016 (~4 min)
+.venv/bin/python -m agent.pattern --final                      # pattern classifier, all months
+.venv/bin/python -m agent.pattern                               # same, held out (bare = dev)
+.venv/bin/python -m agent.precompute                            # scores every transaction -> scores_final / scores_dev
+.venv/bin/python -m agent.oof                                   # out-of-fold first-stage scores -> scores_oof (~4 min)
+.venv/bin/python -m agent.episode --final                       # stage-2 episode (context) model, all months
+.venv/bin/python -m agent.episode                                # same, held out (bare = dev)
+.venv/bin/python -m pytest tests -q                             # 82 pass; test_tg_live.py skips without TG_HOST
 ```
+Once built, `python run_cases.py` (local backend by default; `GRAPHSLEUTH_BACKEND=tigergraph` for the real thing) and
+`python -m uvicorn api.main:app --port 8000` both work without repeating the steps above. Known limitation: the
+stage-2 episode model's negative-sampling query (`agent/episode.py`, DuckDB `USING SAMPLE` without a fixed seed) is
+not bit-for-bit reproducible between retrains, so a from-scratch rebuild's probabilities move a few points from run
+to run; a full fresh-clone rebuild checked on 2026-09-22 still passed `eval.validate_answers` 20/20 and every test
+that doesn't need a live TigerGraph connection.
 
 The provided dataset is not included in this repository. Only the provided dataset is used; the public
 Kaggle IEEE-CIS files are never used.

@@ -6,6 +6,8 @@ scikit-learn>=1.5
 pydantic>=2.7
 python-dotenv>=1.0
 pyTigerGraph>=1.8
+mcp>=1.0            # MCP client for GraphRAG retrieval and TigerGraph routing (agent/mcp_conn.py); the MCP *server*
+                     # (tigergraph-mcp) needs pyTigerGraph 2.x and lives in its own venv, see requirements-mcp.txt
 openai>=1.40
 google-genai>=0.3
 fastapi>=0.111
