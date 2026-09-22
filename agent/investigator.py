@@ -74,6 +74,7 @@ class Investigation:
     ring_cards_detail: list[dict] = field(default_factory=list)
     span: tuple[str, str] | None = None       # first/last timestamp of the episode
     episode_scores: object = None             # per-window-txn membership probabilities (stage 2)
+    rag: object = None                        # GraphRAG context (policy / typology / regulatory hits), when available
 
 
 def _logit(p: float) -> float:
@@ -90,8 +91,9 @@ def _ids(tids) -> list[str]:
 
 
 class Investigator:
-    def __init__(self, backend: GraphBackend, cfg: Cfg | None = None, episode_model=None):
+    def __init__(self, backend: GraphBackend, cfg: Cfg | None = None, episode_model=None, rag=None):
         self.b = backend
+        self.rag = rag                   # agent/graphrag.py GraphRAG, or None (local backend / no keys)
         self.cfg = cfg or Cfg()
         self.em = episode_model          # second-stage episode model (agent/episode.py); None => stage-1 fallback
 
@@ -154,6 +156,11 @@ class Investigator:
                 burst = self._call(inv, "device_burst", b.device_burst, {"device_profile": dev, "ts": ts},
                                    lambda r: f"burst {r['burst_start'][:10]}..{r['burst_end'][:10]}: {len(r['cards'])} cards, {r['txns']} txns", on_step)
                 ring = {"hit": True, "burst": burst, "device": dev}
+                if hasattr(b, "ring_component"):                # does the ring reach beyond this one device? (#9 graph algorithm)
+                    comp = self._call(inv, "ring_component", b.ring_component, {"card_id": card},
+                                      lambda r: f"connected component: {r['n_cards']} cards across {r['n_devices']} ring-like device(s)", on_step)
+                    if comp["n_devices"] > 1:
+                        ring["component"] = comp
         sig["ring"] = ring
 
         region = None
@@ -195,9 +202,42 @@ class Investigator:
                          lambda r: f"{len(r)} similar closed cases: " + ", ".join(x["case_id"] for x in r[:5]), on_step)
         inv.similar = sim
         inv.signals = sig
+        if self.rag is not None:
+            try:
+                inv.rag = self._call(inv, "graphrag_retrieve", self.rag.retrieve, {"query": self._rag_query(inv, sig)},
+                                     lambda c: f"{len(c.hits)} grounded chunks: " + ", ".join(f"{h.chunk_id} ({h.score:.2f})" for h in c.hits), on_step)
+            except Exception as e:                                        # noqa: BLE001  retrieval is enrichment: never block the investigation
+                step = Step(len(inv.steps) + 1, "graphrag_retrieve", {}, f"skipped ({type(e).__name__}: {str(e)[:70]})", 0.0)
+                inv.steps.append(step)
+                if on_step:
+                    on_step(step)
         self._build_evidence(inv)
         inv.assessment = self._assessment(inv)
         return inv
+
+    @staticmethod
+    def _rag_query(inv: Investigation, sig: dict) -> str:
+        """Describe the alert in words, so the vector search matches policy, typologies and guidance about *this kind* of case."""
+        f, t = inv.flagged, inv.trigger
+        bits = [f"{t['trigger_type'].replace('_', ' ')} alert on a ${f['amt']:.0f} {f['channel'].replace('_', ' ')} transaction.",
+                f"Assessed fraud probability {inv.p_case:.2f}; pattern {inv.pattern.replace('_', ' ')}."]
+        if f.get("dev_unseen") == 1:
+            bits.append("The device has never been seen on this account.")
+        if f.get("proxy") == 1:
+            bits.append("The purchase came through an anonymous proxy.")
+        if sig.get("ring", {}).get("hit"):
+            bits.append("One rare device is shared by many cards: a coordinated ring across customers.")
+        if sig.get("structuring", {}).get("hit"):
+            bits.append("Several purchases just under an authorization threshold within an hour.")
+        if sig.get("testing", {}).get("hit"):
+            bits.append("Tiny authorizations followed by a larger purchase: card testing.")
+        if sig.get("recurring", {}).get("is_recurring"):
+            bits.append("The charge matches a recurring monthly pattern and the customer disputes it.")
+        if t["trigger_type"] == "customer_report":
+            bits.append("The cardholder says they did not make the transaction.")
+        if f["channel"] == "in_person" and f.get("addr1_new") == 1:
+            bits.append("Card-present use in a billing region new to the cardholder.")
+        return " ".join(bits)
 
     # ---- detectors --------------------------------------------------------------------------------------------
     def _detect_testing(self, win: pd.DataFrame, tid: int) -> dict:
@@ -263,6 +303,16 @@ class Investigator:
             inv.connected_cards = sorted(c["card_id"] for c in ring["burst"]["cards"] if c["card_id"] != card)
             inv.connected_devices = [dev]
             inv.ring_cards_detail = ring["burst"]["cards"]
+            comp = ring.get("component")
+            if comp:                                      # the graph traversal reaches further than this one device's burst
+                comp_cards = sorted({c["card_id"] for c in comp["cards"]} - {card})
+                if len(comp_cards) > len(inv.connected_cards):
+                    inv.connected_cards = comp_cards
+                inv.connected_devices = sorted({d["device_profile"] for d in comp["devices"]} | {dev})
+                inv.pattern_description += (
+                    f" A connected-components traversal from this card through ring-like devices (rare, mostly-New, mostly-proxied) "
+                    f"reaches {comp['n_cards']} cards across {comp['n_devices']} devices in total, confirming this is one coordinated "
+                    f"ring rather than a single coincidental device.")
         elif struct["hit"] and struct["flagged_in_run"]:
             ep = [int(x) for x in struct["run_tids"]]
             inv.pattern = "undocumented"
@@ -366,6 +416,12 @@ class Investigator:
             add(f"Device profile '{sig['ring']['device']}' was used on {len(b['cards'])} cards in one burst ({b['burst_start'][:10]} to {b['burst_end'][:10]}), "
                 f"always marked New and behind an anonymous proxy.", "graph", f"query:device_burst(device={sig['ring']['device']})",
                 [c["card_id"] for c in b["cards"]][:25])
+            comp = sig["ring"].get("component")
+            if comp:
+                add(f"Connected-components traversal (#9 graph algorithm) from this card through ring-like devices reaches "
+                    f"{comp['n_cards']} cards across {comp['n_devices']} devices in total, not just the one burst device.",
+                    "graph", f"query:ring_component(card={inv.trigger['card_id']})",
+                    [c["card_id"] for c in comp["cards"]][:25])
         elif sig.get("device"):
             d = sig["device"]
             add(f"Device profile is shared by {d['cards']} cards overall ({round((d['new_frac'] or 0) * 100)}% New, {round((d['proxy_frac'] or 0) * 100)}% proxied): "
@@ -386,6 +442,18 @@ class Investigator:
             add(f"Closed case {c['case_id']} ({c['outcome']}, {c['pattern']}, ${c['exposure']:.2f}) is relevant: "
                 + ", ".join(k.replace('same_', 'same ') for k in ("same_device", "same_card", "same_region", "same_pattern") if c.get(k)) + ".",
                 "graph", f"query:similar_cases", [c["case_id"]])
+        if inv.rag is not None:                                        # grounded context retrieved from TigerGraph (GraphRAG)
+            for h in inv.rag.hits:
+                if h.score < 0.5:
+                    continue
+                if h.source == "policy":
+                    add(f"{h.title} {h.body[:230]}", "document", f"graphrag:{h.chunk_id}", [])
+                elif h.source == "typology":
+                    ids = [e["case_id"] for e in h.examples[:3]]
+                    add(f"Retrieved closed-case typology {h.chunk_id}: {h.body[:200]} Example closed cases: {', '.join(ids) or 'n/a'}.",
+                        "document", f"graphrag:{h.chunk_id}", ids)
+                else:
+                    add(f"{h.title}: {h.body[:220]}", "document", f"graphrag:{h.chunk_id}", [])
         inv.evidence = ev
 
     # ---- assessment for the policy engine ---------------------------------------------------------------------------------

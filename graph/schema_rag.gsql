@@ -1,0 +1,10 @@
+// GraphRAG schema extension: document / typology chunks that carry an embedding, linked to real closed cases.
+// (`text`, `source` avoided as attribute names: doc_source / body.) The vector attribute is added afterwards over MCP:
+//   tigergraph__add_vector_attribute(vertex_type=DocChunk, vector_name=emb, dimension=768, metric=COSINE)
+USE GRAPH GraphSleuth
+
+CREATE SCHEMA_CHANGE JOB graphsleuth_rag FOR GRAPH GraphSleuth {
+  ADD VERTEX DocChunk (PRIMARY_ID id STRING, doc_source STRING, title STRING, body STRING, pattern STRING, n_cases INT) WITH primary_id_as_attribute="true";
+  ADD DIRECTED EDGE EXEMPLIFIED_BY (FROM DocChunk, TO ClosedCase) WITH REVERSE_EDGE="EXEMPLIFIES";
+}
+RUN SCHEMA_CHANGE JOB graphsleuth_rag

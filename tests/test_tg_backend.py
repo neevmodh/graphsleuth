@@ -84,6 +84,44 @@ def test_similar_cases_scores_and_excludes_the_case_itself():
     assert out[0]["score"] == 5 and all(c["case_id"] != "CC-9" for c in out)
 
 
+def test_ring_component_sorts_cards_and_devices_by_hop():
+    conn = FakeConn({"ring_component": [
+        {"AllCards": [{"v_id": "C1-K1", "attributes": {"hop": 0}}, {"v_id": "C2-K1", "attributes": {"hop": 1}},
+                      {"v_id": "C3-K1", "attributes": {"hop": 2}}]},
+        {"AllDevices": [{"v_id": "DEV-B", "attributes": {"n_cards": 3, "new_frac": 1.0, "proxy_frac": 1.0, "hop": 2}},
+                        {"v_id": "DEV-A", "attributes": {"n_cards": 2, "new_frac": 1.0, "proxy_frac": 1.0, "hop": 1}}]}]})
+    r = TigerGraphBackend(conn).ring_component("C1-K1", max_device_cards=80, min_new_frac=0.85, min_proxy_frac=0.85, max_hops=6)
+    assert conn.calls[0] == ("ring_component", {"seed": ("C1-K1", "Card"), "max_device_cards": 80,
+                                                "min_new_frac": 0.85, "min_proxy_frac": 0.85, "max_hops": 6})
+    assert [c["card_id"] for c in r["cards"]] == ["C1-K1", "C2-K1", "C3-K1"]      # seed first, then by hop distance
+    assert [d["device_profile"] for d in r["devices"]] == ["DEV-A", "DEV-B"]      # hop order, not response order
+    assert r["n_cards"] == 3 and r["n_devices"] == 2
+
+
+def test_device_hub_rank_orders_by_score_regardless_of_query_order():
+    # TigerGraph's own ORDER BY doesn't reliably survive JSON transport, so the client must re-sort defensively.
+    conn = FakeConn({"device_hub_rank": [{"TopDevices": [
+        {"v_id": "DEV-LOW", "attributes": {"n_cards": 4, "new_frac": 1.0, "proxy_frac": 1.0, "hub_score": 1.2}},
+        {"v_id": "DEV-HIGH", "attributes": {"n_cards": 6, "new_frac": 1.0, "proxy_frac": 1.0, "hub_score": 9.4}},
+    ]}]})
+    out = TigerGraphBackend(conn).device_hub_rank(max_device_cards=80, min_new_frac=0.85, min_proxy_frac=0.85, iters=4, top_k=15)
+    assert conn.calls[0] == ("device_hub_rank", {"max_device_cards": 80, "min_new_frac": 0.85,
+                                                  "min_proxy_frac": 0.85, "iters": 4, "top_k": 15})
+    assert [d["device_profile"] for d in out] == ["DEV-HIGH", "DEV-LOW"]
+    assert out[0]["hub_score"] == 9.4
+
+
+def test_card_link_reports_hop_distance_when_linked_and_nothing_when_not():
+    conn = FakeConn({"ring_component": [
+        {"AllCards": [{"v_id": "C1-K1", "attributes": {"hop": 0}}, {"v_id": "C2-K1", "attributes": {"hop": 3}}]},
+        {"AllDevices": [{"v_id": "DEV-A", "attributes": {"n_cards": 2, "new_frac": 1.0, "proxy_frac": 1.0, "hop": 1}}]}]})
+    b = TigerGraphBackend(conn)
+    linked = b.card_link("C1-K1", "C2-K1")
+    assert linked["linked"] is True and linked["hops"] == 3 and linked["component_devices"] == ["DEV-A"]
+    unlinked = b.card_link("C1-K1", "C9-K1")
+    assert unlinked["linked"] is False and unlinked["hops"] is None and unlinked["component_devices"] == []
+
+
 def test_case_memory_writes_the_case_and_its_links():
     conn = FakeConn({})
     case = Case(status="closed_fraud", verdict="fraud", fraud_probability=0.9, pattern="undocumented", pattern_description="ring",

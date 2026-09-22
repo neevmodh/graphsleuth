@@ -48,28 +48,45 @@ class MCPConnection:
         self._thread = threading.Thread(target=self._loop.run_forever, daemon=True)
         self._thread.start()
         self._session = None
-        self._stack = None
         self.calls = 0
-        self._run(self._open())
+        ready = asyncio.run_coroutine_threadsafe(self._start(), self._loop)
+        ready.result(120)                 # raises if the server could not start or authenticate
 
     # ---- session plumbing -----------------------------------------------------------------------------------
     def _run(self, coro, timeout: float = 180):
         return asyncio.run_coroutine_threadsafe(coro, self._loop).result(timeout)
 
-    async def _open(self):
-        from contextlib import AsyncExitStack
+    async def _start(self):
+        """Open the stdio session inside ONE long-lived task: anyio cancel scopes must be entered and exited by the same task."""
+        self._stop = asyncio.Event()
+        ready: asyncio.Future = asyncio.get_running_loop().create_future()
+        self._task = asyncio.create_task(self._lifecycle(ready))
+        await ready
+
+    async def _lifecycle(self, ready):
         from mcp import ClientSession
         from mcp.client.stdio import stdio_client
-        self._stack = AsyncExitStack()
-        r, w = await self._stack.enter_async_context(stdio_client(_server_params()))
-        self._session = await self._stack.enter_async_context(ClientSession(r, w))
-        await self._session.initialize()
+        try:
+            async with stdio_client(_server_params()) as (r, w):
+                async with ClientSession(r, w) as session:
+                    await session.initialize()
+                    self._session = session
+                    ready.set_result(True)
+                    await self._stop.wait()
+        except Exception as e:                                   # noqa: BLE001
+            if not ready.done():
+                ready.set_exception(e)
 
     def close(self):
+        if self._session is None:
+            return
+        self._loop.call_soon_threadsafe(self._stop.set)
         try:
-            self._run(self._stack.aclose(), 20)
-        finally:
-            self._loop.call_soon_threadsafe(self._loop.stop)
+            asyncio.run_coroutine_threadsafe(asyncio.wait_for(self._task, 20), self._loop).result(25)
+        except Exception:                                        # noqa: BLE001
+            pass
+        self._session = None
+        self._loop.call_soon_threadsafe(self._loop.stop)
 
     def tools(self) -> list[str]:
         return [t.name for t in self._run(self._session.list_tools()).tools]
@@ -80,8 +97,8 @@ class MCPConnection:
         res = self._run(self._session.call_tool(f"tigergraph__{tool}", arguments=args))
         self.calls += 1
         text = "".join(getattr(c, "text", "") for c in res.content).strip()
-        try:
-            env = json.loads(_FENCE.sub("", text))
+        try:                                   # the server wraps JSON in a fenced block and may append prose after it
+            env, _ = json.JSONDecoder().raw_decode(text[text.index("{"):])
         except ValueError as e:
             raise MCPError(f"{tool}: unparseable response: {text[:200]}") from e
         if not env.get("success", False):

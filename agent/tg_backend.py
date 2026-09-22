@@ -225,6 +225,49 @@ class TigerGraphBackend:
         r = self._run("find_rings", min_cards=min_cards, min_new=min_new, min_proxy=min_proxy)
         return [{"device_profile": v["v_id"], **v["attributes"]} for v in (r.get("D") or [])]
 
+    # ---- graph algorithms (#9): ring discovery beyond one device, hub scoring, card-to-card links -----------------
+    # Devices are only ever hopped through when they look like a ring device, not merely a shared one: rare
+    # (<= max_device_cards cards) AND mostly New AND mostly behind an anonymous proxy (find_rings' own signature).
+    # A plain shared device (a household router, a popular browser) has low new_frac/proxy_frac and is never entered,
+    # which is what keeps these traversals from flooding into the whole graph (an early cut at max_device_cards alone
+    # still reaches thousands of cards in a few hops; the quality filters cut it to single digits of real devices).
+    def ring_component(self, card_id: str, max_device_cards: int = 80, min_new_frac: float = 0.85,
+                       min_proxy_frac: float = 0.85, max_hops: int = 6) -> dict:
+        """The connected component of cards and devices reachable from `card_id` through ring-like devices. Real
+        multi-hop connectivity (a graph traversal / connected-components query), not a same-device coincidence like
+        `device_burst`: a ring built across two or three devices still shows up as one component."""
+        r = self._run("ring_component", seed=(card_id, "Card"), max_device_cards=max_device_cards,
+                      min_new_frac=min_new_frac, min_proxy_frac=min_proxy_frac, max_hops=max_hops)
+        cards = [{"card_id": v["v_id"], "hop": v["attributes"]["hop"]} for v in (r.get("AllCards") or [])]
+        devices = [{"device_profile": v["v_id"], "n_cards": v["attributes"]["n_cards"], "new_frac": v["attributes"]["new_frac"],
+                   "proxy_frac": v["attributes"]["proxy_frac"], "hop": v["attributes"]["hop"]} for v in (r.get("AllDevices") or [])]
+        cards.sort(key=lambda c: c["hop"])
+        devices.sort(key=lambda d: d["hop"])
+        return _clean({"seed": card_id, "cards": cards, "devices": devices, "n_cards": len(cards), "n_devices": len(devices)})
+
+    def device_hub_rank(self, max_device_cards: int = 80, min_new_frac: float = 0.85, min_proxy_frac: float = 0.85,
+                        iters: int = 4, top_k: int = 15) -> list[dict]:
+        """Ring-like devices ranked by an iterative hub/authority score (HITS power iteration, renormalised each round,
+        over the card-device bipartite graph): a device whose cards are themselves tied to many OTHER ring-like devices
+        ranks above one with many cards but no further links, i.e. the centre of a coordinated ring rather than just a
+        busy device. Scores are relative (max ~1.0 per round), for ranking, not a probability."""
+        r = self._run("device_hub_rank", max_device_cards=max_device_cards, min_new_frac=min_new_frac,
+                      min_proxy_frac=min_proxy_frac, iters=iters, top_k=top_k)
+        out = [{"device_profile": v["v_id"], **v["attributes"]} for v in (r.get("TopDevices") or [])]
+        out.sort(key=lambda d: -d["hub_score"])
+        return out
+
+    def card_link(self, card_a: str, card_b: str, max_device_cards: int = 80, min_new_frac: float = 0.85,
+                 min_proxy_frac: float = 0.85, max_hops: int = 6) -> dict:
+        """Are two cards linked through a chain of ring-like shared devices, and how far apart? Built on
+        `ring_component`: b is linked to a iff it appears in a's component, at the reported hop distance."""
+        comp = self.ring_component(card_a, max_device_cards=max_device_cards, min_new_frac=min_new_frac,
+                                   min_proxy_frac=min_proxy_frac, max_hops=max_hops)
+        hit = next((c for c in comp["cards"] if c["card_id"] == card_b), None)
+        return {"card_a": card_a, "card_b": card_b, "linked": hit is not None,
+                "hops": hit["hop"] if hit else None, "component_size": comp["n_cards"],
+                "component_devices": [d["device_profile"] for d in comp["devices"]] if hit else []}
+
 
 class TigerGraphCaseMemory:
     """Writes each investigation back as a FraudCase vertex linked to the card, transactions, devices and similar cases."""

@@ -60,12 +60,12 @@ def simulate_evidence(inv: Investigation, initial, verdict: str) -> Simulated:
 
 
 class Orchestrator:
-    def __init__(self, backend: GraphBackend, memory: CaseMemory | None = None, cfg: Cfg | None = None, llm: LLMRouter | None = None):
+    def __init__(self, backend: GraphBackend, memory: CaseMemory | None = None, cfg: Cfg | None = None, llm: LLMRouter | None = None, rag=None):
         cfg = cfg or Cfg(fraud_p=UNCERTAIN_HI, legit_p=UNCERTAIN_LO)
         self.backend, self.memory, self.llm = backend, memory, llm
         self.last: Investigation | None = None
         path = EP_DEV_PATH if getattr(backend, "variant", "final") == "dev" else EP_PATH
-        self.inv = Investigator(backend, cfg, EpisodeModel(path) if path.exists() else None)
+        self.inv = Investigator(backend, cfg, EpisodeModel(path) if path.exists() else None, rag=rag)
 
     def run_case(self, trig: dict, on_step: Callable[[Step], None] | None = None, write_memory: bool = True) -> Answer:
         t0 = time.perf_counter()
@@ -97,22 +97,37 @@ class Orchestrator:
 
         sar_file = "FILE_REPORT" in final_names
         if sar_file:
-            sar_text = explain.polish(self.llm, narrative.sar_narrative(inv), "sar")
+            sar_narr = explain.polish(self.llm, narrative.sar_narrative(inv), "sar").text
+            if inv.rag is not None and self.llm is not None:                      # cite the FinCEN/AML guidance this report follows
+                g = explain.sar_grounding(self.llm, sar_narr, inv.rag.pack(sources={"regulatory"}))
+                if g.used_llm:
+                    sar_narr = f"{sar_narr} {g.text}"
             sar = Sar(file=True, reason=next(x.reason for x in final if x.action == "FILE_REPORT"),
-                      narrative=sar_text.text, subjects=narrative.sar_subjects(inv),
+                      narrative=sar_narr, subjects=narrative.sar_subjects(inv),
                       total_amount_usd=inv.exposure, activity_dates=[inv.span[0][:10], inv.span[1][:10]])
         else:
             sar = Sar(file=False, reason=_no_report_reason(inv, a, verdict))
 
         graph_case_id, written = "", False
         similar_ids = [c["case_id"] for c in inv.similar if c.get("score", 0) >= 2][:3]
+        if inv.rag is not None:                        # add real example cases of the best-matching typology (same outcome as our verdict)
+            for h in inv.rag.by_source("typology")[:1]:
+                if h.score >= 0.5 and (("confirmed fraud" in h.title) == (verdict != "legitimate")):
+                    similar_ids += [e["case_id"] for e in h.examples if e["case_id"] not in similar_ids][:2]
+        summary_text = explain.polish(self.llm, narrative.summary(inv, verdict, p, sim.response), "summary").text
+        if inv.rag is not None and self.llm is not None:
+            facts = (f"verdict {verdict}, fraud probability {p:.2f}, pattern {inv.pattern}, exposure ${inv.exposure:,.2f}; "
+                     f"final actions: " + "; ".join(f"{x.action} ({x.reason})" for x in final))
+            r = explain.rationale(self.llm, facts, inv.rag.pack())
+            if r.used_llm:
+                summary_text = f"{summary_text} Rationale: {r.text}"
         case = Case(
             status=status, verdict=verdict, fraud_probability=round(p, 3), pattern=inv.pattern,
             pattern_description=inv.pattern_description if inv.pattern == "undocumented" else "",
             affected_txn_ids=[str(t) for t in inv.episode], first_suspicious_txn_id=inv.first_suspicious,
             connected_card_ids=inv.connected_cards, connected_device_profiles=inv.connected_devices,
             exposure_usd=inv.exposure, evidence=evidence, similar_prior_cases=similar_ids,
-            summary=explain.polish(self.llm, narrative.summary(inv, verdict, p, sim.response), "summary").text)
+            summary=summary_text)
         if write_memory and self.memory is not None:
             graph_case_id, written = self.memory.write(trig, case, inv, final)
             case.written_to_graph, case.graph_case_id = written, graph_case_id

@@ -90,3 +90,51 @@ def polish(router: LLMRouter | None, text: str, kind: str, attempts: int = 2) ->
             continue
         return Polished(out, True, f"polished by {r.provider}" + (" after repair" if attempt else ""))
     return Polished(text, False, reason)
+
+
+RATIONALE_SYSTEM = ("You are a fraud analyst. Using ONLY the facts and the reference context below, write two sentences explaining why the "
+                    "recommended actions follow from the bank's policy. Cite rule ids (like R2) or chunk ids (like POL-R2) exactly as they "
+                    "appear in the context. Do not introduce any number, amount, date or identifier that is not in the facts or the context. "
+                    "Output only the two sentences.")
+
+
+def rationale(router: LLMRouter | None, facts: str, context: str) -> Polished:
+    """Two grounded sentences on why the actions follow from policy. Rejected unless every number and ID in it appears in the
+    facts or the retrieved context (the same fact guard as the polish step)."""
+    if router is None or not router.available or not context.strip():
+        return Polished("", False, "no LLM or no context")
+    try:
+        r = router.chat([{"role": "system", "content": RATIONALE_SYSTEM},
+                         {"role": "user", "content": f"FACTS:\n{facts}\n\nREFERENCE CONTEXT:\n{context}"}],
+                        role="synth", temperature=0.0, max_tokens=500)
+    except LLMUnavailable as e:
+        return Polished("", False, f"LLM unavailable: {str(e)[:60]}")
+    out = r.text.strip().strip('"')
+    invented = critical_tokens(out) - critical_tokens(facts + " " + context)
+    if not out or invented:
+        return Polished("", False, f"rejected ({'empty' if not out else 'invented ' + str(sorted(invented)[:4])})")
+    return Polished(out, True, f"grounded by {r.provider}")
+
+
+SAR_GROUND_SYSTEM = ("You are a compliance analyst. Using ONLY the SAR narrative and the regulatory guidance below, write one sentence "
+                     "naming which FinCEN/regulatory guidance this report follows, citing the chunk id exactly as it appears in the "
+                     "guidance (like REG-1). Do not introduce any number, amount, date or identifier that is not already in the "
+                     "narrative or the guidance. Output only the one sentence.")
+
+
+def sar_grounding(router: LLMRouter | None, sar_text: str, context: str) -> Polished:
+    """One sentence citing the regulatory guidance chunk(s) the SAR follows (from GraphRAG's `regulatory` source), or
+    nothing if there is no LLM, no retrieved guidance, or the sentence would invent a fact."""
+    if router is None or not router.available or not context.strip():
+        return Polished("", False, "no LLM or no regulatory context")
+    try:
+        r = router.chat([{"role": "system", "content": SAR_GROUND_SYSTEM},
+                         {"role": "user", "content": f"NARRATIVE:\n{sar_text}\n\nREGULATORY GUIDANCE:\n{context}"}],
+                        role="synth", temperature=0.0, max_tokens=200)
+    except LLMUnavailable as e:
+        return Polished("", False, f"LLM unavailable: {str(e)[:60]}")
+    out = r.text.strip().strip('"')
+    invented = critical_tokens(out) - critical_tokens(sar_text + " " + context)
+    if not out or invented:
+        return Polished("", False, f"rejected ({'empty' if not out else 'invented ' + str(sorted(invented)[:4])})")
+    return Polished(out, True, f"grounded by {r.provider}")

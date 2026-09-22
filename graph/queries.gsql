@@ -154,3 +154,76 @@ CREATE OR REPLACE QUERY customer_cards(VERTEX<Customer> cust) FOR GRAPH GraphSle
   C = SELECT c FROM Start:s -(OWNS>)- Card:c;
   PRINT C[C.id AS card_id];
 }
+
+// ---- GraphRAG hop: the real closed cases that exemplify a retrieved typology chunk -------------------------------------------------------
+CREATE OR REPLACE QUERY chunk_examples(VERTEX<DocChunk> chunk) FOR GRAPH GraphSleuth SYNTAX v3 {
+  Start = {chunk};
+  C = SELECT cc FROM Start:d -(EXEMPLIFIED_BY>)- ClosedCase:cc;
+  PRINT C[C.id AS case_id, C.outcome AS outcome, C.pattern AS pattern, C.exposure AS exposure, C.opened_at AS opened_at, C.report_filed AS report_filed];
+}
+
+// ---- multi-hop ring discovery: the connected component reachable from a seed card, hopping only through devices that LOOK like ring --------
+// devices (n_cards <= max_device_cards AND new_frac/proxy_frac at least the given minimums -- the same rarity+quality signature find_rings ---
+// uses), so an ordinary shared device (a household Wi-Fi router, a popular browser) never floods the component into the whole graph. ---------
+// Generalises the single-device burst check (device_burst / find_rings) into real multi-device connectivity: card -> device -> card -> ... ---
+CREATE OR REPLACE QUERY ring_component(VERTEX<Card> seed, INT max_device_cards, DOUBLE min_new_frac, DOUBLE min_proxy_frac, INT max_hops)
+FOR GRAPH GraphSleuth SYNTAX v3 {
+  OrAccum @seen_c;
+  OrAccum @seen_d;
+  SumAccum<INT> @hop_c;
+  SumAccum<INT> @hop_d;
+  INT h;
+  h = 0;
+  Cards = {seed};
+  Cards = SELECT c FROM Cards:c POST-ACCUM c.@seen_c += true, c.@hop_c += 0;
+  Devices = SELECT d FROM Cards:c -(MADE>)- Transaction:t -(FROM_DEVICE>)- DeviceProfile:d WHERE false;   // typed empty set
+  WHILE Cards.size() > 0 LIMIT max_hops DO
+    h = h + 1;
+    Devices = SELECT d FROM Cards:c -(MADE>)- Transaction:t -(FROM_DEVICE>)- DeviceProfile:d
+              WHERE d.n_cards >= 2 AND d.n_cards <= max_device_cards AND d.new_frac >= min_new_frac - 0.0001
+                AND d.proxy_frac >= min_proxy_frac - 0.0001 AND d.@seen_d == false
+              ACCUM d.@seen_d += true, d.@hop_d += h;
+    Cards = SELECT c2 FROM Devices:d -(DEVICE_OF>)- Transaction:t2 -(MADE_BY>)- Card:c2
+            WHERE c2.@seen_c == false
+            ACCUM c2.@seen_c += true, c2.@hop_c += h;
+  END;
+  AllCards = SELECT c FROM Card:c WHERE c.@seen_c == true;
+  AllDevices = SELECT d FROM DeviceProfile:d WHERE d.@seen_d == true;
+  PRINT AllCards[AllCards.id AS card_id, AllCards.@hop_c AS hop];
+  PRINT AllDevices[AllDevices.id AS device_id, AllDevices.n_cards AS n_cards, AllDevices.new_frac AS new_frac,
+                    AllDevices.proxy_frac AS proxy_frac, AllDevices.@hop_d AS hop];
+}
+
+// ---- hub devices: iterative HITS (hub/authority power iteration) over the card-device bipartite graph, restricted to the same ring-like ----
+// devices as ring_component (rare AND mostly-new AND mostly-proxied). A device's score is how connected ITS cards are to OTHER ring-like -----
+// devices, so it surfaces the device at the centre of a coordinated ring, not just the one with the most cards (n_cards alone gives that). ---
+// Renormalised (max = 1.0) after every iteration so scores stay comparable across runs and never overflow. --------------------------------
+CREATE OR REPLACE QUERY device_hub_rank(INT max_device_cards, DOUBLE min_new_frac, DOUBLE min_proxy_frac, INT iters, INT top_k)
+FOR GRAPH GraphSleuth SYNTAX v3 {
+  SumAccum<DOUBLE> @auth;
+  SumAccum<DOUBLE> @hub;
+  MaxAccum<DOUBLE> @@max_hub;
+  INT i;
+  i = 0;
+  Devices = SELECT d FROM DeviceProfile:d WHERE d.n_cards >= 2 AND d.n_cards <= max_device_cards
+              AND d.new_frac >= min_new_frac - 0.0001 AND d.proxy_frac >= min_proxy_frac - 0.0001
+            POST-ACCUM d.@auth = 1.0;
+  Cards = SELECT c FROM Devices:d -(DEVICE_OF>)- Transaction:t -(MADE_BY>)- Card:c WHERE false;   // typed empty set
+  WHILE i < iters DO
+    i = i + 1;
+    @@max_hub = 0.0;
+    Cards = SELECT c FROM Devices:d -(DEVICE_OF>)- Transaction:t -(MADE_BY>)- Card:c
+            ACCUM c.@hub += d.@auth
+            POST-ACCUM @@max_hub += c.@hub;                          // MaxAccum += takes the running max
+    Cards = SELECT c FROM Cards:c POST-ACCUM c.@hub = c.@hub / (@@max_hub + 0.000001);   // renormalise so scores never blow up
+    Devices = SELECT d FROM Devices:d POST-ACCUM d.@auth = 0;
+    Devices = SELECT d FROM Cards:c -(MADE>)- Transaction:t2 -(FROM_DEVICE>)- DeviceProfile:d
+              WHERE d.n_cards >= 2 AND d.n_cards <= max_device_cards
+                AND d.new_frac >= min_new_frac - 0.0001 AND d.proxy_frac >= min_proxy_frac - 0.0001
+              ACCUM d.@auth += c.@hub;
+    Cards = SELECT c FROM Cards:c POST-ACCUM c.@hub = 0;
+  END;
+  TopDevices = SELECT d FROM Devices:d ORDER BY d.@auth DESC LIMIT top_k;
+  PRINT TopDevices[TopDevices.id AS device_id, TopDevices.n_cards AS n_cards, TopDevices.new_frac AS new_frac,
+                    TopDevices.proxy_frac AS proxy_frac, TopDevices.@auth AS hub_score];
+}

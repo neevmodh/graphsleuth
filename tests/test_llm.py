@@ -34,7 +34,7 @@ class FakeClient:
             raise item
         return item
 
-    def _embed(self, model, input):
+    def _embed(self, model, input, **kw):
         self.kwargs.append({"model": model, "input": input})
         item = self.script.pop(0)
         if isinstance(item, Exception):

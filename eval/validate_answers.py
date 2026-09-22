@@ -81,6 +81,12 @@ def validate_file(path: Path, con) -> list[str]:
     if a.sar.file:
         if a.sar.total_amount_usd and abs(a.sar.total_amount_usd - c.exposure_usd) > 0.011:
             errs.append("sar.total_amount_usd does not equal exposure_usd")
+        if c.affected_txn_ids and len(a.sar.activity_dates) == 2:
+            span = con.execute(f"SELECT min(ts), max(ts) FROM feat WHERE tid IN ({','.join(c.affected_txn_ids)})").fetchone()
+            if span[0] is not None:
+                lo, hi = str(span[0])[:10], str(span[1])[:10]
+                if a.sar.activity_dates != [lo, hi]:
+                    errs.append(f"sar.activity_dates {a.sar.activity_dates} does not match the affected transactions' dates ({lo}..{hi})")
         if not (6 <= len([s for s in a.sar.narrative.replace("? ", ". ").split(". ") if s.strip()]) <= 14):
             errs.append("sar.narrative should be about 6-12 sentences")
         if a.sar.subjects and not any(s.startswith("C") for s in a.sar.subjects):

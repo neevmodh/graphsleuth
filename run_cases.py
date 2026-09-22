@@ -13,7 +13,7 @@ import os
 
 import pandas as pd
 
-from agent.backend_factory import make_backend
+from agent.backend_factory import make_backend, make_rag
 from agent.llm import LLMRouter
 from agent.orchestrator import Orchestrator
 
@@ -30,7 +30,9 @@ def main() -> None:
     print(f"backend: {name}")
     llm = None if a.no_llm else LLMRouter.from_env()
     print("llm: " + (", ".join(llm.providers) if llm and llm.available else "off (no API keys; template narratives)"))
-    orch = Orchestrator(backend, None if a.no_memory else memory, llm=llm)
+    rag = make_rag(backend, llm)
+    print("graphrag: " + ("on (TigerGraph vectors via MCP)" if rag else "off"))
+    orch = Orchestrator(backend, None if a.no_memory else memory, llm=llm, rag=rag)
     out = Path(a.out)
     out.mkdir(exist_ok=True)
     data_dir = os.getenv("DATA_DIR", "../dataset/HHGOA_IEEE")

@@ -193,13 +193,14 @@ class LLMRouter:
         out: list[list[float]] = []
         for i in range(0, len(texts), batch):
             chunk = texts[i:i + batch]
-            key = self._key("embed", {"texts": chunk})
+            key = self._key("embed", {"texts": chunk, "dim": int(os.getenv("EMBED_DIM", "768"))})
             hit = self._cache_get(key)
             if hit:
                 self.cache_hits += 1
                 out += hit["vectors"]
                 continue
-            _, _, resp = self._call("embed", lambda client, model: client.embeddings.create(model=model, input=chunk))
+            dim = int(os.getenv("EMBED_DIM", "768"))                      # 768 keeps the vector index small; Gemini supports it
+            _, _, resp = self._call("embed", lambda client, model: client.embeddings.create(model=model, input=chunk, dimensions=dim))
             vecs = [d.embedding for d in resp.data]
             self._cache_put(key, {"vectors": vecs})
             out += vecs
