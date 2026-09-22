@@ -3,13 +3,14 @@ pandas>=2.2
 pyarrow>=16
 numpy>=1.26
 scikit-learn>=1.5
+joblib>=1.3          # model persistence (agent/scorer.py, pattern.py, episode.py); usually pulled in by scikit-learn
+                     # transitively, but every model file is loaded through it directly, so it's pinned here too
 pydantic>=2.7
 python-dotenv>=1.0
 pyTigerGraph>=1.8
 mcp>=1.0            # MCP client for GraphRAG retrieval and TigerGraph routing (agent/mcp_conn.py); the MCP *server*
                      # (tigergraph-mcp) needs pyTigerGraph 2.x and lives in its own venv, see requirements-mcp.txt
-openai>=1.40
-google-genai>=0.3
+openai>=1.40         # also talks to Gemini, via its OpenAI-compatible endpoint (agent/llm.py) -- no google-genai SDK needed
 fastapi>=0.111
 uvicorn[standard]>=0.30
 sse-starlette>=2.1
