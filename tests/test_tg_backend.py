@@ -3,10 +3,11 @@ output feeds the context model. They do NOT prove the wire protocol: that needs 
 import math
 
 import pandas as pd
+import pytest
 
 from agent.episode import feats_for_window
 from agent.schemas import Case
-from agent.tg_backend import TigerGraphBackend, TigerGraphCaseMemory
+from agent.tg_backend import TigerGraphBackend, TigerGraphCaseMemory, _wait_for_workspace
 
 
 def txn(tid, ts, amt=10.0, ch="online", **kw):
@@ -120,6 +121,33 @@ def test_card_link_reports_hop_distance_when_linked_and_nothing_when_not():
     assert linked["linked"] is True and linked["hops"] == 3 and linked["component_devices"] == ["DEV-A"]
     unlinked = b.card_link("C1-K1", "C9-K1")
     assert unlinked["linked"] is False and unlinked["hops"] is None and unlinked["component_devices"] == []
+
+
+class FlakyConn:
+    """Fails getVertexCount `fail_times` times (a Savanna workspace waking from auto-suspend), then answers."""
+
+    def __init__(self, fail_times: int):
+        self.fail_times, self.calls = fail_times, 0
+
+    def getVertexCount(self, *a, **kw):
+        self.calls += 1
+        if self.calls <= self.fail_times:
+            raise RuntimeError("Bad Gateway (workspace starting)")
+        return 42
+
+
+def test_wait_for_workspace_retries_through_a_cold_start(monkeypatch):
+    monkeypatch.setattr("agent.tg_backend.time.sleep", lambda _s: None)   # don't actually wait in the test
+    conn = FlakyConn(fail_times=3)
+    _wait_for_workspace(conn, max_wait_s=30)                              # must not raise
+    assert conn.calls == 4
+
+
+def test_wait_for_workspace_gives_up_with_a_clear_message(monkeypatch):
+    monkeypatch.setattr("agent.tg_backend.time.sleep", lambda _s: None)
+    conn = FlakyConn(fail_times=10**6)                                    # never comes up
+    with pytest.raises(RuntimeError, match="did not answer within"):
+        _wait_for_workspace(conn, max_wait_s=0.01)
 
 
 def test_case_memory_writes_the_case_and_its_links():

@@ -47,8 +47,11 @@ transaction timeline and the suspicious activity report.
 
 ## TigerGraph backend
 The agent talks to the graph through one interface (`agent/backend.py`). `GRAPHSLEUTH_BACKEND=tigergraph` switches it to
-`agent/tg_backend.py`, which calls the installed GSQL queries in `graph/queries.gsql`. Setup on a Savanna workspace
-(auto-suspend and auto-resume ON):
+`agent/tg_backend.py`, which calls the installed GSQL queries in `graph/queries.gsql`. `connect()` blocks and retries
+(up to 150s) until the workspace actually answers a query before handing back the connection: Savanna auto-suspends
+when idle (required by the rules) and the first request after that wakes it, which otherwise surfaces as a confusing
+Bad-Gateway/HTML-in-JSON error on whatever call happened to go first -- hit and fixed live on 2026-09-22. Setup on a
+Savanna workspace (auto-suspend and auto-resume ON):
 ```bash
 cp .env.example .env                           # TG_HOST + TG_SECRET (a Database Secret; no password needed)
 python -m data.export_tg                       # load-ready CSVs in data/store/tg/

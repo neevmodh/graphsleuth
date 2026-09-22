@@ -40,8 +40,13 @@ def _merge(results: list[dict]) -> dict:
     return out
 
 
-def connect():
-    """Open a connection from the environment (see .env.example): TG_HOST, TG_GRAPH, TG_SECRET or TG_USERNAME/TG_PASSWORD."""
+def connect(wait_for_workspace: bool = True, max_wait_s: float = 150.0):
+    """Open a connection from the environment (see .env.example): TG_HOST, TG_GRAPH, TG_SECRET or TG_USERNAME/TG_PASSWORD.
+
+    Savanna workspaces auto-suspend when idle (required by the hackathon rules) and take roughly a minute to wake on
+    the first request after that; in the meantime RESTPP answers with a Bad Gateway or an HTML "Starting workspace"
+    page instead of JSON, which surfaces as a confusing parse error deep in whichever call happened to go first. By
+    default this blocks here instead, polling a cheap query until the workspace actually answers."""
     from pyTigerGraph import TigerGraphConnection
     host, graph = os.environ["TG_HOST"], os.environ.get("TG_GRAPH", "GraphSleuth")
     secret = os.environ.get("TG_SECRET")
@@ -52,7 +57,24 @@ def connect():
     else:
         conn = TigerGraphConnection(username=os.environ.get("TG_USERNAME", "tigergraph"), password=os.environ["TG_PASSWORD"], **kw)
         conn.getToken(conn.createSecret())
+    if wait_for_workspace:
+        _wait_for_workspace(conn, max_wait_s)
     return conn
+
+
+def _wait_for_workspace(conn, max_wait_s: float) -> None:
+    t0 = time.time()
+    delay, last = 3.0, None
+    while time.time() - t0 < max_wait_s:
+        try:
+            conn.getVertexCount("Customer")     # cheap; any real answer means RESTPP is up
+            return
+        except Exception as e:                  # noqa: BLE001 -- Bad Gateway, HTML-not-JSON, or a real TG error all land here
+            last = e
+            time.sleep(delay)
+            delay = min(delay * 1.5, 15.0)
+    raise RuntimeError(f"TigerGraph workspace did not answer within {max_wait_s:.0f}s "
+                       f"(still waking from auto-suspend? check the Savanna console): {type(last).__name__}: {str(last)[:150]}")
 
 
 class TigerGraphBackend:
