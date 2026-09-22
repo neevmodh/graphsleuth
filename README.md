@@ -28,11 +28,11 @@ are enforced in code (`agent/policy.py`), so policy is never hallucinated.
 ## Layout
 | Path | Purpose |
 |---|---|
-| `data/` | Local DuckDB feature store and (later) TigerGraph loaders |
+| `data/` | Local DuckDB feature store and the TigerGraph REST loaders |
 | `graph/` | GSQL schema and installed queries |
 | `agent/` | Orchestrator, tools, scorer, policy engine, memory, SAR writer, answer schema |
 | `eval/` | Dev-set replay on closed cases and answer validation |
-| `api/`, `ui/` | FastAPI + SSE backend and React investigator UI |
+| `api/`, `ui/` | FastAPI + SSE backend and a single-file vanilla-JS investigator UI |
 | `cases/` | The 20 benchmark answer files |
 | `docs/` | Data findings, [architecture diagram](docs/architecture.svg), demo script, blog outline |
 
