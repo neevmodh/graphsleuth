@@ -192,10 +192,10 @@ async function select(id){
   current = id;
   document.querySelectorAll('.case').forEach(b=>b.classList.toggle('active', b.id==='c-'+id));
   const d = await (await fetch('/api/cases/'+id)).json();
-  render(d.trigger, d.answer, null, null, d.approvals, []);
+  render(d.trigger, d.answer, null, null, d.approvals, [], d.actions_taken);
 }
 
-function render(trig, ans, windowData, graph, approvals, steps){
+function render(trig, ans, windowData, graph, approvals, steps, actionsTaken){
   const v = $('#view'); v.replaceChildren();
   v.append(h('div',{class:'card'},
     h('div',{style:'display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap'},
@@ -248,6 +248,11 @@ function render(trig, ans, windowData, graph, approvals, steps){
     h('p',{class:'small',style:'margin:12px 0 0'}, h('b',{},'What changed: '), n.what_changed),
     ans.evidence_requests.length?h('div',{class:'small muted',style:'margin-top:8px'}, ans.evidence_requests.map(r=>h('div',{}, '↳ '+r.type.replaceAll('_',' ')+' requested after step '+r.asked_after_step+' — assumed response: '+r.assumed_response))):null,
     h('p',{class:'small faint',style:'margin:8px 0 0'}, 'The agent may execute only "auto" actions. L1 and L2 actions wait for a human.')));
+
+  if (actionsTaken && actionsTaken.length) v.append(h('div',{class:'card'}, h('h2',{},'Actions executed (mock APIs)'),
+    actionsTaken.map(r => h('div',{class:'act'}, chip('legitimate','done'),
+      h('div',{}, h('div',{}, h('span',{class:'nm'},r.action), h('span',{class:'small muted'},' via '+r.system+' · '+r.executed_at)),
+        h('div',{class:'why'},r.detail))))));
 
   v.append(h('div',{class:'grid2'},
     h('div',{class:'card'}, h('h2',{},'Evidence'), c.evidence.map(e=>h('div',{class:'ev'}, h('span',{class:'src '+e.source}, e.source), h('div',{class:'small'}, e.claim)))),
@@ -327,7 +332,7 @@ function run(id){
   es.addEventListener('done', async e => { es.close(); es=null; const d = JSON.parse(e.data);
     const t = (await (await fetch('/api/cases/'+id)).json());
     const items = [...list.children].map(li=>li.cloneNode(true));
-    render(t.trigger, d.answer, d.window, d.graph, t.approvals, {running:false});
+    render(t.trigger, d.answer, d.window, d.graph, t.approvals, {running:false}, d.actions_taken || t.actions_taken);
     const nl = $('#steps'); items.forEach(li=>nl.append(li)); $('#stephint').textContent=''; loadQueue();
     refreshUsage();
     fetch('/api/cases/'+id+'/counterfactuals').then(r=>r.ok?r.json():null).then(renderCounterfactuals).catch(()=>{}); });

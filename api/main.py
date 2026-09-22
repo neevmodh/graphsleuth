@@ -18,7 +18,7 @@ from sse_starlette.sse import EventSourceResponse
 
 from dataclasses import asdict
 
-from agent import counterfactual
+from agent import counterfactual, mock_actions
 from agent.backend import LocalBackend, _clean
 from agent.backend_factory import make_backend, make_rag
 from agent.investigator import Investigation
@@ -30,6 +30,7 @@ from agent.policy import CASE_GATE_P, STOP_HIGH_P, STOP_LOW_P
 ROOT = Path(__file__).resolve().parents[1]
 CASES = ROOT / "cases"
 APPROVALS = ROOT / "data" / "store" / "approvals.json"
+ACTIONS_LOG = ROOT / "data" / "store" / "actions_taken.json"
 
 app = FastAPI(title="GraphSleuth")
 _lock = threading.Lock()
@@ -64,6 +65,30 @@ def load_approvals() -> dict:
     return json.loads(APPROVALS.read_text()) if APPROVALS.exists() else {}
 
 
+def load_actions_log() -> dict:
+    return json.loads(ACTIONS_LOG.read_text()) if ACTIONS_LOG.exists() else {}
+
+
+def record_actions(cid: str, receipts: list[dict]) -> list[dict]:
+    """Record mock-execution receipts for this case, keyed by action so a re-run or a re-approval
+    replaces its own receipt (fresh timestamp) instead of piling up duplicates."""
+    log = load_actions_log()
+    bucket = log.setdefault(cid, {})
+    for r in receipts:
+        bucket[r["action"]] = r
+    ACTIONS_LOG.parent.mkdir(parents=True, exist_ok=True)
+    ACTIONS_LOG.write_text(json.dumps(log, indent=2))
+    return list(bucket.values())
+
+
+def execute_auto_actions(cid: str, card_id: str, answer: dict) -> list[dict]:
+    """Only 'auto' route actions execute without a human; run them against the mock action
+    layer right after the case is written, so the case record and the actions log stay in sync."""
+    autos = [a for a in answer["next_best_actions"]["final"] if a["route"] == "auto"]
+    receipts = [mock_actions.execute(a["action"], cid, card_id, a["route"]) for a in autos]
+    return record_actions(cid, receipts)
+
+
 @app.get("/api/meta")
 def meta():
     used = _llm.tokens
@@ -96,7 +121,8 @@ def list_cases():
 def get_case(cid: str):
     if cid not in pack():
         raise HTTPException(404, "unknown case")
-    return {"trigger": pack()[cid], "answer": cached(cid), "approvals": load_approvals().get(cid, {})}
+    return {"trigger": pack()[cid], "answer": cached(cid), "approvals": load_approvals().get(cid, {}),
+            "actions_taken": list(load_actions_log().get(cid, {}).values())}
 
 
 def window_payload(orch: Orchestrator) -> list[dict]:
@@ -169,7 +195,9 @@ async def run_case(cid: str, pace: float = 0.0):
             data = ans.model_dump()
             CASES.mkdir(exist_ok=True)
             (CASES / f"{cid}.json").write_text(json.dumps(data, indent=2) + "\n")
-            push("done", {"answer": data, "window": window_payload(orch), "graph": graph_payload(cid, data, orch)})
+            actions_taken = execute_auto_actions(cid, trig["card_id"], data)
+            push("done", {"answer": data, "window": window_payload(orch), "graph": graph_payload(cid, data, orch),
+                          "actions_taken": actions_taken})
         except Exception as e:                # noqa: BLE001
             push("error", {"message": str(e)})
 
@@ -234,6 +262,8 @@ def approve(cid: str, d: Decision):
                                         "at": time.strftime("%Y-%m-%d %H:%M:%S")}
     APPROVALS.parent.mkdir(parents=True, exist_ok=True)
     APPROVALS.write_text(json.dumps(ap, indent=2))
+    if d.decision == "approved":                  # an approved L1/L2 action now actually fires, same as an auto action
+        record_actions(cid, [mock_actions.execute(d.action, cid, pack()[cid]["card_id"], final[d.action]["route"])])
     return ap[cid][d.action]
 
 

@@ -63,38 +63,6 @@
         ]
       },
       {
-        "claim": "Documented fraud pattern 4: Out-of-region use Card-present purchases in a billing region the cardholder has no history in, while their normal activity continues at home. Several days of purchases in one new region is a trip, not a clone. Policy R2, R3.",
-        "source": "document",
-        "ref": "graphrag:PAT-4",
-        "entity_ids": []
-      },
-      {
-        "claim": "Retrieved closed-case typology TYPO-0002: model scored a an amount transaction at N. Cardholder confirmed travel to the billing region in question. Alert cleared. Seen in 716 closed cases; 0% led to a suspicious activity report. Example closed cases: CC-5537, CC-5468, CC-5504.",
-        "source": "document",
-        "ref": "graphrag:TYPO-0002",
-        "entity_ids": [
-          "CC-5537",
-          "CC-5468",
-          "CC-5504"
-        ]
-      },
-      {
-        "claim": "Retrieved closed-case typology TYPO-0001: the cardholder reported unrecognized activity on the card. N transaction(s) between a date and a date totaling an amount were confirmed fraudulent. Card-present use in a billing region the cardholder  Example closed cases: CC-5534, CC-5516, CC-5510.",
-        "source": "document",
-        "ref": "graphrag:TYPO-0001",
-        "entity_ids": [
-          "CC-5534",
-          "CC-5516",
-          "CC-5510"
-        ]
-      },
-      {
-        "claim": "Fraud policy R2: Customer denies the transaction. Recommend `BLOCK_CARD` and `CREATE_CASE`. Add `FILE_REPORT` if exposure exceeds $1,000 or the case connects to a shared device profile or another card's fraud.",
-        "source": "document",
-        "ref": "graphrag:POL-R2",
-        "entity_ids": []
-      },
-      {
         "claim": "No customer response (assumed): No reply within 24 hours (assumption: the evidence is too ambiguous to presume the customer's answer)",
         "source": "customer",
         "ref": "evidence_request:1",
@@ -109,8 +77,8 @@
       "CC-1066"
     ],
     "summary": "Regarding transaction 3514030 ($77.07), the evidence remains ambiguous with a fraud probability of 0.61, leaving the alert neither confirmed nor cleared. The alert was triggered by a risk score. Investigation details include 9 tool calls, consulting closed cases CC-3587, CC-2964, and CC-1066. Furthermore, an evidence request was simulated, and its assumed response is recorded in evidence_requests.",
-    "written_to_graph": true,
-    "graph_case_id": "CASE-2016-001"
+    "written_to_graph": false,
+    "graph_case_id": "CASE-2016-1001"
   },
   "evidence_requests": [
     {
@@ -161,6 +129,6 @@
   },
   "stop_reason": "Evidence remains ambiguous after the graph and history checks and no reply is assumed; the recommendation is monitoring and escalation rather than a forced verdict.",
   "tool_calls": 9,
-  "tokens": 1333,
-  "latency_s": 36.37
+  "tokens": 299,
+  "latency_s": 0.15
 }
