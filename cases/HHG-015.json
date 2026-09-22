@@ -67,6 +67,36 @@
         ]
       },
       {
+        "claim": "Retrieved closed-case typology TYPO-0007: model scored a an amount transaction at N. Cardholder confirmed the purchase from a new phone. Device added to profile. Alert cleared. Seen in 158 closed cases; 0% led to a suspicious activity report. Example closed cases: CC-5262, CC-5331, CC-5525.",
+        "source": "document",
+        "ref": "graphrag:TYPO-0007",
+        "entity_ids": [
+          "CC-5262",
+          "CC-5331",
+          "CC-5525"
+        ]
+      },
+      {
+        "claim": "Retrieved closed-case typology TYPO-0345: the cardholder reported unrecognized activity on the card. N transaction(s) between a date and a date totaling an amount were confirmed fraudulent. Online purchases from a device not previously seen o Example closed cases: CC-1556.",
+        "source": "document",
+        "ref": "graphrag:TYPO-0345",
+        "entity_ids": [
+          "CC-1556"
+        ]
+      },
+      {
+        "claim": "Documented fraud pattern 2: Card-not-present fraud The number is used online without the card. Amounts and products that don't fit the cardholder's history, often in a burst of two to four within 48 hours. On its own, one unusual online purchase is ambiguous: verify. Policy R1 to ",
+        "source": "document",
+        "ref": "graphrag:PAT-2",
+        "entity_ids": []
+      },
+      {
+        "claim": "Fraud policy R2: Customer denies the transaction. Recommend `BLOCK_CARD` and `CREATE_CASE`. Add `FILE_REPORT` if exposure exceeds $1,000 or the case connects to a shared device profile or another card's fraud.",
+        "source": "document",
+        "ref": "graphrag:POL-R2",
+        "entity_ids": []
+      },
+      {
         "claim": "Customer response (assumed): Customer confirms the purchase, e.g. on a new phone or while travelling (assumption: the evidence points to legitimate use)",
         "source": "customer",
         "ref": "evidence_request:1",
@@ -78,16 +108,18 @@
     "similar_prior_cases": [
       "CC-1313",
       "CC-4816",
-      "CC-4637"
+      "CC-4637",
+      "CC-5262",
+      "CC-5331"
     ],
-    "summary": "The alert for transaction 3464869 ($599.94, online) appears legitimate, with a fraud probability of 0.02; however, the bank\u2019s risk score of 0.77 is not supported by the card\u2019s own history. Trigger: risk score. Tool calls: 7; closed cases consulted: CC-1313, CC-4816, CC-4637. An evidence request was simulated, and its assumed response is recorded in evidence_requests.",
+    "summary": "Transaction 3464869, an online purchase of $599.94, generated an alert that appears legitimate, with a fraud probability of 0.02; however, the bank\u2019s risk score of 0.77 is not supported by the card\u2019s own history. The trigger for the alert was the risk score. Tool calls: 8; closed cases consulted: CC-1313, CC-4816, CC-4637. An evidence request was simulated, and its assumed response is recorded in evidence_requests. Rationale: The action\u202fCLOSE_NO_FRAUD follows the closed\u2011case typology that clears alerts when the cardholder confirms a purchase from a new device (TYPO-0007). Because the customer did not deny the transaction, the trigger for the blocking and case\u2011creation requirements in the fraud policy (POL\u2011R2) is not met, so the case can be closed with no fraud.",
     "written_to_graph": true,
     "graph_case_id": "CASE-2016-015"
   },
   "evidence_requests": [
     {
       "type": "customer_validation",
-      "asked_after_step": 7,
+      "asked_after_step": 8,
       "assumed_response": "Customer confirms the purchase, e.g. on a new phone or while travelling (assumption: the evidence points to legitimate use)"
     }
   ],
@@ -117,7 +149,7 @@
     "activity_dates": []
   },
   "stop_reason": "The assumed verification reply settled the question; further steps are unlikely to change the decision.",
-  "tool_calls": 7,
-  "tokens": 692,
-  "latency_s": 23.29
+  "tool_calls": 8,
+  "tokens": 1719,
+  "latency_s": 38.78
 }

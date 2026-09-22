@@ -75,6 +75,22 @@
         ]
       },
       {
+        "claim": "Retrieved closed-case typology TYPO-0351: the cardholder reported unrecognized activity on the card. N transaction(s) between a date and a date totaling an amount were confirmed fraudulent. Online purchases from a device not previously seen o Example closed cases: CC-1415.",
+        "source": "document",
+        "ref": "graphrag:TYPO-0351",
+        "entity_ids": [
+          "CC-1415"
+        ]
+      },
+      {
+        "claim": "Retrieved closed-case typology TYPO-0241: the cardholder reported unrecognized activity on the card. N transaction(s) between a date and a date totaling an amount were confirmed fraudulent. Online purchases from a device not previously seen o Example closed cases: CC-4548.",
+        "source": "document",
+        "ref": "graphrag:TYPO-0241",
+        "entity_ids": [
+          "CC-4548"
+        ]
+      },
+      {
         "claim": "Customer report conflicts with the graph evidence (model support 0.00): No reply is presumed: the customer's report conflicts with the graph evidence, so the case is escalated for analyst review instead of guessing the outcome",
         "source": "customer",
         "ref": "evidence_request:1",
@@ -86,16 +102,17 @@
     "similar_prior_cases": [
       "CC-4743",
       "CC-4501",
-      "CC-3905"
+      "CC-3905",
+      "CC-1415"
     ],
-    "summary": "The evidence concerning transaction\u202f3583368\u202f($131.30) is ambiguous, with a fraud probability of\u202f0.23; consequently, the alert remains neither confirmed nor cleared. The trigger originated from a customer report. A total of\u202f7\u202ftool calls were made, and the closed cases consulted were\u202fCC-4743,\u202fCC-4501,\u202fand\u202fCC-3905.",
+    "summary": "Transaction\u202f3583368 ($131.30) has ambiguous evidence, with a fraud probability of\u202f0.23; the alert remains neither confirmed nor cleared. The trigger was a customer report. There have been\u202f8\u202ftool calls, and closed cases\u202fCC-4743,\u202fCC-4501,\u202fand\u202fCC-3905\u202fwere consulted.",
     "written_to_graph": true,
     "graph_case_id": "CASE-2016-011"
   },
   "evidence_requests": [
     {
       "type": "customer_validation",
-      "asked_after_step": 7,
+      "asked_after_step": 8,
       "assumed_response": "No reply is presumed: the customer's report conflicts with the graph evidence, so the case is escalated for analyst review instead of guessing the outcome"
     }
   ],
@@ -145,7 +162,7 @@
     "activity_dates": []
   },
   "stop_reason": "Further steps are unlikely to change the decision.",
-  "tool_calls": 7,
-  "tokens": 1445,
-  "latency_s": 44.5
+  "tool_calls": 8,
+  "tokens": 1554,
+  "latency_s": 40.24
 }

@@ -119,14 +119,47 @@
         "entity_ids": [
           "CC-2971"
         ]
+      },
+      {
+        "claim": "Retrieved closed-case typology TYPO-0079: the cardholder reported N online purchase(s) they did not make. The purchases came from a Samsung SM-G935F on Chrome for Android behind an anonymous proxy, a device never seen on this account. Two oth Example closed cases: CC-2985, CC-2971, CC-2649.",
+        "source": "document",
+        "ref": "graphrag:TYPO-0079",
+        "entity_ids": [
+          "CC-2985",
+          "CC-2971",
+          "CC-2649"
+        ]
+      },
+      {
+        "claim": "Documented fraud pattern 2: Card-not-present fraud The number is used online without the card. Amounts and products that don't fit the cardholder's history, often in a burst of two to four within 48 hours. On its own, one unusual online purchase is ambiguous: verify. Policy R1 to ",
+        "source": "document",
+        "ref": "graphrag:PAT-2",
+        "entity_ids": []
+      },
+      {
+        "claim": "Fraud policy R9: Undocumented patterns. When activity fits none of the known patterns but the evidence shows coordinated or repeated abuse across customers, recommend `CREATE_CASE`, `FILE_REPORT`, and `ESCALATE_TO_ANALYST`, and describe the pattern in your own words. Do",
+        "source": "document",
+        "ref": "graphrag:POL-R9",
+        "entity_ids": []
+      },
+      {
+        "claim": "Retrieved closed-case typology TYPO-0007: model scored a an amount transaction at N. Cardholder confirmed the purchase from a new phone. Device added to profile. Alert cleared. Seen in 158 closed cases; 0% led to a suspicious activity report. Example closed cases: CC-5262, CC-5331, CC-5525.",
+        "source": "document",
+        "ref": "graphrag:TYPO-0007",
+        "entity_ids": [
+          "CC-5262",
+          "CC-5331",
+          "CC-5525"
+        ]
       }
     ],
     "similar_prior_cases": [
       "CC-3035",
       "CC-2985",
-      "CC-2971"
+      "CC-2971",
+      "CC-2649"
     ],
-    "summary": "3 transaction(s) totalling $439.61 on C13487-K1 are assessed as fraud (probability 0.92), matching an undocumented pattern. A single rare device profile (SM-G935F Build/NRD90M | Android 7.0 | chrome 62.0 for android | 1920x1080) transacted on 28 different cards within a burst spanning 2016-11-14 to 2016-12-04. In each case the device appears as New for the account and operates behind an anonymous proxy; the purchases are ordinary online amounts and the bank\u2019s risk scores remain low, so no single transaction looks alarming. This was discovered by expanding from the flagged transaction to its device and counting distinct cards. The same device profile links 27 other cards, so this is treated as a coordinated ring, not an isolated compromise. Trigger: analyst request. Tool calls: 8; closed cases consulted: CC-3035, CC-2985, CC-2971.",
+    "summary": "3 transaction(s) totalling $439.61 on C13487-K1 are assessed as fraud (probability 0.92), matching an undocumented pattern. A single rare device profile (SM-G935F Build/NRD90M | Android 7.0 | chrome 62.0 for android | 1920x1080) transacted on 28 different cards within a burst spanning 2016-11-14 to 2016-12-04. Each transaction shows the device as New for the account and operating behind an anonymous proxy; the purchases are ordinary online amounts and the bank\u2019s risk scores remain low, so no single transaction appears alarming. This was discovered by expanding from the flagged transaction to its device and counting distinct cards. The same device profile links 27 other cards, so this is treated as a coordinated ring rather than an isolated compromise. Trigger: analyst request. Tool calls: 10; closed cases consulted: CC-3035, CC-2985, CC-2971.",
     "written_to_graph": true,
     "graph_case_id": "CASE-2016-014"
   },
@@ -231,7 +264,7 @@
     ]
   },
   "stop_reason": "A shared-device ring across 28 cards was identified and the affected cards are named; further queries would not change the actions (R6/R9).",
-  "tool_calls": 8,
-  "tokens": 6413,
-  "latency_s": 11.6
+  "tool_calls": 10,
+  "tokens": 7478,
+  "latency_s": 45.65
 }

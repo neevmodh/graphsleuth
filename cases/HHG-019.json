@@ -69,6 +69,30 @@
         ]
       },
       {
+        "claim": "Retrieved closed-case typology TYPO-0007: model scored a an amount transaction at N. Cardholder confirmed the purchase from a new phone. Device added to profile. Alert cleared. Seen in 158 closed cases; 0% led to a suspicious activity report. Example closed cases: CC-5262, CC-5331, CC-5525.",
+        "source": "document",
+        "ref": "graphrag:TYPO-0007",
+        "entity_ids": [
+          "CC-5262",
+          "CC-5331",
+          "CC-5525"
+        ]
+      },
+      {
+        "claim": "Retrieved closed-case typology TYPO-0296: the cardholder reported unrecognized activity on the card. N transaction(s) between a date and a date totaling an amount were confirmed fraudulent. Online purchases from a device not previously seen o Example closed cases: CC-3095.",
+        "source": "document",
+        "ref": "graphrag:TYPO-0296",
+        "entity_ids": [
+          "CC-3095"
+        ]
+      },
+      {
+        "claim": "Fraud policy R2: Customer denies the transaction. Recommend `BLOCK_CARD` and `CREATE_CASE`. Add `FILE_REPORT` if exposure exceeds $1,000 or the case connects to a shared device profile or another card's fraud.",
+        "source": "document",
+        "ref": "graphrag:POL-R2",
+        "entity_ids": []
+      },
+      {
         "claim": "Customer response (assumed): Customer states they did not make the flagged transaction(s) and still holds the card",
         "source": "customer",
         "ref": "evidence_request:1",
@@ -82,14 +106,14 @@
       "CC-5026",
       "CC-4456"
     ],
-    "summary": "1 transaction(s) totalling $99.92 on C07987-K2 is assessed as fraud (probability 0.80), matching card\u2011not\u2011present fraud from a device new to the account; Trigger: risk score. Tool calls: 7; closed cases consulted: CC-5231, CC-5026, CC-4456. An evidence request was simulated and its assumed response is recorded in evidence_requests.",
+    "summary": "The system identifies that 1 transaction(s) totalling $99.92 on C07987-K2 are assessed as fraud (probability 0.80), matching card-not-present fraud from a device new to the account. Trigger: risk score. Tool calls: 8; closed cases consulted: CC-5231, CC-5026, CC-4456. An evidence request was simulated and its assumed response is recorded in evidence_requests. Rationale: Since the customer denies the transaction, the fraud policy POL\u2011R2 mandates that the card be blocked and a case be opened (POL\u2011R2). Therefore the recommended actions BLOCK_CARD and CREATE_CASE directly follow from this policy (R2).",
     "written_to_graph": true,
     "graph_case_id": "CASE-2016-019"
   },
   "evidence_requests": [
     {
       "type": "customer_validation",
-      "asked_after_step": 7,
+      "asked_after_step": 8,
       "assumed_response": "Customer states they did not make the flagged transaction(s) and still holds the card"
     }
   ],
@@ -129,7 +153,7 @@
     "activity_dates": []
   },
   "stop_reason": "The assumed verification reply settled the question; further steps are unlikely to change the decision.",
-  "tool_calls": 7,
-  "tokens": 2506,
-  "latency_s": 44.74
+  "tool_calls": 8,
+  "tokens": 2419,
+  "latency_s": 78.37
 }

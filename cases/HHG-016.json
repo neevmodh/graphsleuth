@@ -51,10 +51,28 @@
         "entity_ids": [
           "3534820"
         ]
+      },
+      {
+        "claim": "Retrieved closed-case typology TYPO-0264: the cardholder reported unrecognized activity on the card. N transaction(s) between a date and a date totaling an amount were confirmed fraudulent. Online purchases from a device not previously seen o Example closed cases: CC-3861.",
+        "source": "document",
+        "ref": "graphrag:TYPO-0264",
+        "entity_ids": [
+          "CC-3861"
+        ]
+      },
+      {
+        "claim": "Retrieved closed-case typology TYPO-0345: the cardholder reported unrecognized activity on the card. N transaction(s) between a date and a date totaling an amount were confirmed fraudulent. Online purchases from a device not previously seen o Example closed cases: CC-1556.",
+        "source": "document",
+        "ref": "graphrag:TYPO-0345",
+        "entity_ids": [
+          "CC-1556"
+        ]
       }
     ],
-    "similar_prior_cases": [],
-    "summary": "1 transaction(s) totalling $59.67 on C09988-K1 are assessed as fraud (probability 0.99), matching card-not-present fraud from a device new to the account. Trigger: customer report. Tool calls: 7; closed cases consulted: none relevant.",
+    "similar_prior_cases": [
+      "CC-3861"
+    ],
+    "summary": "1 transaction(s) totalling $59.67 on C09988-K1 are assessed as fraud (probability 0.99), matching card-not-present fraud from a device new to the account. Trigger: customer report. Tool calls: 8; closed cases consulted: none relevant. Rationale: Because the customer reported the transaction as unauthorized and the evidence confirms fraud, the bank\u2019s policy (R2) mandates that the card be blocked. Likewise, the same policy clause (R2) requires a fraud case to be created to document and investigate the incident.",
     "written_to_graph": true,
     "graph_case_id": "CASE-2016-016"
   },
@@ -95,7 +113,7 @@
     "activity_dates": []
   },
   "stop_reason": "Fraud probability 0.99 with 3 independent evidence items reached the stop threshold (section 6).",
-  "tool_calls": 7,
-  "tokens": 1615,
-  "latency_s": 42.06
+  "tool_calls": 8,
+  "tokens": 2841,
+  "latency_s": 86.79
 }

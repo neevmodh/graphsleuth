@@ -92,10 +92,45 @@
         "entity_ids": [
           "CC-5521"
         ]
+      },
+      {
+        "claim": "Documented fraud pattern 2: Card-not-present fraud The number is used online without the card. Amounts and products that don't fit the cardholder's history, often in a burst of two to four within 48 hours. On its own, one unusual online purchase is ambiguous: verify. Policy R1 to ",
+        "source": "document",
+        "ref": "graphrag:PAT-2",
+        "entity_ids": []
+      },
+      {
+        "claim": "Retrieved closed-case typology TYPO-0065: the cardholder reported four online purchases within forty minutes, each just under an amount none of which they made. Amounts appear chosen to stay under a an amount authorization threshold. Pattern  Example closed cases: CC-3841, CC-4124, CC-3748.",
+        "source": "document",
+        "ref": "graphrag:TYPO-0065",
+        "entity_ids": [
+          "CC-3841",
+          "CC-4124",
+          "CC-3748"
+        ]
+      },
+      {
+        "claim": "Retrieved closed-case typology TYPO-0003: the cardholder reported unrecognized activity on the card. N transaction(s) between a date and a date totaling an amount were confirmed fraudulent. Online purchases inconsistent with the cardholder's  Example closed cases: CC-5519, CC-5529, CC-5535.",
+        "source": "document",
+        "ref": "graphrag:TYPO-0003",
+        "entity_ids": [
+          "CC-5519",
+          "CC-5529",
+          "CC-5535"
+        ]
+      },
+      {
+        "claim": "Fraud policy R2: Customer denies the transaction. Recommend `BLOCK_CARD` and `CREATE_CASE`. Add `FILE_REPORT` if exposure exceeds $1,000 or the case connects to a shared device profile or another card's fraud.",
+        "source": "document",
+        "ref": "graphrag:POL-R2",
+        "entity_ids": []
       }
     ],
-    "similar_prior_cases": [],
-    "summary": "A total of 4 transactions amounting to $1,906.07 on card C07297-K1 are assessed as fraud with a probability of 0.99, matching an undocumented pattern. These 4 online purchases occurred within an hour on the card, with each transaction individually priced just under $500 (ranging from $456.96 to $488.04, which is about 8x the card's normal amount). The transaction amounts appear to have been specifically selected to remain under an authorization or reporting threshold while exhausting the card's available funds, ensuring that risk scores stay low. This pattern was identified by scanning the card's recent window for bursts of near-threshold amounts following a trigger from a customer report. The investigation involved 8 tool calls and consulted closed cases CC-5562, CC-5560, and CC-5521.",
+    "similar_prior_cases": [
+      "CC-3841",
+      "CC-4124"
+    ],
+    "summary": "4 transaction(s) totalling $1,906.07 on C07297-K1 are assessed as fraud (probability 0.99), matching an undocumented pattern. 4 online purchases within an hour on one card, each just under $500 ($456.96 to $488.04, about 8x the card's normal amount). Amounts appear chosen to stay under an authorization or reporting threshold while draining the card; risk scores stay low. Found by scanning the card's recent window for bursts of near-threshold amounts. Trigger: customer report. Tool calls: 9; closed cases consulted: CC-5562, CC-5560, CC-5521.",
     "written_to_graph": true,
     "graph_case_id": "CASE-2016-006"
   },
@@ -162,7 +197,7 @@
     ]
   },
   "stop_reason": "Fraud probability 0.99 with 4 independent evidence items reached the stop threshold (section 6).",
-  "tool_calls": 8,
-  "tokens": 2923,
-  "latency_s": 4.48
+  "tool_calls": 9,
+  "tokens": 6256,
+  "latency_s": 39.83
 }

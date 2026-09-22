@@ -71,14 +71,31 @@
         "entity_ids": [
           "CC-4163"
         ]
+      },
+      {
+        "claim": "Retrieved closed-case typology TYPO-0219: the cardholder reported unrecognized activity on the card. N transaction(s) between a date and a date totaling an amount were confirmed fraudulent. Online purchases from a device not previously seen o Example closed cases: CC-4908.",
+        "source": "document",
+        "ref": "graphrag:TYPO-0219",
+        "entity_ids": [
+          "CC-4908"
+        ]
+      },
+      {
+        "claim": "Retrieved closed-case typology TYPO-0345: the cardholder reported unrecognized activity on the card. N transaction(s) between a date and a date totaling an amount were confirmed fraudulent. Online purchases from a device not previously seen o Example closed cases: CC-1556.",
+        "source": "document",
+        "ref": "graphrag:TYPO-0345",
+        "entity_ids": [
+          "CC-1556"
+        ]
       }
     ],
     "similar_prior_cases": [
       "CC-5010",
       "CC-4485",
-      "CC-4163"
+      "CC-4163",
+      "CC-4908"
     ],
-    "summary": "3 transaction(s) totalling $166.97 on C13171-K2 are assessed as fraud (probability 0.99), matching card-not-present fraud from a device new to the account. Trigger: customer report. Tool calls: 7; closed cases consulted: CC-5010, CC-4485, CC-4163.",
+    "summary": "3 transaction(s) totalling $166.97 on C13171-K2 are assessed as fraud (probability 0.99), matching card-not-present fraud from a device new to the account. Trigger: customer report. Tool calls: 8; closed cases consulted: CC-5010, CC-4485, CC-4163.",
     "written_to_graph": true,
     "graph_case_id": "CASE-2016-008"
   },
@@ -119,7 +136,7 @@
     "activity_dates": []
   },
   "stop_reason": "Fraud probability 0.99 with 4 independent evidence items reached the stop threshold (section 6).",
-  "tool_calls": 7,
-  "tokens": 2054,
-  "latency_s": 44.18
+  "tool_calls": 8,
+  "tokens": 2817,
+  "latency_s": 37.98
 }

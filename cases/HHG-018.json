@@ -71,14 +71,42 @@
         "entity_ids": [
           "CC-3899"
         ]
+      },
+      {
+        "claim": "Retrieved closed-case typology TYPO-0001: the cardholder reported unrecognized activity on the card. N transaction(s) between a date and a date totaling an amount were confirmed fraudulent. Card-present use in a billing region the cardholder  Example closed cases: CC-5534, CC-5510, CC-5516.",
+        "source": "document",
+        "ref": "graphrag:TYPO-0001",
+        "entity_ids": [
+          "CC-5534",
+          "CC-5510",
+          "CC-5516"
+        ]
+      },
+      {
+        "claim": "Retrieved closed-case typology TYPO-0015: the cardholder reported unrecognized activity on the card. N transaction(s) between a date and a date totaling an amount were confirmed fraudulent. Mixed-channel activity inconsistent with the cardhol Example closed cases: CC-5223, CC-5505, CC-5363.",
+        "source": "document",
+        "ref": "graphrag:TYPO-0015",
+        "entity_ids": [
+          "CC-5223",
+          "CC-5505",
+          "CC-5363"
+        ]
+      },
+      {
+        "claim": "Fraud policy R2: Customer denies the transaction. Recommend `BLOCK_CARD` and `CREATE_CASE`. Add `FILE_REPORT` if exposure exceeds $1,000 or the case connects to a shared device profile or another card's fraud.",
+        "source": "document",
+        "ref": "graphrag:POL-R2",
+        "entity_ids": []
       }
     ],
     "similar_prior_cases": [
       "CC-1450",
       "CC-4070",
-      "CC-3899"
+      "CC-3899",
+      "CC-5534",
+      "CC-5510"
     ],
-    "summary": "2 transaction(s) totalling $80.04 on C02354-K2 are assessed as fraud (probability 0.98), matching account takeover: mixed-channel activity inconsistent with the cardholder, pointing to compromised credentials. Trigger: customer report. Tool calls: 8; closed cases consulted: CC-1450, CC-4070, CC-3899.",
+    "summary": "Two transaction(s) totalling $80.04 on C02354-K2 are assessed as fraud with a probability 0.98, matching an account\u2011takeover pattern: mixed\u2011channel activity inconsistent with the cardholder, indicating compromised credentials. Trigger: customer report. Tool calls: 9; closed cases consulted: CC-1450, CC-4070, CC-3899.",
     "written_to_graph": true,
     "graph_case_id": "CASE-2016-018"
   },
@@ -119,7 +147,7 @@
     "activity_dates": []
   },
   "stop_reason": "Fraud probability 0.98 with 3 independent evidence items reached the stop threshold (section 6).",
-  "tool_calls": 8,
-  "tokens": 2243,
-  "latency_s": 44.45
+  "tool_calls": 9,
+  "tokens": 2722,
+  "latency_s": 101.36
 }
