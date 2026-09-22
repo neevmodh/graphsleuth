@@ -108,12 +108,14 @@ class MCPConnection:
     # ---- the pyTigerGraph subset the backend uses ---------------------------------------------------------------
     def runInstalledQuery(self, name, params=None, timeout=None, sizeLimit=None):
         data = self.call("run_installed_query", query_name=name, params=_encode_params(params or {}))
-        return data["results"] if isinstance(data, dict) and "results" in data else data
+        return data["result"] if isinstance(data, dict) and "result" in data else data
 
     def getVerticesById(self, vtype, vid):
         data = self.call("get_node", vertex_type=vtype, vertex_id=vid)
-        node = data.get("node") or data.get("vertex") or data
-        attrs = node.get("attributes", node) if isinstance(node, dict) else {}
+        node = data["node"] if "node" in data else data["vertex"] if "vertex" in data else data
+        if not isinstance(node, dict):     # a genuine miss ({"node": None}, {"vertex": None}): never fall back to `data`
+            return []
+        attrs = node.get("attributes", node)
         return [{"attributes": attrs}] if attrs else []
 
     def upsertVertex(self, vtype, vid, attributes):

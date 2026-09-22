@@ -67,6 +67,10 @@ GRAPHSLEUTH_BACKEND=tigergraph python run_cases.py && pytest tests/test_tg_live.
 ```
 The TigerGraph MCP server (`tigergraph-mcp`) connects to the workspace over stdio (verified: 69 tools listed);
 `agent/mcp_conn.py` is the adapter that routes the agent's GraphRAG retrieval through it end to end, verified live.
+`GRAPHSLEUTH_TG_VIA=mcp` routes the *whole* backend through it instead of direct REST -- `MCPConnection` implements
+the same pyTigerGraph-shaped subset (`runInstalledQuery`, `getVerticesById`, `upsertVertex`, `upsertEdge`,
+`getEdges`) that `TigerGraphBackend` and `TigerGraphCaseMemory` call, so nothing else changes. Verified live end to
+end (read and write, `tests/test_tg_live.py::test_mcp_backend_reproduces_local_answer`).
 
 ### Graph algorithms (`agent/tg_backend.py`)
 `ring_component` (connected-component ring discovery: hops only through devices that are rare AND mostly-New AND

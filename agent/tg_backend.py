@@ -43,10 +43,19 @@ def _merge(results: list[dict]) -> dict:
 def connect(wait_for_workspace: bool = True, max_wait_s: float = 150.0):
     """Open a connection from the environment (see .env.example): TG_HOST, TG_GRAPH, TG_SECRET or TG_USERNAME/TG_PASSWORD.
 
+    GRAPHSLEUTH_TG_VIA=mcp routes the whole backend (not just GraphRAG) through the TigerGraph MCP server instead of
+    direct REST: agent/mcp_conn.py's MCPConnection implements the same pyTigerGraph-shaped subset (runInstalledQuery,
+    getVerticesById, upsertVertex, upsertEdge, getEdges) that TigerGraphBackend and TigerGraphCaseMemory call, so
+    nothing else has to change. Verified live end to end.
+
     Savanna workspaces auto-suspend when idle (required by the hackathon rules) and take roughly a minute to wake on
     the first request after that; in the meantime RESTPP answers with a Bad Gateway or an HTML "Starting workspace"
     page instead of JSON, which surfaces as a confusing parse error deep in whichever call happened to go first. By
-    default this blocks here instead, polling a cheap query until the workspace actually answers."""
+    default this blocks here instead, polling a cheap query until the workspace actually answers (REST path only:
+    the MCP server's own startup handshake already blocks on this for up to 120s)."""
+    if os.getenv("GRAPHSLEUTH_TG_VIA", "").lower() == "mcp":
+        from .mcp_conn import MCPConnection
+        return MCPConnection()
     from pyTigerGraph import TigerGraphConnection
     host, graph = os.environ["TG_HOST"], os.environ.get("TG_GRAPH", "GraphSleuth")
     secret = os.environ.get("TG_SECRET")

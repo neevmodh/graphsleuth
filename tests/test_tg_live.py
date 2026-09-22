@@ -24,13 +24,13 @@ RING_SIZE = 52
 RING_CARD = "C10193-K2"          # any card known to be on the ring device
 
 
-def _answer(backend, memory, case_id):
+def _answer(backend, memory, case_id, write_memory=False):
     import pandas as pd
     from agent.orchestrator import Orchestrator
     data_dir = os.getenv("DATA_DIR", "../dataset/HHGOA_IEEE")
     trig = pd.read_csv(f"{data_dir}/case_pack.csv").set_index("case_id").loc[case_id].to_dict()
     trig["case_id"] = case_id
-    return Orchestrator(backend, memory).run_case(trig, write_memory=False)
+    return Orchestrator(backend, memory).run_case(trig, write_memory=write_memory)
 
 
 @pytest.mark.parametrize("case_id", ["HHG-014", "HHG-010", "HHG-001", "HHG-002", "HHG-007", "HHG-005"])
@@ -74,3 +74,26 @@ def test_card_link_reports_two_ring_cards_as_linked():
     other = next(c["card_id"] for c in b.ring_component(RING_CARD)["cards"] if c["card_id"] != RING_CARD)
     linked = b.card_link(RING_CARD, other)
     assert linked["linked"] and linked["component_size"] == RING_SIZE
+
+
+VENV_MCP = Path(__file__).resolve().parents[1] / ".venv-mcp" / "bin" / "tigergraph-mcp"
+
+
+@pytest.mark.skipif(not VENV_MCP.exists(), reason=".venv-mcp not set up: pip install -r requirements-mcp.txt into it")
+def test_mcp_backend_reproduces_local_answer():
+    """GRAPHSLEUTH_TG_VIA=mcp: the whole backend routed through the MCP server (not just GraphRAG's retrieval),
+    using MCPConnection's pyTigerGraph-shaped facade end to end -- read (runInstalledQuery, getVerticesById) and
+    write (upsertVertex, upsertEdge) both exercised, since write_memory stays on here."""
+    from agent.backend import LocalBackend
+    from agent.mcp_conn import MCPConnection
+    from agent.tg_backend import TigerGraphBackend, TigerGraphCaseMemory
+    conn = MCPConnection()
+    try:
+        local = _answer(LocalBackend("final"), None, "HHG-014")
+        mcp_answer = _answer(TigerGraphBackend(conn), TigerGraphCaseMemory(conn), "HHG-014", write_memory=True)
+    finally:
+        conn.close()
+    assert mcp_answer.case.verdict == local.case.verdict
+    assert mcp_answer.case.pattern == local.case.pattern
+    assert abs(mcp_answer.case.exposure_usd - local.case.exposure_usd) < 0.01
+    assert mcp_answer.case.written_to_graph and mcp_answer.case.graph_case_id == "CASE-2016-014"
