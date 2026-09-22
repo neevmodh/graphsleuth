@@ -5,9 +5,12 @@
 **Length:** ~1,800 to 2,400 words, 4 figures, 2 short code blocks.
 **Required by the task:** what we built, architecture, how TigerGraph is used, agentic capabilities, what we learned, what we would improve.
 
-> **Publishing gate.** The TigerGraph sections below are written as a *plan*. At the time of writing the graph
-> runs on a local DuckDB backend (`backend: local DuckDB`). Do not publish a claim about TigerGraph, GSQL, vector
-> search or GraphRAG until it is actually implemented; fill those sections from the real system and delete this note.
+> **Publishing gate — cleared 2026-09-22.** The system now runs end to end on TigerGraph Savanna: 16 GSQL queries
+> installed, GraphRAG live over TigerVector (through the TigerGraph MCP server, verified against 69 live tools),
+> connected-component ring discovery and HITS hub ranking as graph-algorithm tools, and every case written back as a
+> `FraudCase` vertex. Section 4 below can now be filled and cited directly from `README.md` and `docs/architecture.svg`
+> instead of a plan. Still to confirm before publishing: the actual numbers (query count, timings) against whatever
+> is true the day this goes out, since the graph and code keep moving.
 
 ## 0. TL;DR (3 sentences)
 An agent that investigates card-fraud alerts, decides *how sure it is*, and recommends actions inside policy and

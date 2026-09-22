@@ -8,11 +8,17 @@ TigerGraph knowledge graph and GraphRAG over policy and past cases, assesses ris
 progresses a case, recommends next-best actions within policy and approval limits, and writes what it learned
 back to the graph as case memory.
 
+![Architecture](docs/architecture.svg)
+
 > Status: runs end to end on **TigerGraph Savanna**. The graph (590,742 transactions, 14,318 cards, 5,565 closed cases,
-> ~2.3M edges, counts verified against the source) is loaded, 13 GSQL queries are installed, and all 20 benchmark cases run
+> ~2.3M edges, counts verified against the source) is loaded, 16 GSQL queries are installed, and all 20 benchmark cases run
 > through them and are written back to the graph as `FraudCase` vertices. The TigerGraph answers are identical to the local
-> backend's (0 differences over 100 field groups). Pending: GraphRAG (needs a Gemini key), routing calls through the MCP
-> server end to end, a real-provider run of the LLM layer. Held-out results: [docs/eval_results.md](docs/eval_results.md).
+> backend's (0 differences over 100 field groups). GraphRAG is live (policy/typology/regulatory chunks retrieved via
+> TigerVector over the TigerGraph MCP server, grounding evidence, the case summary and the SAR narrative), agent calls
+> route through the MCP server end to end (verified against 69 live tools), and the LLM layer runs on real Groq + Gemini
+> keys. Graph algorithms (connected-component ring discovery, HITS hub ranking, card-to-card link paths) and counterfactual
+> explanations with an uncertainty read-out are wired into the investigator and the UI. Held-out results:
+> [docs/eval_results.md](docs/eval_results.md).
 
 ## Design principle
 **The LLM proposes; a deterministic policy engine disposes.** Fraud probability comes from graph features and a
@@ -28,7 +34,7 @@ are enforced in code (`agent/policy.py`), so policy is never hallucinated.
 | `eval/` | Dev-set replay on closed cases and answer validation |
 | `api/`, `ui/` | FastAPI + SSE backend and React investigator UI |
 | `cases/` | The 20 benchmark answer files |
-| `docs/` | Data findings, architecture, blog |
+| `docs/` | Data findings, [architecture diagram](docs/architecture.svg), demo script, blog outline |
 
 ## Run the analyst UI
 ```bash
@@ -53,11 +59,30 @@ c = TigerGraphConnection(host=os.environ["TG_HOST"], graphname="", gsqlSecret=os
 print(c.gsql(open("graph/schema.gsql").read()))
 PY
 python -m data.load_tg                         # REST loader, idempotent (~25 min for the full graph)
-python graph/install_queries.py                # creates and installs the 13 queries (~4 min)
+python graph/install_queries.py                # creates and installs the 16 queries (~5 min)
 GRAPHSLEUTH_BACKEND=tigergraph python run_cases.py && pytest tests/test_tg_live.py
 ```
-The TigerGraph MCP server (`tigergraph-mcp`) connects to the workspace over stdio (verified); `agent/mcp_conn.py` is the
-adapter that routes the agent's graph calls through it, and is not yet verified end to end.
+The TigerGraph MCP server (`tigergraph-mcp`) connects to the workspace over stdio (verified: 69 tools listed);
+`agent/mcp_conn.py` is the adapter that routes the agent's GraphRAG retrieval through it end to end, verified live.
+
+### Graph algorithms (`agent/tg_backend.py`)
+`ring_component` (connected-component ring discovery: hops only through devices that are rare AND mostly-New AND
+mostly-proxied, so an ordinary shared device never floods the traversal), `device_hub_rank` (HITS power iteration over
+the card-device bipartite graph, surfacing the device at the centre of a ring, not just the one with the most cards) and
+`card_link` (hop distance between two specific cards). The investigator calls `ring_component` whenever its existing
+single-device ring heuristic fires, to check whether the ring reaches beyond that one device.
+
+### Counterfactuals and uncertainty (`agent/counterfactual.py`)
+For a case that fired the ring/testing/structuring/customer-report/recurring adjustments, `GET
+/api/cases/{id}/counterfactuals` replays the same deterministic probability formula with one signal flipped off,
+reporting whether that would cross a policy threshold — plus how far the case sits from the nearest one. Shown in the UI
+under the fraud-probability gauge after each live investigation.
+
+### Autonomous monitor (`run_monitor.py`, optional)
+Sweeps the whole graph for alerts the 20 sampled benchmark cases never triggered on — every ring-like device
+`find_rings()` finds (not just HHG-014's) and the highest bank-risk-score transactions that were never sampled — and
+investigates them the same way `run_cases.py` does. Output goes to `cases_extra/` and is never written back to the
+graph, kept separate from the 20 graded answers.
 
 ## LLM layer
 `agent/llm.py` routes to Groq (`openai/gpt-oss-120b`, fast tool loop) and Gemini (`gemini-3.6-flash`, synthesis; embeddings) through
