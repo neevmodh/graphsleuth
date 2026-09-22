@@ -5,11 +5,11 @@
 Every number below comes from the current `cases/*.json` outputs. Re-check them against the files if you re-run the agent.
 
 ## Before you record
-- [ ] **Backend badge.** The UI badge must read what is true. Today it says `backend: local DuckDB`. Record the
-      TigerGraph narration **only after** the Savanna backend is connected and the badge says `backend: TigerGraph`
-      and cases show `written to TigerGraph: yes`. Until then, do not say the agent "queries TigerGraph".
-- [ ] `python run_cases.py` then `python -m eval.validate_answers cases` (expect 20/20 valid).
-- [ ] `python -m uvicorn api.main:app --port 8000`, open http://localhost:8000, dark theme, browser zoom 110%, window 1440 px wide.
+- [ ] **Backend badge.** The UI badge must read what is true: `GRAPHSLEUTH_BACKEND=tigergraph` makes it say
+      `backend: TigerGraph` and cases show `written to TigerGraph: yes` — confirmed live as of 2026-09-22. Start the
+      server with that env var set, or the badge (correctly) falls back to `local DuckDB`.
+- [ ] `GRAPHSLEUTH_BACKEND=tigergraph python run_cases.py` then `python -m eval.validate_answers cases` (expect 20/20 valid).
+- [ ] `GRAPHSLEUTH_BACKEND=tigergraph python -m uvicorn api.main:app --port 8000`, open http://localhost:8000, dark theme, browser zoom 110%, window 1440 px wide.
 - [ ] The live stream is paced at 0.35 s per step (`?pace=0.35` in `ui/index.html`) so viewers can read each tool call.
 - [ ] Do a dry run of each scene once. Clear approvals for a clean take: delete `data/store/approvals.json`.
 - [ ] Say once, out loud, that customer replies are **simulated** (the task provides none) and recorded as assumptions.
@@ -75,6 +75,12 @@ Every number below comes from the current `cases/*.json` outputs. Re-check them 
 
 ## If asked / common questions
 - *Are the customer replies real?* No. Simulated, and recorded under `evidence_requests.assumed_response`.
+- *What's the GraphRAG citation in the evidence list (e.g. `graphrag:POL-R9`, `graphrag:TYPO-0079`)?* Policy, typology
+  and regulatory text retrieved by vector similarity from TigerVector over the TigerGraph MCP server, not the graph
+  traversal evidence above it -- point at one and note it cites a real chunk id, not a hallucinated quote.
+- *Does it explain what would change its mind?* Yes -- the "Uncertainty" panel under the gauge (fetched after each
+  live run) replays the same probability rule with one evidence signal removed and says whether that would flip the
+  verdict; on HHG-014, removing the ring signal alone drops p from 0.92 to 0.75.
 - *Why do some fraud cases block without asking?* The stop rule: p at or above 0.85 with two independent pieces of evidence (HHG-002, HHG-014 and others). Below that, the agent verifies first (HHG-019). Customer reports are the exception: the customer's denial is already in hand (R2).
 - *Does it look at the future?* Its window is ±72 h around the alert, and the benchmark data has all of it. A live
   deployment would use only transactions up to the alert time.
