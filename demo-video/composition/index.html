@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>GraphSleuth — demo</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --bg: #0a0c0f;
+        --panel: #14171c;
+        --panel2: #191d24;
+        --ink: #f3f4f1;
+        --muted: #8a92a1;
+        --line: #1e222a;
+        --accent: #e8a33d;
+        --bad: #ff5c70;
+        --ok: #49c38a;
+        --unc: #9b8cff;
+        --doc: #2dd4bf;
+        --bad-bg: rgba(255, 92, 112, 0.14);
+        --accent-bg: rgba(232, 163, 61, 0.14);
+        --doc-bg: rgba(45, 212, 191, 0.13);
+        --ok-bg: rgba(73, 195, 138, 0.13);
+        --font-display: -apple-system, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+        --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--bg); }
+      #root {
+        position: relative; width: 100%; height: 100%;
+        font-family: var(--font-display); color: var(--ink); background: var(--bg);
+      }
+      .clip { position: absolute; inset: 0; overflow: hidden; }
+      .center { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; }
+
+      /* ---------- act 1: hook ---------- */
+      #s1-num { font-size: 280px; font-weight: 800; letter-spacing: -0.02em; line-height: 1; opacity: 0; }
+      #s1-cap { margin-top: 20px; font-size: 34px; letter-spacing: 0.5em; text-transform: uppercase; color: var(--muted); opacity: 0; }
+      #s1-reveal { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: #17070a; opacity: 0; }
+      #s1-reveal-text {
+        font-size: 116px; font-weight: 800; color: var(--bad); text-align: center; line-height: 1.12;
+        text-shadow: 0 0 70px rgba(255, 92, 112, 0.45);
+      }
+
+      /* ---------- act 1b: title ---------- */
+      #t-word { font-size: 150px; font-weight: 800; letter-spacing: -0.03em; opacity: 0; }
+      #t-tag { font-size: 42px; color: var(--muted); margin-top: 18px; opacity: 0; }
+      #t-sub { font-size: 26px; color: var(--accent); margin-top: 40px; letter-spacing: 0.22em; text-transform: uppercase; opacity: 0; }
+
+      /* ---------- stat cards ---------- */
+      .statgrid { display: flex; gap: 40px; align-items: center; justify-content: center; height: 100%; padding: 0 180px; }
+      .statcard {
+        flex: 1; min-width: 0; min-height: 360px; background: var(--panel); border: 1px solid var(--line); border-radius: 24px;
+        padding: 56px 44px; display: flex; flex-direction: column; justify-content: center; gap: 16px; opacity: 0;
+      }
+      .statcard .big { font-size: 78px; font-weight: 800; letter-spacing: -0.02em; }
+      .statcard .lbl { font-size: 27px; color: var(--muted); line-height: 1.35; }
+      .statgrid.small .big { font-size: 60px; }
+      .statgrid.small .statcard { padding: 40px 32px; min-height: 300px; }
+
+      /* ---------- act 2: statement ---------- */
+      #q-main { font-size: 96px; font-weight: 800; text-align: center; line-height: 1.18; letter-spacing: -0.02em; opacity: 0; padding: 0 200px; }
+      #q-main em { font-style: normal; color: var(--accent); }
+      #q-sub { margin-top: 48px; font-size: 34px; color: var(--muted); text-align: center; line-height: 1.5; padding: 0 320px; opacity: 0; }
+
+      /* ---------- act 3: pipeline ---------- */
+      #pipe-title { position: absolute; top: 120px; left: 0; right: 0; text-align: center; font-size: 40px; font-weight: 700; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; opacity: 0; }
+      #pipe { display: flex; align-items: center; justify-content: center; gap: 0; height: 100%; padding: 0 90px; }
+      .pnode {
+        width: 268px; background: var(--panel); border: 1px solid var(--line); border-radius: 20px;
+        padding: 32px 24px; text-align: center; opacity: 0;
+      }
+      .pnode .pn-t { font-size: 30px; font-weight: 700; margin-bottom: 12px; }
+      .pnode .pn-s { font-size: 21px; color: var(--muted); line-height: 1.4; font-family: var(--font-mono); }
+      .pnode.hl { border-color: var(--accent); background: var(--accent-bg); }
+      .pnode.hl .pn-t { color: var(--accent); }
+      .plink { width: 56px; height: 2px; background: var(--line); opacity: 0; flex: none; }
+
+      /* ---------- act 3b: tigergraph chips ---------- */
+      #tg-title { position: absolute; top: 150px; left: 0; right: 0; text-align: center; font-size: 56px; font-weight: 800; opacity: 0; }
+      #tg-title span { color: var(--accent); }
+      #chips { display: flex; flex-wrap: wrap; gap: 26px; align-items: center; align-content: center; justify-content: center; height: 100%; padding: 280px 260px 120px; }
+      .chip {
+        background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 24px 42px;
+        font-size: 30px; font-weight: 600; opacity: 0;
+      }
+      .chip b { color: var(--accent); font-weight: 800; }
+
+      /* ---------- act: design principle ---------- */
+      #dp { display: flex; align-items: center; justify-content: center; height: 100%; gap: 0; padding: 0 200px; }
+      .dp-half { flex: 1; padding: 60px; text-align: center; opacity: 0; }
+      .dp-half .dp-k { font-size: 26px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); margin-bottom: 22px; }
+      .dp-half .dp-v { font-size: 56px; font-weight: 800; line-height: 1.2; }
+      .dp-half.left .dp-v { color: var(--unc); }
+      .dp-half.right .dp-v { color: var(--accent); }
+      #dp-div { width: 2px; align-self: stretch; background: var(--line); margin: 120px 0; opacity: 0; }
+      #dp-foot { position: absolute; left: 0; right: 0; bottom: 170px; text-align: center; font-size: 28px; color: var(--muted); font-family: var(--font-mono); opacity: 0; }
+
+      /* ---------- footage + annotations ---------- */
+      .shot { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+      .anno {
+        position: absolute; background: rgba(10, 12, 15, 0.92); border: 1px solid var(--accent);
+        border-radius: 16px; padding: 22px 32px; opacity: 0; backdrop-filter: blur(4px);
+        box-shadow: 0 18px 60px rgba(0, 0, 0, 0.55);
+      }
+      .anno .a-t { font-size: 32px; font-weight: 700; color: var(--accent); }
+      .anno .a-s { font-size: 24px; color: var(--ink); margin-top: 8px; line-height: 1.35; }
+      #badge-live {
+        position: absolute; top: 56px; left: 56px; display: flex; align-items: center; gap: 14px;
+        background: rgba(10,12,15,.92); border: 1px solid var(--bad); border-radius: 999px;
+        padding: 14px 28px; font-size: 26px; font-weight: 700; color: var(--bad); opacity: 0;
+      }
+      #badge-live i { width: 14px; height: 14px; border-radius: 50%; background: var(--bad); display: block; }
+
+      /* ---------- act 5: graph ---------- */
+      #g-wrap { position: relative; width: 100%; height: 100%; }
+      #g-device {
+        position: absolute; left: 50%; top: 46%; width: 108px; height: 108px; margin: -54px 0 0 -54px;
+        border-radius: 50%; background: var(--accent-bg); border: 3px solid var(--accent);
+        display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700;
+        color: var(--accent); box-shadow: 0 0 70px rgba(232, 163, 61, 0.45); text-align: center; padding: 8px;
+      }
+      .cnode { position: absolute; width: 22px; height: 22px; border-radius: 50%; background: var(--bad); box-shadow: 0 0 18px rgba(255,92,112,.65); opacity: 0; transform: scale(0); }
+      .clink { position: absolute; height: 1px; background: linear-gradient(90deg, rgba(232,163,61,.55), rgba(255,92,112,.22)); transform-origin: 0 0; opacity: 0; }
+      #g-cap { position: absolute; left: 0; right: 0; bottom: 88px; text-align: center; font-size: 58px; font-weight: 800; opacity: 0; }
+      #g-cap b { color: var(--bad); }
+      #g-sub { position: absolute; left: 0; right: 0; bottom: 42px; text-align: center; font-size: 27px; color: var(--muted); font-family: var(--font-mono); opacity: 0; }
+
+      /* ---------- act 6: actions ---------- */
+      #acts { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; padding: 0 380px; height: 100%; }
+      .act-row {
+        display: flex; align-items: center; justify-content: space-between; width: 100%;
+        background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 24px 40px;
+        opacity: 0; transform: scale(0.92);
+      }
+      .act-name { font-family: var(--font-mono); font-size: 36px; font-weight: 700; }
+      .route-chip { font-size: 23px; font-weight: 700; padding: 8px 22px; border-radius: 999px; }
+      .route-auto { background: var(--panel2); color: var(--muted); }
+      .route-l1, .route-l2 { background: var(--accent-bg); color: var(--accent); }
+      #sar {
+        position: absolute; left: 260px; right: 260px; top: 96px; text-align: center;
+        background: var(--bad-bg); border: 2px solid var(--bad); border-radius: 18px; padding: 24px;
+        font-size: 38px; font-weight: 800; color: var(--bad); opacity: 0; transform: scale(0.88); letter-spacing: 0.06em;
+      }
+      #acts-note { position: absolute; left: 0; right: 0; bottom: 92px; text-align: center; font-size: 27px; color: var(--muted); opacity: 0; }
+
+      /* ---------- outro ---------- */
+      #o-word { font-size: 132px; font-weight: 800; letter-spacing: -0.03em; opacity: 0; }
+      #o-tag { font-size: 38px; color: var(--muted); margin-top: 14px; opacity: 0; }
+      #o-links { font-family: var(--font-mono); font-size: 32px; color: var(--doc); margin-top: 44px; display: flex; flex-direction: column; gap: 12px; opacity: 0; }
+      #o-foot { font-size: 26px; color: var(--muted); margin-top: 48px; opacity: 0; }
+      #o-tg { font-size: 30px; color: var(--accent); font-weight: 800; margin-top: 12px; opacity: 0; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="gsdemo" data-start="0" data-width="1920" data-height="1080" data-duration="180">
+
+      <!-- ============ ACT 1: HOOK (0-18) ============ -->
+      <section id="sc-hook" class="clip" data-start="0" data-duration="5.5" data-track-index="0">
+        <div class="center">
+          <div id="s1-num">0.05</div>
+          <div id="s1-cap">bank risk score</div>
+        </div>
+        <div id="s1-reveal"><div id="s1-reveal-text">28 CARDS.<br />ONE DEVICE.<br />ONE RING.</div></div>
+      </section>
+
+      <section id="sc-title" class="clip" data-start="5.5" data-duration="6.5" data-track-index="0">
+        <div class="center">
+          <div id="t-word">GraphSleuth</div>
+          <div id="t-tag">An agentic fraud investigator that thinks in graphs.</div>
+          <div id="t-sub">Hacker House Goa 2026 · TigerGraph Task 04</div>
+        </div>
+      </section>
+
+      <section id="sc-stats1" class="clip" data-start="12" data-duration="6" data-track-index="0">
+        <div class="statgrid">
+          <div class="statcard"><div class="big">590,742</div><div class="lbl">card transactions over six months</div></div>
+          <div class="statcard"><div class="big" style="color:var(--bad)">0</div><div class="lbl">fraud labels — the flag is removed, only a risk score remains</div></div>
+          <div class="statcard"><div class="big">20</div><div class="lbl">benchmark cases, scored against a hidden answer key</div></div>
+        </div>
+      </section>
+
+      <!-- ============ ACT 2: THE PROBLEM (18-32) ============ -->
+      <section id="sc-problem" class="clip" data-start="18" data-duration="14" data-track-index="0">
+        <div class="center">
+          <div id="q-main">A risk score is a reason to look.<br /><em>Never a verdict.</em></div>
+          <div id="q-sub">In this data, cleared false alarms score above 0.7 — and real fraud scores near zero. The truth isn't in the number. It's in what the account is connected to.</div>
+        </div>
+      </section>
+
+      <!-- ============ ACT 3: PIPELINE (32-52) ============ -->
+      <section id="sc-pipe" class="clip" data-start="32" data-duration="20" data-track-index="0">
+        <div id="pipe-title">How one alert is investigated</div>
+        <div id="pipe">
+          <div class="pnode"><div class="pn-t">Trigger</div><div class="pn-s">risk score<br />customer report<br />analyst request</div></div>
+          <div class="plink"></div>
+          <div class="pnode hl"><div class="pn-t">Investigate</div><div class="pn-s">17 installed<br />GSQL queries<br />over TigerGraph</div></div>
+          <div class="plink"></div>
+          <div class="pnode hl"><div class="pn-t">GraphRAG</div><div class="pn-s">policy · typologies<br />regulatory guidance<br />via TigerVector</div></div>
+          <div class="plink"></div>
+          <div class="pnode"><div class="pn-t">Policy</div><div class="pn-s">rules R1–R10<br />auto / L1 / L2<br />deterministic</div></div>
+          <div class="plink"></div>
+          <div class="pnode"><div class="pn-t">Memory</div><div class="pn-s">case written<br />back to the graph<br />for the next alert</div></div>
+        </div>
+      </section>
+
+      <!-- ============ ACT 3B: TIGERGRAPH STACK (52-66) ============ -->
+      <section id="sc-tg" class="clip" data-start="52" data-duration="14" data-track-index="0">
+        <div id="tg-title">Everything runs on <span>TigerGraph Savanna</span></div>
+        <div id="chips">
+          <div class="chip"><b>17</b> installed GSQL queries</div>
+          <div class="chip"><b>2.3M</b> edges loaded</div>
+          <div class="chip"><b>69</b> tools via TigerGraph MCP</div>
+          <div class="chip">GraphRAG over <b>TigerVector</b></div>
+          <div class="chip">connected-component <b>ring discovery</b></div>
+          <div class="chip">HITS <b>device hub ranking</b></div>
+          <div class="chip">every case written back as a <b>FraudCase</b> vertex</div>
+        </div>
+      </section>
+
+      <!-- ============ ACT 3C: DESIGN PRINCIPLE (66-78) ============ -->
+      <section id="sc-dp" class="clip" data-start="66" data-duration="12" data-track-index="0">
+        <div id="dp">
+          <div class="dp-half left"><div class="dp-k">The LLM</div><div class="dp-v">proposes</div></div>
+          <div id="dp-div"></div>
+          <div class="dp-half right"><div class="dp-k">The policy engine</div><div class="dp-v">disposes</div></div>
+        </div>
+        <div id="dp-foot">action names · approval routes · the case-vs-report gate · the stop rule — all code, never a prompt</div>
+      </section>
+
+      <!-- ============ ACT 4: LIVE DEMO FOOTAGE (78-126) ============ -->
+      <video id="shot-ui-1" class="shot" src="assets/footage/ui.mp4" muted data-start="78" data-duration="17" data-media-start="10" data-track-index="1"></video>
+      <video id="shot-ui-2" class="shot" src="assets/footage/ui.mp4" muted data-start="95" data-duration="16" data-media-start="30" data-track-index="1"></video>
+      <video id="shot-ui-3" class="shot" src="assets/footage/ui.mp4" muted data-start="111" data-duration="15" data-media-start="70" data-track-index="1"></video>
+
+      <section id="ov-1" class="clip" data-start="78" data-duration="17" data-track-index="2">
+        <div id="badge-live"><i></i> LIVE — TigerGraph Savanna</div>
+        <div class="anno" id="an-1" style="left:96px; bottom:120px; max-width:760px">
+          <div class="a-t">The analyst console</div>
+          <div class="a-s">20 benchmark alerts. Pick one and the agent investigates it end to end — no pre-baked answer.</div>
+        </div>
+      </section>
+
+      <section id="ov-2" class="clip" data-start="95" data-duration="16" data-track-index="2">
+        <div class="anno" id="an-2" style="right:96px; top:150px; max-width:700px">
+          <div class="a-t">12 tool calls, streamed live</div>
+          <div class="a-s">Each row is one installed GSQL query running against the graph, with its real latency.</div>
+        </div>
+        <div class="anno" id="an-3" style="left:96px; bottom:120px; max-width:720px">
+          <div class="a-t">ring_component → 52 cards</div>
+          <div class="a-s">A connected-component traversal that only hops through rare, New, proxied devices.</div>
+        </div>
+      </section>
+
+      <section id="ov-3" class="clip" data-start="111" data-duration="15" data-track-index="2">
+        <div class="anno" id="an-4" style="left:96px; top:140px; max-width:700px">
+          <div class="a-t">Evidence graph</div>
+          <div class="a-s">One device at the centre, 27 other cards around it — the ring, drawn from the graph.</div>
+        </div>
+        <div class="anno" id="an-5" style="right:96px; bottom:120px; max-width:760px">
+          <div class="a-t">Suspicious activity report</div>
+          <div class="a-s">Who, what, when, where, how, and why it's suspicious — drafted and fact-guarded, grounded in FinCEN guidance.</div>
+        </div>
+      </section>
+
+      <!-- ============ ACT 5: THE FIND (126-146) ============ -->
+      <section id="sc-graph" class="clip" data-start="126" data-duration="20" data-track-index="0">
+        <div id="g-wrap">
+          <div id="g-device">SM-G935F<br />proxy</div>
+          <div id="g-cap">28 <b>cards</b> · one device</div>
+          <div id="g-sub">bank risk score on the flagged transaction: 0.05 — found anyway, by walking the graph</div>
+        </div>
+      </section>
+
+      <!-- ============ ACT 6: POLICY (146-160) ============ -->
+      <section id="sc-acts" class="clip" data-start="146" data-duration="14" data-track-index="0">
+        <div id="sar">⚠ SAR FILED — $439.61 FLAGGED FOR SUSPICIOUS ACTIVITY REPORTING</div>
+        <div id="acts">
+          <div class="act-row"><span class="act-name">BLOCK_CARD</span><span class="route-chip route-l1">L1 · team lead</span></div>
+          <div class="act-row"><span class="act-name">CREATE_CASE</span><span class="route-chip route-auto">auto</span></div>
+          <div class="act-row"><span class="act-name">MONITOR_CONNECTED_CARDS</span><span class="route-chip route-auto">auto</span></div>
+          <div class="act-row"><span class="act-name">ESCALATE_TO_ANALYST</span><span class="route-chip route-auto">auto</span></div>
+          <div class="act-row"><span class="act-name">FILE_REPORT</span><span class="route-chip route-l2">L2 · fraud manager</span></div>
+        </div>
+        <div id="acts-note">Only <b>auto</b> actions execute themselves. L1 and L2 wait for a human — and fire the moment one approves.</div>
+      </section>
+
+      <!-- ============ ACT 7: GITHUB FOOTAGE (160-172) ============ -->
+      <video id="shot-gh" class="shot" src="assets/footage/github.mp4" muted data-start="160" data-duration="12" data-media-start="2" data-track-index="1"></video>
+      <section id="ov-gh" class="clip" data-start="160" data-duration="12" data-track-index="2">
+        <div class="anno" id="an-6" style="right:96px; bottom:130px; max-width:760px">
+          <div class="a-t">Open source, reproducible</div>
+          <div class="a-s">20 answer files · 84 passing tests · full GSQL schema, loaders and queries in the repo.</div>
+        </div>
+      </section>
+
+      <!-- ============ ACT 8: RESULTS + OUTRO (172-180) ============ -->
+      <section id="sc-results" class="clip" data-start="172" data-duration="4.5" data-track-index="0">
+        <div class="statgrid small">
+          <div class="statcard"><div class="big" style="color:var(--ok)">20/20</div><div class="lbl">answer files schema-valid, every ID real</div></div>
+          <div class="statcard"><div class="big" style="color:var(--ok)">0</div><div class="lbl">differences between the TigerGraph and local backends</div></div>
+          <div class="statcard"><div class="big">84</div><div class="lbl">tests passing</div></div>
+          <div class="statcard"><div class="big">3</div><div class="lbl">undocumented patterns found, beyond the five documented</div></div>
+        </div>
+      </section>
+
+      <section id="sc-outro" class="clip" data-start="176.5" data-duration="3.5" data-track-index="0">
+        <div class="center">
+          <div id="o-word">GraphSleuth</div>
+          <div id="o-tag">An agentic fraud investigator on TigerGraph.</div>
+          <div id="o-links">
+            <span>github.com/neevmodh/graphsleuth</span>
+            <span>graphsleuth-production.up.railway.app</span>
+          </div>
+          <div id="o-foot">Built for Hacker House Goa 2026 · Task 04</div>
+          <div id="o-tg">@TigerGraphDB</div>
+        </div>
+      </section>
+
+      <!-- ============ SFX (sparse — voiceover goes on top) ============ -->
+      <audio id="sfx-hit1" data-start="4.15" data-duration="0.9" data-track-index="20" data-volume="1.1" src="assets/sfx/hit.mp3"></audio>
+      <audio id="sfx-wh1" data-start="5.5" data-duration="1.2" data-track-index="21" data-volume="0.45" src="assets/sfx/whoosh.mp3"></audio>
+      <audio id="sfx-wh2" data-start="32" data-duration="1.2" data-track-index="21" data-volume="0.4" src="assets/sfx/whoosh.mp3"></audio>
+      <audio id="sfx-wh3" data-start="78" data-duration="1.2" data-track-index="21" data-volume="0.4" src="assets/sfx/whoosh.mp3"></audio>
+      <audio id="sfx-ris" data-start="126" data-duration="8" data-track-index="22" data-volume="0.32" src="assets/sfx/riser.mp3"></audio>
+      <audio id="sfx-hit2" data-start="134.2" data-duration="0.9" data-track-index="20" data-volume="0.95" src="assets/sfx/hit.mp3"></audio>
+      <audio id="sfx-lk1" data-start="146.6" data-duration="0.34" data-track-index="20" data-volume="0.75" src="assets/sfx/lock.mp3"></audio>
+      <audio id="sfx-lk2" data-start="147.6" data-duration="0.34" data-track-index="20" data-volume="0.75" src="assets/sfx/lock.mp3"></audio>
+      <audio id="sfx-lk3" data-start="148.6" data-duration="0.34" data-track-index="20" data-volume="0.75" src="assets/sfx/lock.mp3"></audio>
+      <audio id="sfx-lk4" data-start="149.6" data-duration="0.34" data-track-index="20" data-volume="0.75" src="assets/sfx/lock.mp3"></audio>
+      <audio id="sfx-lk5" data-start="150.6" data-duration="0.34" data-track-index="20" data-volume="0.75" src="assets/sfx/lock.mp3"></audio>
+      <audio id="sfx-alert" data-start="152" data-duration="1.5" data-track-index="23" data-volume="0.55" src="assets/sfx/alert.mp3"></audio>
+      <audio id="sfx-wh4" data-start="160" data-duration="1.2" data-track-index="21" data-volume="0.4" src="assets/sfx/whoosh.mp3"></audio>
+      <audio id="sfx-hit3" data-start="176.5" data-duration="0.9" data-track-index="20" data-volume="0.8" src="assets/sfx/hit.mp3"></audio>
+    </div>
+
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      const IN = "power3.out";
+
+      /* ---------- ACT 1: hook ---------- */
+      tl.fromTo("#s1-num", { opacity: 0, scale: 0.93 }, { opacity: 1, scale: 1, duration: 0.6, ease: IN }, 0.25);
+      tl.fromTo("#s1-cap", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.5, ease: IN }, 0.75);
+      tl.to("#s1-num", { opacity: 0, duration: 0.08, ease: "none" }, 4.15);
+      tl.to("#s1-cap", { opacity: 0, duration: 0.08, ease: "none" }, 4.15);
+      tl.fromTo("#s1-reveal", { opacity: 0 }, { opacity: 1, duration: 0.07, ease: "none" }, 4.15);
+      tl.fromTo("#s1-reveal-text", { opacity: 0, scale: 1.07 }, { opacity: 1, scale: 1, duration: 0.4, ease: IN }, 4.2);
+
+      /* ---------- title ---------- */
+      tl.fromTo("#t-word", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.7, ease: IN }, 5.7);
+      tl.fromTo("#t-tag", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.6, ease: IN }, 6.3);
+      tl.fromTo("#t-sub", { opacity: 0 }, { opacity: 1, duration: 0.6 }, 7.0);
+      tl.to(["#t-word", "#t-tag", "#t-sub"], { opacity: 0, duration: 0.45 }, 11.4);
+
+      /* ---------- stat cards ---------- */
+      document.querySelectorAll("#sc-stats1 .statcard").forEach((c, i) => {
+        tl.fromTo(c, { opacity: 0, y: 34 }, { opacity: 1, y: 0, duration: 0.5, ease: IN }, 12.25 + i * 0.45);
+      });
+      tl.to("#sc-stats1 .statgrid", { opacity: 0, duration: 0.4 }, 17.4);
+
+      /* ---------- ACT 2: problem ---------- */
+      tl.fromTo("#q-main", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.8, ease: IN }, 18.3);
+      tl.fromTo("#q-sub", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.7, ease: IN }, 20.4);
+      tl.to(["#q-main", "#q-sub"], { opacity: 0, duration: 0.5 }, 31.2);
+
+      /* ---------- ACT 3: pipeline ---------- */
+      tl.fromTo("#pipe-title", { opacity: 0 }, { opacity: 1, duration: 0.5 }, 32.3);
+      const pnodes = document.querySelectorAll("#pipe .pnode");
+      const plinks = document.querySelectorAll("#pipe .plink");
+      pnodes.forEach((n, i) => {
+        tl.fromTo(n, { opacity: 0, y: 30, scale: 0.94 }, { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: "back.out(1.5)" }, 33.2 + i * 1.5);
+        if (plinks[i]) tl.fromTo(plinks[i], { opacity: 0, scaleX: 0 }, { opacity: 1, scaleX: 1, duration: 0.35, ease: "power2.out", transformOrigin: "0 50%" }, 33.85 + i * 1.5);
+      });
+      tl.to(["#pipe-title", "#pipe"], { opacity: 0, duration: 0.5 }, 51.2);
+
+      /* ---------- ACT 3B: tigergraph chips ---------- */
+      tl.fromTo("#tg-title", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.6, ease: IN }, 52.3);
+      document.querySelectorAll("#chips .chip").forEach((c, i) => {
+        tl.fromTo(c, { opacity: 0, scale: 0.88 }, { opacity: 1, scale: 1, duration: 0.42, ease: "back.out(1.7)" }, 53.4 + i * 1.15);
+      });
+      tl.to(["#tg-title", "#chips"], { opacity: 0, duration: 0.5 }, 65.2);
+
+      /* ---------- ACT 3C: design principle ---------- */
+      tl.fromTo("#dp .dp-half.left", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.7, ease: IN }, 66.4);
+      tl.fromTo("#dp-div", { opacity: 0, scaleY: 0 }, { opacity: 1, scaleY: 1, duration: 0.5, ease: "power2.out" }, 67.0);
+      tl.fromTo("#dp .dp-half.right", { opacity: 0, x: 40 }, { opacity: 1, x: 0, duration: 0.7, ease: IN }, 67.4);
+      tl.fromTo("#dp-foot", { opacity: 0 }, { opacity: 1, duration: 0.6 }, 69.2);
+      tl.to(["#dp", "#dp-foot"], { opacity: 0, duration: 0.5 }, 77.2);
+
+      /* ---------- ACT 4: footage annotations ---------- */
+      tl.fromTo("#badge-live", { opacity: 0, x: -20 }, { opacity: 1, x: 0, duration: 0.45, ease: IN }, 78.6);
+      tl.to("#badge-live", { opacity: 0.45, duration: 0.7, yoyo: true, repeat: 8 }, 79.4);
+      tl.fromTo("#an-1", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.5, ease: IN }, 79.4);
+      tl.to("#an-1", { opacity: 0, duration: 0.4 }, 93.6);
+
+      tl.fromTo("#an-2", { opacity: 0, x: 30 }, { opacity: 1, x: 0, duration: 0.5, ease: IN }, 96.0);
+      tl.to("#an-2", { opacity: 0, duration: 0.4 }, 103.4);
+      tl.fromTo("#an-3", { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.5, ease: IN }, 104.0);
+      tl.to("#an-3", { opacity: 0, duration: 0.4 }, 110.2);
+
+      tl.fromTo("#an-4", { opacity: 0, y: -24 }, { opacity: 1, y: 0, duration: 0.5, ease: IN }, 112.0);
+      tl.to("#an-4", { opacity: 0, duration: 0.4 }, 118.4);
+      tl.fromTo("#an-5", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.5, ease: IN }, 119.0);
+      tl.to("#an-5", { opacity: 0, duration: 0.4 }, 125.2);
+
+      /* ---------- ACT 5: the graph ---------- */
+      tl.fromTo("#g-device", { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: "back.out(2)" }, 126.4);
+      const N = 28, CX = 960, CY = 497, R = 322;
+      const gw = document.getElementById("g-wrap");
+      for (let i = 0; i < N; i++) {
+        const a = (i / N) * Math.PI * 2 - Math.PI / 2;
+        const x = CX + Math.cos(a) * R, y = CY + Math.sin(a) * R;
+        const dx = x - CX, dy = y - CY;
+        const len = Math.sqrt(dx * dx + dy * dy);
+        const ang = Math.atan2(dy, dx) * (180 / Math.PI);
+        const lk = document.createElement("div");
+        lk.className = "clink";
+        lk.style.left = CX + "px"; lk.style.top = CY + "px";
+        lk.style.width = len + "px"; lk.style.transform = "rotate(" + ang + "deg)";
+        gw.appendChild(lk);
+        const nd = document.createElement("div");
+        nd.className = "cnode";
+        nd.style.left = (x - 11) + "px"; nd.style.top = (y - 11) + "px";
+        gw.appendChild(nd);
+        const t = 127.2 + i * 0.16;
+        tl.to(lk, { opacity: 1, duration: 0.2 }, t);
+        tl.to(nd, { opacity: 1, scale: 1, duration: 0.25, ease: "back.out(2)" }, t);
+      }
+      tl.fromTo("#g-cap", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.5, ease: IN }, 134.2);
+      tl.fromTo("#g-sub", { opacity: 0 }, { opacity: 1, duration: 0.5 }, 135.2);
+      tl.to("#sc-graph #g-wrap", { opacity: 0, duration: 0.5 }, 145.2);
+
+      /* ---------- ACT 6: policy actions ---------- */
+      document.querySelectorAll("#acts .act-row").forEach((r, i) => {
+        tl.fromTo(r, { opacity: 0, scale: 0.92 }, { opacity: 1, scale: 1, duration: 0.34, ease: "back.out(1.8)" }, 146.6 + i);
+      });
+      tl.fromTo("#sar", { opacity: 0, scale: 0.88 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2)" }, 152.0);
+      tl.to("#sar", { boxShadow: "0 0 60px rgba(255,92,112,0.5)", duration: 0.7, yoyo: true, repeat: 3 }, 152.5);
+      tl.fromTo("#acts-note", { opacity: 0 }, { opacity: 1, duration: 0.5 }, 154.4);
+      tl.to(["#acts", "#sar", "#acts-note"], { opacity: 0, duration: 0.5 }, 159.2);
+
+      /* ---------- ACT 7: github annotation ---------- */
+      tl.fromTo("#an-6", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.5, ease: IN }, 161.4);
+      tl.to("#an-6", { opacity: 0, duration: 0.4 }, 171.2);
+
+      /* ---------- ACT 8: results + outro ---------- */
+      document.querySelectorAll("#sc-results .statcard").forEach((c, i) => {
+        tl.fromTo(c, { opacity: 0, y: 28 }, { opacity: 1, y: 0, duration: 0.42, ease: IN }, 172.2 + i * 0.3);
+      });
+      tl.to("#sc-results .statgrid", { opacity: 0, duration: 0.35 }, 176.2);
+
+      tl.fromTo("#o-word", { opacity: 0, y: 22 }, { opacity: 1, y: 0, duration: 0.5, ease: IN }, 176.7);
+      tl.fromTo("#o-tag", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 177.1);
+      tl.fromTo("#o-links", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 177.5);
+      tl.fromTo("#o-foot", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 177.9);
+      tl.fromTo("#o-tg", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 178.2);
+
+      window.__timelines["gsdemo"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>

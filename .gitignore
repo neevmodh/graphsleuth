@@ -14,3 +14,6 @@ data/store/
 .venv-mcp/
 # static_demo/data/ IS committed: Railway's GitHub-integration deploy needs it in the repo (unlike the
 # original Vercel-CLI-upload plan, which uploaded local files directly). Regenerate with scripts/freeze_static.py.
+# demo-video raw screen recordings: 31MB of derived footage, re-record with
+# scripts/record_demo.js (see demo-video/README.md). The rendered video is committed.
+demo-video/composition/assets/footage/
