@@ -23,7 +23,7 @@ and built around real screen recordings rather than motion graphics alone.
 | 2:06–2:26 | The find | Animated ring reveal: 28 cards around one device |
 | 2:26–2:40 | Policy engine | The five recommended actions locking in with their `auto`/`L1`/`L2` routes, then the SAR banner |
 | **2:40–2:52** | **SCREEN RECORDING — the repo** | github.com/neevmodh/graphsleuth: README, file tree, the 20 answer files |
-| 2:52–2:56 | Results | 20/20 valid · 0 backend differences · 84 tests · 3 undocumented patterns |
+| 2:52–2:56 | Results | 20/20 valid · 0 backend differences · 84 tests · 2 undocumented patterns |
 | 2:56–3:00 | Outro | Links, Hacker House Goa 2026, @TigerGraphDB |
 
 ## Look
