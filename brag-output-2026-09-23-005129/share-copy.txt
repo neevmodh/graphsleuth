@@ -1,0 +1,6 @@
+GraphSleuth.
+Risk score: 0.05. Verdict: fraud — a 28-card ring hiding behind one "safe" transaction, found by walking the graph instead of trusting the score. An agentic fraud investigator built on TigerGraph for Hacker House Goa 2026.
+
+github.com/neevmodh/graphsleuth
+graphsleuth-production.up.railway.app
+@TigerGraphDB

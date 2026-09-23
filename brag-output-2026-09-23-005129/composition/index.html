@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>GraphSleuth — brag</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --bg: #0a0c0f;
+        --panel: #14171c;
+        --panel2: #191d24;
+        --ink: #f3f4f1;
+        --muted: #8a92a1;
+        --line: #1e222a;
+        --accent: #e8a33d;
+        --bad: #ff5c70;
+        --ok: #49c38a;
+        --unc: #9b8cff;
+        --doc: #2dd4bf;
+        --bad-bg: rgba(255, 92, 112, 0.14);
+        --accent-bg: rgba(232, 163, 61, 0.14);
+        --font-display: -apple-system, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+        --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--bg); }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        font-family: var(--font-display);
+        color: var(--ink);
+        background: var(--bg);
+      }
+      .clip { position: absolute; inset: 0; overflow: hidden; }
+      .center { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; }
+      .row { display: flex; align-items: center; }
+
+      /* ---------- scene 1 ---------- */
+      #s1-safe { text-align: center; }
+      #s1-num { font-size: 260px; font-weight: 800; letter-spacing: -0.02em; color: var(--ink); line-height: 1; }
+      #s1-cap { margin-top: 18px; font-size: 34px; letter-spacing: 0.5em; text-transform: uppercase; color: var(--muted); }
+      #s1-reveal {
+        position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+        background: #17070a; opacity: 0;
+      }
+      #s1-reveal-text {
+        font-size: 108px; font-weight: 800; color: var(--bad); text-align: center; line-height: 1.15;
+        letter-spacing: -0.01em; text-shadow: 0 0 60px rgba(255, 92, 112, 0.45);
+      }
+
+      /* ---------- scene 2: hero card ---------- */
+      #s2-card {
+        position: absolute; left: 260px; right: 260px; top: 200px; bottom: 200px;
+        background: var(--panel); border: 1px solid var(--line); border-radius: 28px; padding: 72px;
+        opacity: 0;
+      }
+      .kv { display: flex; flex-direction: column; gap: 14px; }
+      .kv span { font-size: 26px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.15em; }
+      .kv b { font-size: 44px; font-weight: 700; }
+      #s2-grid { display: flex; justify-content: space-between; margin-bottom: 64px; }
+      #s2-verdict-chip {
+        display: inline-flex; padding: 10px 28px; border-radius: 999px; font-size: 36px; font-weight: 700;
+        background: var(--panel2); color: var(--muted); width: fit-content;
+      }
+      #s2-verdict-chip.fraud { background: var(--bad-bg); color: var(--bad); }
+      #s2-gauge-track {
+        position: relative; height: 14px; border-radius: 999px; background: var(--panel2);
+        border: 1px solid var(--line); margin-top: 12px;
+      }
+      #s2-gauge-fill { position: absolute; inset: 0; border-radius: 999px; background: linear-gradient(90deg, var(--ok), var(--unc), var(--bad)); opacity: 0.25; }
+      #s2-gauge-marker {
+        position: absolute; top: 50%; left: 0; width: 34px; height: 34px; border-radius: 50%;
+        background: var(--ink); border: 4px solid var(--bad);
+        box-shadow: 0 0 30px rgba(255, 92, 112, 0.5);
+      }
+      #s2-axis { display: flex; justify-content: space-between; margin-top: 16px; font-size: 24px; color: var(--muted); font-family: var(--font-mono); }
+
+      /* ---------- scene 3a: steps ---------- */
+      #s3a { display: flex; flex-direction: column; justify-content: center; gap: 26px; padding: 0 300px; height: 100%; }
+      .step-row {
+        display: flex; align-items: center; gap: 28px; background: var(--panel); border: 1px solid var(--line);
+        border-radius: 16px; padding: 22px 34px; opacity: 0;
+      }
+      .step-n { font-family: var(--font-mono); font-size: 26px; color: var(--muted); width: 44px; }
+      .step-t { font-family: var(--font-mono); font-size: 32px; color: var(--doc); font-weight: 600; }
+
+      /* ---------- scene 3b: graph ---------- */
+      #s3b { position: absolute; inset: 0; opacity: 0; }
+      #graph-wrap { position: relative; width: 100%; height: 100%; }
+      #graph-device {
+        position: absolute; left: 50%; top: 50%; width: 96px; height: 96px; margin: -48px 0 0 -48px;
+        border-radius: 50%; background: var(--accent-bg); border: 3px solid var(--accent);
+        display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; color: var(--accent);
+        box-shadow: 0 0 60px rgba(232, 163, 61, 0.4);
+      }
+      .card-node {
+        position: absolute; width: 20px; height: 20px; border-radius: 50%; background: var(--bad);
+        box-shadow: 0 0 16px rgba(255, 92, 112, 0.6); opacity: 0; transform: scale(0);
+      }
+      .card-link { position: absolute; height: 1px; background: linear-gradient(90deg, rgba(232,163,61,0.5), rgba(255,92,112,0.25)); transform-origin: 0 0; opacity: 0; }
+      #graph-caption {
+        position: absolute; left: 0; right: 0; bottom: 110px; text-align: center;
+        font-size: 56px; font-weight: 800; color: var(--ink); opacity: 0;
+      }
+      #graph-caption b { color: var(--bad); }
+
+      /* ---------- scene 4: actions ---------- */
+      #s4 { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; padding: 0 340px; height: 100%; }
+      .act-row {
+        display: flex; align-items: center; justify-content: space-between; width: 100%;
+        background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 26px 40px;
+        opacity: 0; transform: scale(0.9);
+      }
+      .act-name { font-family: var(--font-mono); font-size: 38px; font-weight: 700; }
+      .route-chip { font-size: 24px; font-weight: 700; padding: 8px 22px; border-radius: 999px; letter-spacing: 0.05em; }
+      .route-auto { background: var(--panel2); color: var(--muted); }
+      .route-l1, .route-l2 { background: var(--accent-bg); color: var(--accent); }
+      #sar-banner {
+        position: absolute; left: 0; right: 0; top: 92px; margin: 0 260px; text-align: center;
+        background: var(--bad-bg); border: 2px solid var(--bad); border-radius: 18px; padding: 26px;
+        font-size: 40px; font-weight: 800; color: var(--bad); opacity: 0; transform: scale(0.85);
+        letter-spacing: 0.08em;
+      }
+
+      /* ---------- scene 5: outro ---------- */
+      #s5 { text-align: center; gap: 20px; }
+      #s5-word { font-size: 116px; font-weight: 800; letter-spacing: -0.02em; opacity: 0; }
+      #s5-tag { font-size: 36px; color: var(--muted); opacity: 0; }
+      #s5-links { font-family: var(--font-mono); font-size: 30px; color: var(--doc); margin-top: 30px; opacity: 0; display: flex; flex-direction: column; gap: 10px; }
+      #s5-foot { font-size: 24px; color: var(--muted); margin-top: 40px; opacity: 0; }
+      #s5-tg { font-size: 26px; color: var(--accent); font-weight: 700; margin-top: 10px; opacity: 0; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="graphsleuth" data-start="0" data-width="1920" data-height="1080" data-duration="24.9">
+
+      <!-- Scene 1: The number that lied -->
+      <section id="scene1" class="clip" data-start="0" data-duration="4.4" data-track-index="0">
+        <div id="s1-safe" class="center">
+          <div id="s1-num">0.05</div>
+          <div id="s1-cap">risk score</div>
+        </div>
+        <div id="s1-reveal">
+          <div id="s1-reveal-text">28 CARDS.<br />ONE DEVICE.<br />ONE RING.</div>
+        </div>
+      </section>
+
+      <!-- Scene 2: The verdict flips -->
+      <section id="scene2" class="clip" data-start="4.4" data-duration="3.7" data-track-index="0">
+        <div id="s2-card">
+          <div id="s2-grid">
+            <div class="kv"><span>Verdict</span><div id="s2-verdict-chip">—</div></div>
+            <div class="kv"><span>Pattern</span><b id="s2-pattern">&nbsp;</b></div>
+            <div class="kv"><span>Exposure</span><b id="s2-exposure">$439.61</b></div>
+          </div>
+          <div id="s2-gauge-track">
+            <div id="s2-gauge-fill"></div>
+            <div id="s2-gauge-marker"></div>
+          </div>
+          <div id="s2-axis"><span>0.0 legitimate</span><span>p = 0.92</span><span>1.0 fraud</span></div>
+        </div>
+      </section>
+
+      <!-- Scene 3: Walking the graph -->
+      <section id="scene3" class="clip" data-start="8.1" data-duration="5.6" data-track-index="0">
+        <div id="s3a">
+          <div class="step-row"><span class="step-n">01</span><span class="step-t">get_transaction</span></div>
+          <div class="step-row"><span class="step-n">02</span><span class="step-t">card_profile</span></div>
+          <div class="step-row"><span class="step-n">03</span><span class="step-t">device_neighbors</span></div>
+          <div class="step-row"><span class="step-n">04</span><span class="step-t">device_burst</span></div>
+          <div class="step-row"><span class="step-n">05</span><span class="step-t">ring_component</span></div>
+        </div>
+        <div id="s3b">
+          <div id="graph-wrap">
+            <div id="graph-device">DEVICE</div>
+            <div id="graph-caption">28 <b>connected cards</b></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Scene 4: The bank moves -->
+      <section id="scene4" class="clip" data-start="13.7" data-duration="6.2" data-track-index="0">
+        <div id="sar-banner">⚠ SAR FILED — $439.61 FLAGGED FOR SUSPICIOUS ACTIVITY REPORTING</div>
+        <div id="s4">
+          <div class="act-row"><span class="act-name">BLOCK_CARD</span><span class="route-chip route-l1">L1 · lead</span></div>
+          <div class="act-row"><span class="act-name">CREATE_CASE</span><span class="route-chip route-auto">auto</span></div>
+          <div class="act-row"><span class="act-name">FILE_REPORT</span><span class="route-chip route-l2">L2 · manager</span></div>
+          <div class="act-row"><span class="act-name">ESCALATE_TO_ANALYST</span><span class="route-chip route-auto">auto</span></div>
+        </div>
+      </section>
+
+      <!-- Scene 5: Outro -->
+      <section id="scene5" class="clip" data-start="19.9" data-duration="5.0" data-track-index="0">
+        <div id="s5" class="center">
+          <div id="s5-word">GraphSleuth</div>
+          <div id="s5-tag">An agentic fraud investigator on TigerGraph.</div>
+          <div id="s5-links">
+            <span>github.com/neevmodh/graphsleuth</span>
+            <span>graphsleuth-production.up.railway.app</span>
+          </div>
+          <div id="s5-foot">Built for Hacker House Goa 2026</div>
+          <div id="s5-tg">@TigerGraphDB</div>
+        </div>
+      </section>
+
+      <!-- Voiceover -->
+      <audio id="vo1" data-start="0.15" data-duration="4.22" data-track-index="20" data-volume="1" src="assets/vo1.wav"></audio>
+      <audio id="vo2" data-start="4.55" data-duration="3.43" data-track-index="20" data-volume="1" src="assets/vo2.wav"></audio>
+      <audio id="vo3" data-start="8.25" data-duration="5.4" data-track-index="20" data-volume="1" src="assets/vo3.wav"></audio>
+      <audio id="vo4" data-start="13.85" data-duration="6.02" data-track-index="20" data-volume="1" src="assets/vo4.wav"></audio>
+      <audio id="vo5" data-start="20.05" data-duration="4.76" data-track-index="20" data-volume="1" src="assets/vo5.wav"></audio>
+
+      <!-- SFX -->
+      <audio id="sfx-hit" data-start="3.55" data-duration="0.85" data-track-index="21" data-volume="1.3" src="assets/sfx/hit.mp3"></audio>
+      <audio id="sfx-riser" data-start="4.4" data-duration="9.2" data-track-index="22" data-volume="0.5" src="assets/sfx/riser.mp3"></audio>
+      <audio id="sfx-lock1" data-start="6.1" data-duration="0.36" data-track-index="21" data-volume="0.9" src="assets/sfx/lock.mp3"></audio>
+      <audio id="sfx-tick1" data-start="8.3" data-duration="0.36" data-track-index="23" data-volume="0.6" src="assets/sfx/tick.mp3"></audio>
+      <audio id="sfx-tick2" data-start="8.7" data-duration="0.36" data-track-index="23" data-volume="0.6" src="assets/sfx/tick.mp3"></audio>
+      <audio id="sfx-tick3" data-start="9.1" data-duration="0.36" data-track-index="23" data-volume="0.6" src="assets/sfx/tick.mp3"></audio>
+      <audio id="sfx-tick4" data-start="9.5" data-duration="0.36" data-track-index="23" data-volume="0.6" src="assets/sfx/tick.mp3"></audio>
+      <audio id="sfx-tick5" data-start="9.9" data-duration="0.36" data-track-index="23" data-volume="0.6" src="assets/sfx/tick.mp3"></audio>
+      <audio id="sfx-graphhit" data-start="10.85" data-duration="0.85" data-track-index="21" data-volume="1" src="assets/sfx/hit.mp3"></audio>
+      <audio id="sfx-lock2" data-start="14.1" data-duration="0.36" data-track-index="21" data-volume="0.9" src="assets/sfx/lock.mp3"></audio>
+      <audio id="sfx-lock3" data-start="15.4" data-duration="0.36" data-track-index="21" data-volume="0.9" src="assets/sfx/lock.mp3"></audio>
+      <audio id="sfx-lock4" data-start="16.7" data-duration="0.36" data-track-index="21" data-volume="0.9" src="assets/sfx/lock.mp3"></audio>
+      <audio id="sfx-lock5" data-start="18.0" data-duration="0.3" data-track-index="21" data-volume="0.9" src="assets/sfx/lock.mp3"></audio>
+      <audio id="sfx-alert" data-start="18.35" data-duration="1.55" data-track-index="24" data-volume="0.8" src="assets/sfx/alert.mp3"></audio>
+    </div>
+
+    <script>
+      const tl = gsap.timeline({ paused: true });
+
+      // ---------- Scene 1 ----------
+      tl.fromTo("#s1-num", { opacity: 0, scale: 0.94 }, { opacity: 1, scale: 1, duration: 0.5, ease: "power2.out" }, 0.15);
+      tl.fromTo("#s1-cap", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power2.out" }, 0.55);
+      tl.to("#s1-safe", { opacity: 0, duration: 0.1, ease: "none" }, 3.55);
+      tl.fromTo("#s1-reveal", { opacity: 0 }, { opacity: 1, duration: 0.08, ease: "none" }, 3.55);
+      tl.fromTo("#s1-reveal-text", { opacity: 0, scale: 1.08 }, { opacity: 1, scale: 1, duration: 0.35, ease: "power3.out" }, 3.6);
+
+      // ---------- Scene 2 ----------
+      tl.fromTo("#s2-card", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, 4.4);
+      gsap.set("#s2-gauge-marker", { xPercent: -50, yPercent: -50 });
+      tl.fromTo("#s2-gauge-marker", { x: 20 }, { x: 1222, duration: 1.1, ease: "power2.inOut" }, 4.8);
+      tl.to("#s2-verdict-chip", { duration: 0.01, onComplete: () => {
+          const el = document.getElementById("s2-verdict-chip");
+          el.textContent = "FRAUD"; el.classList.add("fraud");
+        } }, 5.9);
+      tl.fromTo("#s2-verdict-chip", { scale: 0.85 }, { scale: 1, duration: 0.3, ease: "back.out(2)" }, 5.9);
+      tl.to("#s2-pattern", { duration: 0.01, onComplete: () => { document.getElementById("s2-pattern").textContent = "undocumented"; } }, 6.3);
+      tl.fromTo("#s2-pattern", { opacity: 0 }, { opacity: 1, duration: 0.35 }, 6.3);
+
+      // ---------- Scene 3a: steps ----------
+      const stepStarts = [8.3, 8.7, 9.1, 9.5, 9.9];
+      document.querySelectorAll(".step-row").forEach((row, i) => {
+        tl.fromTo(row, { opacity: 0, x: -24 }, { opacity: 1, x: 0, duration: 0.3, ease: "power2.out" }, stepStarts[i]);
+      });
+      tl.to("#s3a", { opacity: 0, duration: 0.25 }, 10.5);
+
+      // ---------- Scene 3b: graph ----------
+      tl.fromTo("#s3b", { opacity: 0 }, { opacity: 1, duration: 0.2 }, 10.7);
+      tl.fromTo("#graph-device", { scale: 0 }, { scale: 1, duration: 0.35, ease: "back.out(2)" }, 10.75);
+
+      const NODE_COUNT = 22;
+      const cx = 960, cy = 500, radius = 300;
+      const wrap = document.getElementById("graph-wrap");
+      for (let i = 0; i < NODE_COUNT; i++) {
+        const angle = (i / NODE_COUNT) * Math.PI * 2;
+        const x = cx + Math.cos(angle) * radius;
+        const y = cy + Math.sin(angle) * radius;
+        const link = document.createElement("div");
+        link.className = "card-link";
+        const dx = x - cx, dy = y - cy;
+        const len = Math.sqrt(dx * dx + dy * dy);
+        const ang = Math.atan2(dy, dx) * (180 / Math.PI);
+        link.style.left = cx + "px";
+        link.style.top = cy + "px";
+        link.style.width = len + "px";
+        link.style.transform = "rotate(" + ang + "deg)";
+        wrap.appendChild(link);
+
+        const node = document.createElement("div");
+        node.className = "card-node";
+        node.style.left = (x - 10) + "px";
+        node.style.top = (y - 10) + "px";
+        wrap.appendChild(node);
+
+        const t = 10.9 + i * 0.045;
+        tl.to(link, { opacity: 1, duration: 0.15 }, t);
+        tl.to(node, { opacity: 1, scale: 1, duration: 0.2, ease: "back.out(2)" }, t);
+      }
+      tl.fromTo("#graph-caption", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 11.9);
+      tl.to("#scene3", { opacity: 0, duration: 0.25 }, 13.45);
+
+      // ---------- Scene 4: actions ----------
+      const actStarts = [14.1, 15.4, 16.7, 18.0];
+      document.querySelectorAll(".act-row").forEach((row, i) => {
+        tl.fromTo(row, { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.32, ease: "back.out(1.8)" }, actStarts[i]);
+      });
+      tl.fromTo("#sar-banner", { opacity: 0, scale: 0.85 }, { opacity: 1, scale: 1, duration: 0.35, ease: "back.out(2)" }, 18.35);
+      tl.to("#sar-banner", { boxShadow: "0 0 60px rgba(255,92,112,0.55)", duration: 0.6, yoyo: true, repeat: 3 }, 18.7);
+
+      // ---------- Scene 5: outro ----------
+      tl.fromTo("#s5-word", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, 20.0);
+      tl.fromTo("#s5-tag", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 20.5);
+      tl.fromTo("#s5-links", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 21.1);
+      tl.fromTo("#s5-foot", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 21.7);
+      tl.fromTo("#s5-tg", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 22.1);
+
+      window.__timelines["graphsleuth"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>
