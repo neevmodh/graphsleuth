@@ -125,7 +125,9 @@ def main() -> None:
     for f in sorted(CASES.glob("HHG-*.json")):
         cid = f.stem
         answer = json.loads(f.read_text())
-        trig = pack.loc[cid].to_dict()
+        trig = _clean(pack.loc[cid].to_dict())   # NaN (e.g. risk_score on a customer_report/analyst_request
+                                                  # trigger) is not valid JSON; the browser's fetch().json()
+                                                  # throws a SyntaxError on it and the case silently fails to load
         trig["case_id"] = cid
         trig["opened_at"] = str(trig["opened_at"])
         bundle = freeze_one(orch, trig, answer)

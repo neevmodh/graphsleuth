@@ -6,7 +6,7 @@
     "flagged_txn_id": 3478561,
     "card_id": "C13487-K1",
     "customer_id": "C13487",
-    "risk_score": NaN,
+    "risk_score": null,
     "case_id": "HHG-014"
   },
   "answer": {

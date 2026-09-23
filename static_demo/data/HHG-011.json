@@ -6,7 +6,7 @@
     "flagged_txn_id": 3583368,
     "card_id": "C11923-K2",
     "customer_id": "C11923",
-    "risk_score": NaN,
+    "risk_score": null,
     "case_id": "HHG-011"
   },
   "answer": {
