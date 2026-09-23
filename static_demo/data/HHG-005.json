@@ -247,55 +247,55 @@
       "n": 1,
       "tool": "get_transaction",
       "summary": "online $100.07 R at 2016-12-07 21:38:37, bank risk 0.54, model p=0.01",
-      "ms": 523.0
+      "ms": 454.4
     },
     {
       "n": 2,
       "tool": "card_profile",
       "summary": "90 prior txns, median $117.01, online 0.23, home region 330.0",
-      "ms": 268.3
+      "ms": 231.2
     },
     {
       "n": 3,
       "tool": "card_window",
       "summary": "1 txns within +-72h, 0 scored >= 0.35",
-      "ms": 274.0
+      "ms": 232.1
     },
     {
       "n": 4,
       "tool": "episode_model",
       "summary": "context model: anchor membership p=0.06, 0 of 1 window txns look like the same episode",
-      "ms": 28.6
+      "ms": 38.5
     },
     {
       "n": 5,
       "tool": "device_neighbors",
       "summary": "device on 112 cards, 87% New, 0% proxied, 5 closed cases",
-      "ms": 269.3
+      "ms": 232.1
     },
     {
       "n": 6,
       "tool": "email_history",
       "summary": "'icloud.com': 0 prior txns on this card, 7 other domain(s) used before",
-      "ms": 267.4
+      "ms": 231.6
     },
     {
       "n": 7,
       "tool": "recurring_check",
       "summary": "0 earlier identical-amount txns, 0 roughly-monthly gaps, 0.0/30d -> recurring=False",
-      "ms": 782.5
+      "ms": 685.1
     },
     {
       "n": 8,
       "tool": "similar_cases",
       "summary": "5 similar closed cases: CC-2857, CC-2717, CC-2400, CC-5296, CC-5249",
-      "ms": 816.6
+      "ms": 1168.1
     },
     {
       "n": 9,
       "tool": "graphrag_retrieve",
       "summary": "4 grounded chunks: TYPO-0007 (0.73), TYPO-0060 (0.72), POL-R2 (0.71), POL-S-0-what-the-agent-starts-with-0 (0.70)",
-      "ms": 35232.1
+      "ms": 34871.3
     }
   ],
   "counterfactuals": {
@@ -307,5 +307,35 @@
       "distance": 0.089
     },
     "counterfactuals": []
+  },
+  "decision_gate": {
+    "fraud_probability": 0.061,
+    "verdict": "legitimate",
+    "evidence_families": 2,
+    "corroboration_min": 2,
+    "case_gate_open": false,
+    "stop_reached": true,
+    "checks": [
+      {
+        "name": "Case gate",
+        "passed": false,
+        "detail": "Fraud probability 0.06 is below the case-opening bar (>= 0.30, policy 3a)."
+      },
+      {
+        "name": "Corroboration",
+        "passed": true,
+        "detail": "2 independent evidence families observed (>= 2 required)."
+      },
+      {
+        "name": "Belief stability",
+        "passed": true,
+        "detail": "No conflict between the customer's own report and the graph evidence."
+      },
+      {
+        "name": "Stop threshold",
+        "passed": true,
+        "detail": "p=0.06 is past the stop band (<= 0.15 or >= 0.85, policy section 6) and corroboration is met."
+      }
+    ]
   }
 }

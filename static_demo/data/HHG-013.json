@@ -783,25 +783,25 @@
       "n": 1,
       "tool": "get_transaction",
       "summary": "online $35.66 C at 2016-12-09 02:39:29, bank risk 0.76, model p=0.05",
-      "ms": 450.5
+      "ms": 455.1
     },
     {
       "n": 2,
       "tool": "card_profile",
       "summary": "1431 prior txns, median $59.08, online 0.01, home region 264.0",
-      "ms": 236.3
+      "ms": 238.0
     },
     {
       "n": 3,
       "tool": "card_window",
       "summary": "55 txns within +-72h, 0 scored >= 0.35",
-      "ms": 266.4
+      "ms": 244.2
     },
     {
       "n": 4,
       "tool": "episode_model",
       "summary": "context model: anchor membership p=0.11, 0 of 55 window txns look like the same episode",
-      "ms": 43.8
+      "ms": 32.5
     },
     {
       "n": 5,
@@ -813,25 +813,25 @@
       "n": 6,
       "tool": "email_history",
       "summary": "'gmail.com': 674 prior txns on this card, 20 other domain(s) used before",
-      "ms": 236.7
+      "ms": 237.6
     },
     {
       "n": 7,
       "tool": "recurring_check",
       "summary": "0 earlier identical-amount txns, 0 roughly-monthly gaps, 0.0/30d -> recurring=False",
-      "ms": 673.6
+      "ms": 726.4
     },
     {
       "n": 8,
       "tool": "similar_cases",
       "summary": "4 similar closed cases: CC-3761, CC-4294, CC-3216, CC-1475",
-      "ms": 462.6
+      "ms": 462.8
     },
     {
       "n": 9,
       "tool": "graphrag_retrieve",
       "summary": "2 grounded chunks: TYPO-0007 (0.73), TYPO-0035 (0.72)",
-      "ms": 35466.7
+      "ms": 33759.3
     }
   ],
   "counterfactuals": {
@@ -843,5 +843,35 @@
       "distance": 0.045
     },
     "counterfactuals": []
+  },
+  "decision_gate": {
+    "fraud_probability": 0.105,
+    "verdict": "legitimate",
+    "evidence_families": 2,
+    "corroboration_min": 2,
+    "case_gate_open": false,
+    "stop_reached": true,
+    "checks": [
+      {
+        "name": "Case gate",
+        "passed": false,
+        "detail": "Fraud probability 0.11 is below the case-opening bar (>= 0.30, policy 3a)."
+      },
+      {
+        "name": "Corroboration",
+        "passed": true,
+        "detail": "2 independent evidence families observed (>= 2 required)."
+      },
+      {
+        "name": "Belief stability",
+        "passed": true,
+        "detail": "No conflict between the customer's own report and the graph evidence."
+      },
+      {
+        "name": "Stop threshold",
+        "passed": true,
+        "detail": "p=0.11 is past the stop band (<= 0.15 or >= 0.85, policy section 6) and corroboration is met."
+      }
+    ]
   }
 }

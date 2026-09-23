@@ -445,61 +445,61 @@
       "n": 1,
       "tool": "get_transaction",
       "summary": "in_person $77.07 W at 2016-12-04 19:55:28, bank risk 0.61, model p=0.25",
-      "ms": 556.6
+      "ms": 658.8
     },
     {
       "n": 2,
       "tool": "card_profile",
       "summary": "358 prior txns, median $83.945, online 0.01, home region 204.0",
-      "ms": 285.7
+      "ms": 228.5
     },
     {
       "n": 3,
       "tool": "card_window",
       "summary": "20 txns within +-72h, 0 scored >= 0.35",
-      "ms": 293.7
+      "ms": 251.9
     },
     {
       "n": 4,
       "tool": "episode_model",
       "summary": "context model: anchor membership p=0.61, 1 of 20 window txns look like the same episode",
-      "ms": 63.9
+      "ms": 59.7
     },
     {
       "n": 5,
       "tool": "region_history",
       "summary": "region 444: 10 prior txns; +-5d: 1 in region on 1 day(s), 26 elsewhere",
-      "ms": 280.0
+      "ms": 242.2
     },
     {
       "n": 6,
       "tool": "region_cluster",
       "summary": "region 444: 71 cards, 0 likely-fraud txns in +-7d",
-      "ms": 287.4
+      "ms": 233.3
     },
     {
       "n": 7,
       "tool": "recurring_check",
       "summary": "2 earlier identical-amount txns, 0 roughly-monthly gaps, 0.58/30d -> recurring=False",
-      "ms": 823.2
+      "ms": 682.7
     },
     {
       "n": 8,
       "tool": "customer_cards",
       "summary": "1 card(s) on this customer",
-      "ms": 280.1
+      "ms": 235.2
     },
     {
       "n": 9,
       "tool": "similar_cases",
       "summary": "5 similar closed cases: CC-3587, CC-2964, CC-1066, CC-4431, CC-1673",
-      "ms": 558.3
+      "ms": 450.3
     },
     {
       "n": 10,
       "tool": "graphrag_retrieve",
       "summary": "4 grounded chunks: PAT-4 (0.73), TYPO-0002 (0.71), TYPO-0001 (0.69), POL-R2 (0.68)",
-      "ms": 41852.5
+      "ms": 39989.6
     }
   ],
   "counterfactuals": {
@@ -511,5 +511,35 @@
       "distance": 0.237
     },
     "counterfactuals": []
+  },
+  "decision_gate": {
+    "fraud_probability": 0.613,
+    "verdict": "uncertain",
+    "evidence_families": 2,
+    "corroboration_min": 2,
+    "case_gate_open": true,
+    "stop_reached": false,
+    "checks": [
+      {
+        "name": "Case gate",
+        "passed": true,
+        "detail": "Fraud probability 0.61 meets the case-opening bar (>= 0.30, policy 3a)."
+      },
+      {
+        "name": "Corroboration",
+        "passed": true,
+        "detail": "2 independent evidence families observed (>= 2 required)."
+      },
+      {
+        "name": "Belief stability",
+        "passed": true,
+        "detail": "No conflict between the customer's own report and the graph evidence."
+      },
+      {
+        "name": "Stop threshold",
+        "passed": false,
+        "detail": "p=0.61 has not reached the stop band (<= 0.15 or >= 0.85)."
+      }
+    ]
   }
 }

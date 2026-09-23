@@ -18,7 +18,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from agent import counterfactual
+from agent import counterfactual, decision_gate
 from agent.backend import _clean
 from agent.backend_factory import make_backend, make_rag
 from agent.llm import LLMRouter
@@ -90,6 +90,14 @@ def counterfactuals_payload(inv) -> dict | None:
     }
 
 
+def decision_gate_payload(inv) -> dict | None:
+    if inv is None:
+        return None
+    from dataclasses import asdict
+    gate = decision_gate.evaluate(inv)
+    return asdict(gate) if gate else None
+
+
 def freeze_one(orch: Orchestrator, trig: dict, answer: dict) -> dict:
     orch.run_case(dict(trig), write_memory=False)   # populates orch.last; its own `answer` is discarded, cases/*.json is authoritative
     inv = orch.last
@@ -97,6 +105,7 @@ def freeze_one(orch: Orchestrator, trig: dict, answer: dict) -> dict:
         "trigger": trig, "answer": answer,
         "window": window_payload(inv), "graph": graph_payload(trig, answer),
         "steps": steps_payload(inv), "counterfactuals": counterfactuals_payload(inv),
+        "decision_gate": decision_gate_payload(inv),
     }
 
 

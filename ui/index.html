@@ -109,6 +109,12 @@ button.mini.yes{border-color:var(--ok);color:var(--ok);background:var(--ok-bg)} 
 .act .nm{font-weight:600;font-family:var(--mono);font-size:12.5px}
 .act .why{color:var(--faint);font-size:12px;margin-top:2px}
 .act.isnew{background:var(--info-bg);border-left:3px solid var(--info);padding:8px 10px;margin:6px -10px 6px -13px;border-bottom:0}
+.gate-row{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line-soft)}
+.gate-row:last-child{border-bottom:0}
+.gate-mark{width:12px;height:12px;flex:0 0 auto;margin-top:2px;border:1px solid currentColor}
+.gate-row.pass{color:var(--ok)} .gate-row.pass .gate-mark{background:var(--ok)}
+.gate-row.fail{color:var(--faint)} .gate-row.fail .gate-mark{background:transparent}
+.gate-name{color:var(--ink);font-weight:600;font-size:12.5px}
 .changed .grid2{position:relative}
 .flowmark{text-align:center;color:var(--info);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin:2px 0 10px}
 .muted{color:var(--muted)} .faint{color:var(--faint)} .small{font-size:12.5px}
@@ -243,6 +249,8 @@ function render(trig, ans, windowData, graph, approvals, steps, actionsTaken){
     h('p',{style:'margin:14px 0 0'}, c.summary),
     h('div',{id:'cf'})));
 
+  v.append(h('div',{class:'card', id:'dgate-card', style:'display:none'}, h('h2',{},'Decision gate'), h('div',{id:'dgate'})));
+
   v.append(h('div',{class:'card', id:'stepcard'}, h('h2',{},'Investigation steps (tool calls)'),
     h('ul',{class:'steps', id:'steps'}), h('div',{class:'muted small', id:'stephint'}, 'Press "Re-run investigation live" to replay the steps as the agent takes them.')));
 
@@ -284,6 +292,19 @@ function render(trig, ans, windowData, graph, approvals, steps, actionsTaken){
   v.append(h('div',{class:'card small faint'}, 'Stop reason: '+ans.stop_reason+' · '+ans.tool_calls+' tool calls · '+(ans.tokens||0).toLocaleString()+' tokens · '+ans.latency_s+' s · written to TigerGraph: '+(c.written_to_graph?'yes ('+c.graph_case_id+')':'no (local case memory only)')));
   if (windowData) drawTimeline(windowData);
   if (graph) drawGraph(graph);
+}
+
+function renderDecisionGate(d){
+  const card = $('#dgate-card'), box = $('#dgate'); if (!card || !box) return;
+  if (!d){ card.style.display='none'; return; }
+  card.style.display='';
+  box.replaceChildren();
+  box.append(h('div',{class:'small muted',style:'margin-bottom:10px'},
+    d.evidence_families+' independent evidence '+(d.evidence_families===1?'family':'families')+' observed · corroboration minimum '+d.corroboration_min));
+  for (const c of d.checks){
+    box.append(h('div',{class:'gate-row'+(c.passed?' pass':' fail')},
+      h('span',{class:'gate-mark'}), h('div',{}, h('div',{class:'gate-name'}, c.name), h('div',{class:'small faint'}, c.detail))));
+  }
 }
 
 function renderCounterfactuals(d){
@@ -352,7 +373,8 @@ function run(id){
     render(t.trigger, d.answer, d.window, d.graph, t.approvals, {running:false}, d.actions_taken || t.actions_taken);
     const nl = $('#steps'); items.forEach(li=>nl.append(li)); $('#stephint').textContent=''; loadQueue();
     refreshUsage();
-    fetch('/api/cases/'+id+'/counterfactuals').then(r=>r.ok?r.json():null).then(renderCounterfactuals).catch(()=>{}); });
+    fetch('/api/cases/'+id+'/counterfactuals').then(r=>r.ok?r.json():null).then(renderCounterfactuals).catch(()=>{});
+    fetch('/api/cases/'+id+'/decision_gate').then(r=>r.ok?r.json():null).then(renderDecisionGate).catch(()=>{}); });
   es.addEventListener('error', e => { if (e.data){ const d = JSON.parse(e.data); $('#stephint').textContent = 'Error: '+d.message; } es && es.close(); es=null; btn.disabled=false; btn.textContent='Investigate'; });
 }
 

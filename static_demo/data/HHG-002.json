@@ -225,55 +225,55 @@
       "n": 1,
       "tool": "get_transaction",
       "summary": "online $292.36 C at 2016-11-22 17:27:07, bank risk 0.79, model p=0.44",
-      "ms": 535.0
+      "ms": 460.0
     },
     {
       "n": 2,
       "tool": "card_profile",
       "summary": "35 prior txns, median $47.29, online 1.0, home region 375.0",
-      "ms": 270.5
+      "ms": 235.2
     },
     {
       "n": 3,
       "tool": "card_window",
       "summary": "1 txns within +-72h, 1 scored >= 0.35",
-      "ms": 277.4
+      "ms": 235.8
     },
     {
       "n": 4,
       "tool": "episode_model",
       "summary": "context model: anchor membership p=0.91, 1 of 1 window txns look like the same episode",
-      "ms": 37.1
+      "ms": 41.3
     },
     {
       "n": 5,
       "tool": "email_history",
       "summary": "'hotmail.com': 7 prior txns on this card, 3 other domain(s) used before",
-      "ms": 274.8
+      "ms": 229.0
     },
     {
       "n": 6,
       "tool": "recurring_check",
       "summary": "0 earlier identical-amount txns, 0 roughly-monthly gaps, 0.0/30d -> recurring=False",
-      "ms": 784.6
+      "ms": 689.7
     },
     {
       "n": 7,
       "tool": "customer_cards",
       "summary": "1 card(s) on this customer",
-      "ms": 263.3
+      "ms": 230.8
     },
     {
       "n": 8,
       "tool": "similar_cases",
       "summary": "1 similar closed cases: CC-4160",
-      "ms": 265.2
+      "ms": 233.8
     },
     {
       "n": 9,
       "tool": "graphrag_retrieve",
       "summary": "4 grounded chunks: PAT-2 (0.76), TYPO-0145 (0.71), POL-R4 (0.71), TYPO-0296 (0.70)",
-      "ms": 36657.5
+      "ms": 40678.6
     }
   ],
   "counterfactuals": {
@@ -285,5 +285,35 @@
       "distance": 0.065
     },
     "counterfactuals": []
+  },
+  "decision_gate": {
+    "fraud_probability": 0.915,
+    "verdict": "fraud",
+    "evidence_families": 3,
+    "corroboration_min": 2,
+    "case_gate_open": true,
+    "stop_reached": true,
+    "checks": [
+      {
+        "name": "Case gate",
+        "passed": true,
+        "detail": "Fraud probability 0.91 meets the case-opening bar (>= 0.30, policy 3a)."
+      },
+      {
+        "name": "Corroboration",
+        "passed": true,
+        "detail": "3 independent evidence families observed (>= 2 required)."
+      },
+      {
+        "name": "Belief stability",
+        "passed": true,
+        "detail": "No conflict between the customer's own report and the graph evidence."
+      },
+      {
+        "name": "Stop threshold",
+        "passed": true,
+        "detail": "p=0.91 is past the stop band (<= 0.15 or >= 0.85, policy section 6) and corroboration is met."
+      }
+    ]
   }
 }

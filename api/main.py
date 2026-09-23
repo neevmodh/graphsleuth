@@ -18,7 +18,7 @@ from sse_starlette.sse import EventSourceResponse
 
 from dataclasses import asdict
 
-from agent import counterfactual, mock_actions
+from agent import counterfactual, decision_gate, mock_actions
 from agent.backend import LocalBackend, _clean
 from agent.backend_factory import make_backend, make_rag
 from agent.investigator import Investigation
@@ -237,6 +237,20 @@ def case_counterfactuals(cid: str):
                         "distance": round(abs(inv.p_case - nearest[1]), 3)},
         "counterfactuals": [asdict(c) for c in counterfactual.explain(inv)],
     }
+
+
+@app.get("/api/cases/{cid}/decision_gate")
+def case_decision_gate(cid: str):
+    """Explicit pass/fail checklist for the same conditions the policy engine's stop rule already evaluates
+    (case gate, corroboration count, belief conflict, stop threshold) -- a read-only view, computed from the
+    live Investigation kept from the last /run, so investigate the case first."""
+    inv = _investigations.get(cid)
+    if inv is None:
+        raise HTTPException(404, "run the case first: the decision gate is computed from the live investigation, not the saved answer")
+    gate = decision_gate.evaluate(inv)
+    if gate is None:
+        raise HTTPException(404, "no assessment available for this investigation")
+    return {"case_id": cid, **asdict(gate)}
 
 
 class Decision(BaseModel):

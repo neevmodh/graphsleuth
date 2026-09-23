@@ -108,6 +108,14 @@
           ]
         },
         {
+          "claim": "Purchaser email domain 'yahoo.com' matches this card's own history (2 prior transactions).",
+          "source": "graph",
+          "ref": "query:email_history(card=C13487-K1)",
+          "entity_ids": [
+            "3478561"
+          ]
+        },
+        {
           "claim": "Closed case CC-3035 (confirmed_fraud, undocumented, $140.95) is relevant: same device, same pattern.",
           "source": "graph",
           "ref": "query:similar_cases",
@@ -132,13 +140,13 @@
           ]
         },
         {
-          "claim": "Retrieved closed-case typology TYPO-0079: the cardholder reported N online purchase(s) they did not make. The purchases came from a Samsung SM-G935F on Chrome for Android behind an anonymous proxy, a device never seen on this account. Two oth Example closed cases: CC-2985, CC-2971, CC-2649.",
+          "claim": "Retrieved closed-case typology TYPO-0079: the cardholder reported N online purchase(s) they did not make. The purchases came from a Samsung SM-G935F on Chrome for Android behind an anonymous proxy, a device never seen on this account. Two oth Example closed cases: CC-2985, CC-2649, CC-2971.",
           "source": "document",
           "ref": "graphrag:TYPO-0079",
           "entity_ids": [
             "CC-2985",
-            "CC-2971",
-            "CC-2649"
+            "CC-2649",
+            "CC-2971"
           ]
         },
         {
@@ -170,7 +178,7 @@
         "CC-2971",
         "CC-2649"
       ],
-      "summary": "3 transaction(s) totalling $439.61 on C13487-K1 are assessed as fraud (probability 0.92), matching an undocumented pattern. A single rare device profile (SM-G935F Build/NRD90M | Android 7.0 | chrome 62.0 for android | 1920x1080) transacted on 28 different cards within a burst spanning 2016-11-14 to 2016-12-04 (full detail in pattern_description). The same device profile links 27 other cards, so this is treated as a coordinated ring rather than an isolated compromise. Trigger: analyst request. Tool calls: 10; closed cases consulted: CC-3035, CC-2985, CC-2971.",
+      "summary": "3 transaction(s) totalling $439.61 on C13487-K1 are assessed as fraud (probability 0.92), matching an undocumented pattern. A single rare device profile (SM-G935F Build/NRD90M | Android 7.0 | chrome 62.0 for android | 1920x1080) performed transactions on 28 different cards within one burst spanning 2016-11-14 to 2016-12-04. The same device profile also links 27 other cards, indicating a coordinated ring rather than an isolated compromise. Trigger: analyst request. Tool calls: 12; closed cases consulted: CC-3035, CC-2985, CC-2971.",
       "written_to_graph": true,
       "graph_case_id": "CASE-2016-014"
     },
@@ -275,9 +283,9 @@
       ]
     },
     "stop_reason": "A shared-device ring across 28 cards was identified and the affected cards are named; further queries would not change the actions (R6/R9).",
-    "tool_calls": 10,
-    "tokens": 7478,
-    "latency_s": 45.65
+    "tool_calls": 12,
+    "tokens": 7068,
+    "latency_s": 55.88
   },
   "window": [
     {
@@ -702,73 +710,73 @@
       "n": 1,
       "tool": "get_transaction",
       "summary": "online $74.96 C at 2016-11-22 16:11:00, bank risk 0.05, model p=0.03",
-      "ms": 453.7
+      "ms": 797.5
     },
     {
       "n": 2,
       "tool": "card_profile",
       "summary": "71 prior txns, median $55.92, online 0.03, home region 191.0",
-      "ms": 230.3
+      "ms": 233.9
     },
     {
       "n": 3,
       "tool": "card_window",
       "summary": "3 txns within +-72h, 0 scored >= 0.35",
-      "ms": 234.7
+      "ms": 242.6
     },
     {
       "n": 4,
       "tool": "episode_model",
       "summary": "context model: anchor membership p=0.75, 1 of 3 window txns look like the same episode",
-      "ms": 36.2
+      "ms": 27.3
     },
     {
       "n": 5,
       "tool": "device_neighbors",
       "summary": "device on 52 cards, 100% New, 100% proxied, 4 closed cases",
-      "ms": 233.1
+      "ms": 243.0
     },
     {
       "n": 6,
       "tool": "device_burst",
       "summary": "burst 2016-11-14..2016-12-04: 28 cards, 60 txns",
-      "ms": 249.4
+      "ms": 264.3
     },
     {
       "n": 7,
       "tool": "ring_component",
       "summary": "connected component: 52 cards across 1 ring-like device(s)",
-      "ms": 242.0
+      "ms": 249.6
     },
     {
       "n": 8,
       "tool": "email_history",
       "summary": "'yahoo.com': 2 prior txns on this card, 5 other domain(s) used before",
-      "ms": 226.1
+      "ms": 231.4
     },
     {
       "n": 9,
       "tool": "recurring_check",
       "summary": "0 earlier identical-amount txns, 0 roughly-monthly gaps, 0.0/30d -> recurring=False",
-      "ms": 682.2
+      "ms": 1978.7
     },
     {
       "n": 10,
       "tool": "customer_cards",
       "summary": "1 card(s) on this customer",
-      "ms": 228.5
+      "ms": 461.0
     },
     {
       "n": 11,
       "tool": "similar_cases",
       "summary": "5 similar closed cases: CC-3035, CC-2985, CC-2971, CC-2649, CC-4086",
-      "ms": 698.2
+      "ms": 715.8
     },
     {
       "n": 12,
       "tool": "graphrag_retrieve",
       "summary": "4 grounded chunks: TYPO-0079 (0.76), PAT-2 (0.75), POL-R9 (0.74), TYPO-0007 (0.73)",
-      "ms": 36346.3
+      "ms": 33412.3
     }
   ],
   "counterfactuals": {
@@ -788,6 +796,36 @@
         "crosses": [
           "fraud confirmed (>=0.85)"
         ]
+      }
+    ]
+  },
+  "decision_gate": {
+    "fraud_probability": 0.92,
+    "verdict": "fraud",
+    "evidence_families": 3,
+    "corroboration_min": 2,
+    "case_gate_open": true,
+    "stop_reached": true,
+    "checks": [
+      {
+        "name": "Case gate",
+        "passed": true,
+        "detail": "Fraud probability 0.92 meets the case-opening bar (>= 0.30, policy 3a)."
+      },
+      {
+        "name": "Corroboration",
+        "passed": true,
+        "detail": "3 independent evidence families observed (>= 2 required)."
+      },
+      {
+        "name": "Belief stability",
+        "passed": true,
+        "detail": "No conflict between the customer's own report and the graph evidence."
+      },
+      {
+        "name": "Stop threshold",
+        "passed": true,
+        "detail": "p=0.92 is past the stop band (<= 0.15 or >= 0.85, policy section 6) and corroboration is met."
       }
     ]
   }
