@@ -8,5 +8,22 @@
   },
   "media": {
     "autoProxy": true
-  }
+  },
+  "registryItems": [
+    {
+      "name": "mesh-gradient-bg",
+      "type": "hyperframes:component",
+      "target": "compositions/components/mesh-gradient-bg.html"
+    },
+    {
+      "name": "count-up",
+      "type": "hyperframes:component",
+      "target": "compositions/components/count-up.html"
+    },
+    {
+      "name": "tilt-card",
+      "type": "hyperframes:component",
+      "target": "compositions/components/tilt-card.html"
+    }
+  ]
 }

@@ -1,7 +1,7 @@
 # GraphSleuth — 3-minute submission demo video
 
-`graphsleuth-demo.mp4` — 180s, 1920x1080, **no voiceover** (a narration track is added separately over the top).
-Built with HyperFrames; source in `composition/`.
+`graphsleuth-demo.mp4` — 180s, 1920x1080, **light/colourful theme**, music bed, **no voiceover**
+(a narration track is added separately over the top). Built with HyperFrames; source in `composition/`.
 
 ## Why this is separate from the teaser
 `../brag-output-2026-09-23-005129/brag.mp4` is a ~25s narrated social teaser for the required social post.
@@ -26,10 +26,23 @@ and built around real screen recordings rather than motion graphics alone.
 | 2:52–2:56 | Results | 20/20 valid · 0 backend differences · 84 tests · 3 undocumented patterns |
 | 2:56–3:00 | Outro | Links, Hacker House Goa 2026, @TigerGraphDB |
 
+## Look
+Light theme, built from the project's **own** light palette (`ui/index.html`'s `[data-theme="light"]`):
+warm off-white `#F7F5EF`, amber `#C67A1E`, plus teal / violet / green / coral accents. A slow drifting
+mesh-gradient backdrop (four blurred radial blobs on a 90s yoyo) runs under the whole piece, with a fine grain
+overlay. The screen recordings are captured with the console switched to **light mode** so the footage matches
+the graphics instead of fighting them.
+
+Motion: per-character split-text reveals with 3D `rotateX`, an iris `clip-path` wipe on the hook, deterministic
+pre-baked count-ups, 3D `rotateY`/`rotateX` card entrances on a shared perspective, an SVG `stroke-dashoffset`
+path draw under the pipeline, `elastic.out` spring orbit for the ring nodes, Ken Burns punch-ins on every footage
+segment, and glassmorphic annotation cards.
+
 ## Audio
-Sparse SFX only (impacts on the two hard cuts, ticks on the action-chip sequence, one alert on the SAR banner,
-a low riser under the ring build). Deliberately no music bed and no narration — both are left free so a voiceover
-can sit cleanly on top without ducking or re-mixing.
+A music bed (`assets/music/bed.mp3` — 180s, crossfade-looped from the bundled upbeat track, 4s fade-out)
+sits low at `data-volume="0.34"`, with sparse SFX on top: impacts on the two hard cuts, ticks through the
+action-chip sequence, one alert on the SAR banner, and a riser under the ring build. Measured on the final
+render: mean −22 dB, peaks −1.5 dB — deliberately quiet so a voiceover drops straight on without re-mixing.
 
 ## Screen recordings
 Captured with Playwright (`scripts/record_demo.js`) at 1920x1080:

@@ -32,6 +32,8 @@ async function recordUI() {
   const page = await ctx.newPage();
 
   await page.goto("http://localhost:8000", { waitUntil: "networkidle" });
+  // The console ships dark; the demo video is light-themed, so flip it before recording.
+  await page.evaluate(() => { document.documentElement.dataset.theme = "light"; });
   await sleep(2500);
 
   // Select HHG-014 — the undocumented 28-card device ring, the strongest case.
