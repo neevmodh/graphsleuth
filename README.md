@@ -1,7 +1,10 @@
+<div align="center">
+
 # GraphSleuth
 
 **An agentic fraud investigator that thinks in graphs.**
-Built on [TigerGraph](https://www.tigergraph.com) for **Hacker House Goa 2026, Task 04**.
+
+Built on [TigerGraph](https://www.tigergraph.com) for **Hacker House Goa 2026 · Task 04**
 
 [![Python 3.11](https://img.shields.io/badge/python-3.11-blue)](https://www.python.org/)
 [![Tests: 84 passing](https://img.shields.io/badge/tests-84%20passing-brightgreen)](tests/)
@@ -9,24 +12,32 @@ Built on [TigerGraph](https://www.tigergraph.com) for **Hacker House Goa 2026, T
 [![License: MIT](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
 [![Live demo](https://img.shields.io/badge/demo-live-49c38a)](https://graphsleuth-production.up.railway.app)
 
+📺 [**3-minute demo**](demo-video/graphsleuth-demo.mp4) · 🎬 [Teaser](brag-output-2026-09-23-005129/brag.mp4) · 🌐 [**Live read-only demo**](https://graphsleuth-production.up.railway.app) · 📝 [**Blog post**](docs/BLOG.md) · 📊 [Held-out results](docs/eval_results.md)
+
+</div>
+
+---
+
 > A transaction scores **0.05** — as safe as a risk model gets. GraphSleuth found a **28-card fraud ring** hiding
 > behind it anyway, invisible to the score and visible only by walking the graph: one rare device, shared by cards
-> that had never touched before. That single case is the reason this project exists — a risk score is a reason to
-> look, never a verdict.
+> that had never touched before. That single case is the reason this project exists — **a risk score is a reason to
+> look, never a verdict.**
 
 GraphSleuth investigates a fraud alert (risk score, customer report, or analyst request), gathers evidence from a
 TigerGraph knowledge graph and GraphRAG over policy, typologies and past cases, assesses risk under uncertainty,
 opens and progresses a case, recommends next-best actions within policy and approval limits, executes the ones it's
 authorized to act on, and writes what it learned back to the graph as case memory.
 
-📺 **[Live read-only demo](https://graphsleuth-production.up.railway.app)** · 🎬 [Teaser video](brag-output-2026-09-23-005129/brag.mp4) · 📊 [Held-out results](docs/eval_results.md) · 📝 [Blog outline](docs/BLOG_OUTLINE.md)
-
-![Architecture](docs/architecture.svg)
+<p align="center">
+  <img src="docs/screenshot-ui.jpg" alt="GraphSleuth analyst console: HHG-014, a 28-card device ring, live on TigerGraph" width="820">
+  <br><sub>The analyst console mid-investigation — HHG-014, live on TigerGraph Savanna. 12 tool calls streamed, SAR filed.</sub>
+</p>
 
 ## Contents
 - [Status](#status)
 - [Design principle](#design-principle)
 - [What it does](#what-it-does)
+- [Scored against the judging criteria](#scored-against-the-judging-criteria)
 - [Layout](#layout)
 - [Run the analyst UI](#run-the-analyst-ui)
 - [Read-only demo (Railway)](#read-only-demo-railway)
@@ -59,6 +70,16 @@ calibrated scorer; action names, approval routes (`auto` / `L1` / `L2`), the cas
 stop rule are enforced in code (`agent/policy.py`), so policy is never hallucinated. Only `auto`-route actions ever
 execute themselves — `L1`/`L2` actions wait for a human.
 
+```mermaid
+flowchart LR
+    A["Trigger<br/>risk score · report · analyst"] --> B["Tool loop<br/>17 GSQL queries"]
+    B --> C["GraphRAG<br/>TigerVector"]
+    C --> D["Policy engine<br/>R1-R10, deterministic"]
+    D --> E["Case memory<br/>FraudCase vertex"]
+    D -.auto.-> F["Mock actions<br/>executed"]
+    D -.L1 / L2.-> G["Human approval"]
+```
+
 ## What it does
 Mapped directly to the task brief's ten capability points:
 
@@ -75,6 +96,17 @@ Mapped directly to the task brief's ten capability points:
 | Know when to stop | `agent/policy.py::stop_reached`, `stop_reason` in every answer |
 | Explain reasoning, cite the rule | `agent/explain.py`, `evidence[].ref`, reasons cite `R1`–`R10` |
 
+## Scored against the judging criteria
+
+| Criterion | Weight | What we point to |
+|---|---|---|
+| **Investigation accuracy** | 25% | 20/20 answer files schema-valid, every ID real; held-out verdict accuracy 0.91–0.93, median exposure error $0.00 ([eval](docs/eval_results.md)) |
+| **Next-best-action** | 25% | Full `auto`/`L1`/`L2` approval routing, initial-vs-final with `what_changed`, R1–R10 enforced in code, not prompted |
+| **Case summary & explainability** | 10% | Every evidence item cites a graph query or document; every action cites its rule number; standalone SAR narrative |
+| **Agentic design & engineering** | 15% | Budgeted tool loop, deterministic policy engine, case memory loop closed via `FraudCase` writes, mock action execution on approval |
+| **Innovation** | 15% | Connected-component ring discovery + HITS hub ranking as graph-algorithm tools; counterfactual/uncertainty explanations; autonomous monitor beyond the 20 cases; R6 measured and scoped rather than over-claimed |
+| **Demo quality** | 10% | [3-minute walkthrough](demo-video/graphsleuth-demo.mp4) with live TigerGraph screen recording, [live read-only deployment](https://graphsleuth-production.up.railway.app) |
+
 ## Layout
 | Path | Purpose |
 |---|---|
@@ -86,7 +118,8 @@ Mapped directly to the task brief's ten capability points:
 | `static_demo/` | Frozen, credential-free snapshot of the 20 cases — what's actually deployed on Railway |
 | `cases/` | The 20 benchmark answer files (graded submission) |
 | `cases_extra/` | Cases found by the autonomous monitor, beyond the 20 — Innovation, not accuracy |
-| `docs/` | Data findings, [architecture diagram](docs/architecture.svg), demo script, blog outline, eval results |
+| `docs/` | Blog post, data findings, [architecture diagram](docs/architecture.svg), demo script, eval results |
+| `demo-video/` | The 3-minute submission demo, its Hyperframes source, live screen recordings |
 | `brag-output-*/` | The short launch-teaser video, its Hyperframes source, and share copy |
 
 ## Run the analyst UI
@@ -98,6 +131,11 @@ Pick a case and press **Investigate** to watch each tool call stream in, then re
 actions with their approval routes (L1/L2 actions wait for a human: Approve / Reject — approving or an `auto` route
 fires the action via the mock action layer below), the evidence graph, the transaction timeline and the suspicious
 activity report.
+
+<p align="center">
+  <img src="docs/screenshot-ring.jpg" alt="The 28-card ring, one shared device at the centre" width="520">
+  <br><sub>The evidence graph on HHG-014: 27 connected cards around one rare, proxied device.</sub>
+</p>
 
 ## Read-only demo (Railway)
 [graphsleuth-production.up.railway.app](https://graphsleuth-production.up.railway.app) serves `static_demo/` — a
@@ -170,7 +208,9 @@ failed rewrite gets one repair round naming the missing values. Measured with th
 were reworded and accepted; the SAR rewrites were rejected (the models drop card ids), so SARs stay on the checked
 template. Known limit: the guard checks facts, not meaning, so a model can still add a mild inference (e.g. turning
 "risk scores stay low" into "chosen to keep risk scores low"). `run_cases.py --no-llm` reproduces the template-only
-answers. Keys: `GROQ_API_KEY` / `GEMINI_API_KEY` in `.env`, comma-separated to rotate several.
+answers. Keys: `GROQ_API_KEY` / `GEMINI_API_KEY` in `.env`, comma-separated to rotate several. No custom agent
+framework (LangChain / LangGraph / CrewAI) — a hand-built tool loop and a separate policy engine, per the task
+brief's explicit allowance for a custom implementation.
 
 ## Quick start
 Verified end to end from a fresh clone: `data/store/` (the DuckDB file and every trained model) is git-ignored, so a
@@ -208,7 +248,7 @@ Said plainly, because a defensible system says what it doesn't do:
   measured and dropped: billing regions in this dataset hold 90–580 active cards in a 7-day window, with 8–16 of
   them always scoring ≥0.5 by the model's ordinary false-positive rate — no threshold separates a real ring from a
   big city. Recipient email (`R_emaildomain`) isn't in the graph schema at all; adding it means a live schema
-  change and reload we chose not to risk this close to the deadline. See `docs/BLOG_OUTLINE.md` §7.10.
+  change and reload we chose not to risk this close to the deadline. See [docs/BLOG.md](docs/BLOG.md#7-what-we-learned).
 - The fact guard on LLM rewrites checks numbers/IDs, not meaning — a model can still turn an observation into a
   causal claim.
 - Simulated customer/analyst replies follow the agent's own belief (per the task's own rules — no real replies are
@@ -224,9 +264,9 @@ Said plainly, because a defensible system says what it doesn't do:
 | TigerGraph Savanna + GSQL + graph algorithms + MCP + GraphRAG | ✅ |
 | Analyst UI | ✅ `ui/index.html`, deployed read-only on Railway |
 | Optional: autonomous monitoring beyond the 20 cases | ✅ `cases_extra/` |
-| 3–5 minute demo video | ⏳ short teaser done (`brag-output-2026-09-23-005129/brag.mp4`); full walkthrough pending |
-| Technical blog post | ⏳ outline and findings drafted, not yet published |
-| Social post tagging `@TigerGraphDB` | ⏳ pending |
+| 3–5 minute demo video | ✅ [`demo-video/graphsleuth-demo.mp4`](demo-video/graphsleuth-demo.mp4) — 3:00, live TigerGraph screen recording |
+| Technical blog post | ✅ [`docs/BLOG.md`](docs/BLOG.md) |
+| Social post tagging `@TigerGraphDB` | ⏳ pending — teaser + copy ready in `brag-output-2026-09-23-005129/share-copy.txt` |
 
 ## Credits
 Dataset: IEEE-CIS Fraud Detection (Vesta Corporation, via the IEEE Computational Intelligence Society), repackaged
