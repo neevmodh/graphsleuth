@@ -36,6 +36,9 @@ authorized to act on, and writes what it learned back to the graph as case memor
 ## Contents
 - [Status](#status)
 - [Design principle](#design-principle)
+- [System architecture](#system-architecture)
+- [Investigation sequence](#investigation-sequence--one-alert-start-to-finish)
+- [Graph schema](#graph-schema)
 - [What it does](#what-it-does)
 - [Scored against the judging criteria](#scored-against-the-judging-criteria)
 - [Layout](#layout)
@@ -70,15 +73,135 @@ calibrated scorer; action names, approval routes (`auto` / `L1` / `L2`), the cas
 stop rule are enforced in code (`agent/policy.py`), so policy is never hallucinated. Only `auto`-route actions ever
 execute themselves — `L1`/`L2` actions wait for a human.
 
+## System architecture
+
 ```mermaid
-flowchart LR
-    A["Trigger<br/>risk score · report · analyst"] --> B["Tool loop<br/>17 GSQL queries"]
-    B --> C["GraphRAG<br/>TigerVector"]
-    C --> D["Policy engine<br/>R1-R10, deterministic"]
-    D --> E["Case memory<br/>FraudCase vertex"]
-    D -.auto.-> F["Mock actions<br/>executed"]
-    D -.L1 / L2.-> G["Human approval"]
+flowchart TB
+    subgraph Trigger["Trigger"]
+        T1["risk_score"] & T2["customer_report"] & T3["analyst_request"]
+    end
+
+    subgraph Agent["agent/ — orchestrator.py + investigator.py"]
+        direction TB
+        LOOP["Budgeted tool loop<br/>8-12 calls per case"]
+        FEAT["features.py + oof.py<br/>two-stage scorer"]
+        POL["policy.py<br/>R1-R10, deterministic, 30 unit tests"]
+        MOCK["mock_actions.py<br/>executes auto routes"]
+        MEM["memory.py<br/>similar_cases()"]
+        LOOP --> FEAT --> POL
+        POL -->|auto| MOCK
+        POL -->|L1 / L2| HUMAN["human approval<br/>via the UI"]
+        LOOP <--> MEM
+    end
+
+    subgraph Backend["backend.py  ⇄  tg_backend.py"]
+        GSQL["17 installed GSQL queries"]
+        ALGO["ring_component · device_hub_rank<br/>card_link (graph algorithms)"]
+    end
+
+    subgraph TG["TigerGraph Savanna"]
+        GRAPH[("Graph store<br/>2.3M edges")]
+        VEC[("TigerVector<br/>policy · typology · regulatory")]
+        MCP["TigerGraph MCP<br/>69 tools"]
+    end
+
+    LLM["llm.py<br/>Groq + Gemini, fact-guarded"]
+    RAG["graphrag.py<br/>retrieval + grounding"]
+
+    Trigger --> LOOP
+    LOOP --> GSQL --> GRAPH
+    LOOP --> ALGO --> GRAPH
+    LOOP --> RAG --> VEC
+    Backend -.GRAPHSLEUTH_TG_VIA=mcp.-> MCP --> GRAPH
+    POL --> LLM
+    RAG --> LLM
+    POL --> MEM --> GRAPH
+
+    OUT["Answer file<br/>case + SAR + next_best_actions"]
+    UI["api/main.py (FastAPI + SSE)<br/>ui/index.html"]
+    POL --> OUT --> UI
+    LOOP -.step stream.-> UI
 ```
+
+## Investigation sequence — one alert, start to finish
+
+```mermaid
+sequenceDiagram
+    participant C as case_pack.csv
+    participant O as Orchestrator
+    participant I as Investigator
+    participant TG as TigerGraph
+    participant R as GraphRAG
+    participant L as LLM (Groq/Gemini)
+    participant P as Policy engine
+    participant M as Case memory
+
+    C->>O: trigger (risk_score | customer_report | analyst_request)
+    O->>I: investigate(trig)
+    loop 8-12 tool calls, streamed to the UI
+        I->>TG: get_transaction, card_profile, card_window, ...
+        TG-->>I: evidence rows
+        I->>TG: device_neighbors / ring_component (if a ring signal fires)
+        TG-->>I: connected cards, devices
+    end
+    I->>R: retrieve(query built from the case's own signals)
+    R->>TG: TigerVector search
+    TG-->>R: grounded policy / typology / regulatory chunks
+    R-->>I: context pack (cited in evidence)
+    I->>P: Assessment(p, exposure, signals...)
+    P-->>O: initial next-best-actions (before evidence)
+    O->>O: simulate_evidence() — per the task's own rules
+    P-->>O: final next-best-actions + what_changed
+    O->>L: polish(summary, SAR) — behind the fact guard
+    L-->>O: reworded text, or the template if facts don't survive
+    O->>TG: write FraudCase vertex (case memory)
+    O-->>C: Answer (case, sar, next_best_actions, stop_reason)
+```
+
+## Graph schema
+
+```mermaid
+erDiagram
+    Customer ||--o{ Card : OWNS
+    Card ||--o{ Transaction : MADE
+    Transaction }o--|| DeviceProfile : FROM_DEVICE
+    Transaction }o--|| BillingRegion : BILLED_IN
+    Transaction }o--|| EmailDomain : PURCHASER_EMAIL
+    Transaction ||--o| Transaction : NEXT
+    ClosedCase }o--o{ Transaction : INVOLVES
+    ClosedCase }o--|| Card : ON_CARD
+    ClosedCase }o--o{ Card : CONNECTED_TO
+    Card ||--o{ FraudCase : HAS_CASE
+    FraudCase }o--o{ Transaction : CASE_TXN
+    FraudCase }o--|| DeviceProfile : CASE_DEVICE
+    FraudCase }o--o{ Card : CASE_CONNECTED
+    FraudCase }o--o{ ClosedCase : SIMILAR_TO
+
+    Transaction {
+        int tid PK
+        datetime ts
+        double amt
+        string prod
+        string channel
+        double p "calibrated fraud probability"
+    }
+    DeviceProfile {
+        string id PK
+        int n_cards
+        double new_frac
+        double proxy_frac
+    }
+    FraudCase {
+        string id PK
+        string verdict
+        double fraud_probability
+        string status
+        datetime created
+    }
+```
+
+14 vertex/edge type pairs, ~2.3M edges once loaded. `FraudCase` is the case-memory write target — every investigation
+closes the loop by adding one, so the next alert's `similar_cases()` query can find it.
 
 ## What it does
 Mapped directly to the task brief's ten capability points:
@@ -95,6 +218,33 @@ Mapped directly to the task brief's ten capability points:
 | Operate within policy/permissions; only `auto` self-executes | `agent/policy.py` (routes) + `agent/mock_actions.py` (execution) |
 | Know when to stop | `agent/policy.py::stop_reached`, `stop_reason` in every answer |
 | Explain reasoning, cite the rule | `agent/explain.py`, `evidence[].ref`, reasons cite `R1`–`R10` |
+
+### Verdict and stop logic
+
+```mermaid
+stateDiagram-v2
+    [*] --> Investigating
+    Investigating --> Legitimate: p ≤ 0.35
+    Investigating --> Uncertain: 0.35 < p < 0.65
+    Investigating --> Fraud: p ≥ 0.65
+
+    Uncertain --> EvidenceRequested: a single weak signal (R1)
+    EvidenceRequested --> Fraud: customer denies (R2)
+    EvidenceRequested --> Legitimate: customer confirms (R3)
+    EvidenceRequested --> Uncertain: no reply within 24h (R4)
+
+    Fraud --> Stopped: p ≥ 0.85 AND ≥2 independent evidence items
+    Legitimate --> Stopped: p ≤ 0.15 AND ≥2 independent evidence items
+    Uncertain --> Escalated: exposure > $500 OR evidence conflicts (R8)
+
+    Stopped --> [*]
+    Escalated --> [*]
+```
+
+The verdict band (0.35 / 0.65) decides *what the agent believes*; the stop rule (0.85 / 0.15 with ≥2 independent
+evidence items, §6 of the policy) decides *when it's allowed to stop looking*. They're deliberately separate —
+a case can be confidently `fraud` at p=0.70 and still not be "stopped" if the evidence is thin, which is exactly
+when R1 says verify before blocking.
 
 ## Scored against the judging criteria
 
@@ -144,6 +294,27 @@ credential-free deployment**: no TigerGraph secret, no LLM API key, no live-run 
 login and a public host with real credentials would be a real exposure. "Investigate" replays the actual recorded
 tool-call log client-side; nothing is sent anywhere. Regenerate the snapshot with `scripts/freeze_static.py` (needs
 live TigerGraph + LLM credentials once, locally) — see `static_demo/README.md`.
+
+```mermaid
+flowchart LR
+    subgraph Local["Local / your machine"]
+        SEC["Savanna secrets<br/>TG_HOST, TG_SECRET<br/>GROQ_API_KEY, GEMINI_API_KEY"]
+        FZ["scripts/freeze_static.py<br/>runs the real 20 cases once"]
+        SEC --> FZ
+    end
+    subgraph Rail["Railway — graphsleuth-production"]
+        SD["static_demo/<br/>python -m http.server<br/>ZERO env vars"]
+    end
+    FZ -->|"commits static_demo/data/*.json<br/>(no secrets, just results)"| SD
+    SD -->|HTTPS| U["Anyone with the link"]
+
+    style Local fill:#fff1de,stroke:#c67a1e
+    style Rail fill:#eafaf1,stroke:#1f8a4c
+```
+
+The credentials never leave your machine. What ships to the public host is the *output* of a real run, not the
+ability to trigger one — the exact opposite of the full agent, which needs the secrets to function and therefore
+never gets a public, login-free deployment.
 
 ## TigerGraph backend
 The agent talks to the graph through one interface (`agent/backend.py`). `GRAPHSLEUTH_BACKEND=tigergraph` switches it to
