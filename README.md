@@ -47,6 +47,7 @@ authorized to act on, and writes what it learned back to the graph as case memor
 - [TigerGraph backend](#tigergraph-backend)
 - [Graph algorithms](#graph-algorithms-agenttg_backendpy)
 - [Counterfactuals and uncertainty](#counterfactuals-and-uncertainty-agentcounterfactualpy)
+- [Decision gate](#decision-gate-agentdecision_gatepy)
 - [Mock action execution](#mock-action-execution-agentmock_actionspy)
 - [Autonomous monitor](#autonomous-monitor-run_monitorpy-optional)
 - [LLM layer](#llm-layer)
@@ -63,7 +64,10 @@ identical to the local backend's (0 differences over 100 field groups). GraphRAG
 chunks retrieved via TigerVector over the TigerGraph MCP server, grounding evidence, the case summary and the SAR
 narrative), agent calls route through the MCP server end to end (verified against 69 live tools), and the LLM layer
 runs on real Groq + Gemini keys. Graph algorithms (connected-component ring discovery, HITS hub ranking, card-to-card
-link paths) and counterfactual explanations with an uncertainty read-out are wired into the investigator and the UI.
+link paths), counterfactual explanations with an uncertainty read-out, and an explicit decision-gate checklist (case
+gate, corroboration count, stop threshold) are wired into the investigator and the UI. The UI itself follows
+TigerGraph's own brand system (orange/blue/yellow/red/teal tokens, IBM Plex typography, sharp edges, light theme by
+default) across both the local console and the read-only demo.
 **84 tests pass** (`pytest tests -q`, excluding the live-TigerGraph suite which needs `TG_HOST`). Held-out results:
 [docs/eval_results.md](docs/eval_results.md).
 
@@ -252,7 +256,7 @@ when R1 says verify before blocking.
 |---|---|---|
 | **Investigation accuracy** | 25% | 20/20 answer files schema-valid, every ID real; held-out verdict accuracy 0.91–0.93, median exposure error $0.00 ([eval](docs/eval_results.md)) |
 | **Next-best-action** | 25% | Full `auto`/`L1`/`L2` approval routing, initial-vs-final with `what_changed`, R1–R10 enforced in code, not prompted |
-| **Case summary & explainability** | 10% | Every evidence item cites a graph query or document; every action cites its rule number; standalone SAR narrative |
+| **Case summary & explainability** | 10% | Every evidence item cites a graph query or document; every action cites its rule number; standalone SAR narrative; explicit decision-gate checklist (case gate, corroboration, stop threshold) |
 | **Agentic design & engineering** | 15% | Budgeted tool loop, deterministic policy engine, case memory loop closed via `FraudCase` writes, mock action execution on approval |
 | **Innovation** | 15% | Connected-component ring discovery + HITS hub ranking as graph-algorithm tools; counterfactual/uncertainty explanations; autonomous monitor beyond the 20 cases; R6 measured and scoped rather than over-claimed |
 | **Demo quality** | 10% | [3-minute walkthrough](demo-video/graphsleuth-demo.mp4) with live TigerGraph screen recording, [live read-only deployment](https://graphsleuth-production.up.railway.app) |
@@ -262,7 +266,7 @@ when R1 says verify before blocking.
 |---|---|
 | `data/` | Local DuckDB feature store and the TigerGraph REST loaders |
 | `graph/` | GSQL schema and installed queries |
-| `agent/` | Orchestrator, tools, scorer, policy engine, memory, mock actions, SAR writer, answer schema |
+| `agent/` | Orchestrator, tools, scorer, policy engine, memory, mock actions, decision gate, SAR writer, answer schema |
 | `eval/` | Dev-set replay on closed cases and answer validation |
 | `api/`, `ui/` | FastAPI + SSE backend and a single-file vanilla-JS investigator UI |
 | `static_demo/` | Frozen, credential-free snapshot of the 20 cases — what's actually deployed on Railway |
@@ -355,6 +359,14 @@ For a case that fired the ring/testing/structuring/customer-report/recurring adj
 /api/cases/{id}/counterfactuals` replays the same deterministic probability formula with one signal flipped off,
 reporting whether that would cross a policy threshold — plus how far the case sits from the nearest one. Shown in the UI
 under the fraud-probability gauge after each live investigation.
+
+### Decision gate (`agent/decision_gate.py`)
+The stop rule, corroboration count and case-opening gate already live inside `agent/policy.py` — this module makes
+them legible instead of leaving them implicit in `stop_reason` prose. `GET /api/cases/{id}/decision_gate` returns an
+explicit pass/fail checklist (case gate, independent-evidence corroboration ≥2, belief-conflict check, stop
+threshold) computed straight from the investigation's own `Assessment`: no new detection logic, no change to any
+verdict or action, and the 20 graded answer files are byte-identical with or without it. Shown as a "Decision gate"
+card in both the live UI and the read-only demo.
 
 ### Mock action execution (`agent/mock_actions.py`)
 The task brief allows blocking a card, filing a report, or messaging a customer to be "simulated, stubbed, or
